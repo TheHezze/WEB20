@@ -902,6 +902,7 @@ button {
   }
 
   #logo {
+    object-fit: scale-down;
     padding: 0px;
     margin: auto;
     z-index: auto;
