@@ -901,9 +901,10 @@ button {
   z-index: 1;
   }
 
-  #logo {
-    object-fit: scale-down;
-    padding: 0px;
-    margin: auto;
+  .responsive {
+    max-width: 100%;
+    height: auto;
+    margin: 0px, auto;
+    padding-top: 0px;
     z-index: auto;
   }
