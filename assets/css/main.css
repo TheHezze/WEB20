@@ -903,6 +903,6 @@ button {
 
   #logo {
     padding: 0px;
-    margin: 0px;
+    margin: auto;
     z-index: auto;
   }
