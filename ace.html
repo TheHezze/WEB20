@@ -1,0 +1,1614 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>ACE Driving School</title>
+
+  <meta name="author" content="ACE Driving School">
+  <meta name="description" content="Driver Education Windsor Ontario, MTO-Approved Driver's Ed, Driving Schools Windsor Ontario, Driving School Windsor Ontario, MTO-Approved Driving School, driver education La Salle, driving school La salle, driver education Tecumseh, driving school tecumseh">
+  <meta name="keywords" content="Driver Education Course Windsor Ontario, ACE Driving School, Approved Course, Windsor Driving School, Defensive Driving, MTO Approved, Driver's Ed, Drivers Ed, Driver Ed, Windsor Ontario, Ontario, Windsor, LaSalle, Tecumseh, Driving School Windsor, Mini">
+  <meta name="analytics" content="UA-184103271-1">
+
+  <!-- Favicons -->
+  <link href="assets/img/favicon.png" rel="icon">
+  <link href="assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+
+  <!-- Google Fonts (Includes Open Sans, Montserrat, and Dancing Script for the Sale Label) -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Montserrat:300,400,500,700|Dancing+Script:400,700&display=swap" rel="stylesheet">
+
+  <!-- Icon Fonts (CDN fallback + local fallback so icons always render) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet">
+  <link href="assets/vendor/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+  <link href="assets/vendor/ionicons/css/ionicons.min.css" rel="stylesheet">
+
+  <style>
+    /*--------------------------------------------------------------
+    # Vanilla Layout, Grid & Modal Utilities (Replaces Bootstrap)
+    --------------------------------------------------------------*/
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html {
+      font-family: sans-serif;
+      line-height: 1.15;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: #fff;
+      color: #444;
+      font-family: "Open Sans", sans-serif;
+      font-size: 1rem;
+      font-weight: 400;
+      line-height: 1.5;
+      text-align: left;
+    }
+
+    article, aside, figcaption, figure, footer, header, hgroup, main, nav, section {
+      display: block;
+    }
+
+    button {
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      margin: 0;
+      overflow: visible;
+      text-transform: none;
+      cursor: pointer;
+    }
+
+    .img-fluid {
+      max-width: 100%;
+      height: auto;
+    }
+
+    .float-left {
+      float: left !important;
+    }
+
+    .float-right {
+      float: right !important;
+    }
+
+    .clearfix::after {
+      display: block;
+      clear: both;
+      content: "";
+    }
+
+    .text-center {
+      text-align: center !important;
+    }
+
+    .text-primary {
+      color: #007bff !important;
+    }
+
+    .d-none {
+      display: none !important;
+    }
+
+    .fixed-top {
+      position: fixed;
+      top: 0;
+      right: 0;
+      left: 0;
+      z-index: 1030;
+    }
+
+    .mb-4 {
+      margin-bottom: 1.5rem !important;
+    }
+
+    .container,
+    .container-fluid {
+      width: 100%;
+      padding-right: 15px;
+      padding-left: 15px;
+      margin-right: auto;
+      margin-left: auto;
+    }
+
+    @media (min-width: 576px) {
+      .container { max-width: 540px; }
+    }
+    @media (min-width: 768px) {
+      .container { max-width: 720px; }
+    }
+    @media (min-width: 992px) {
+      .container { max-width: 960px; }
+      .d-lg-block { display: block !important; }
+      .d-lg-none { display: none !important; }
+      .mb-lg-0 { margin-bottom: 0 !important; }
+    }
+    @media (min-width: 1200px) {
+      .container { max-width: 1140px; }
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      margin-right: -15px;
+      margin-left: -15px;
+    }
+
+    .justify-content-center {
+      justify-content: center !important;
+    }
+
+    .col-6, .col-md-3, .col-md-4, .col-md-5, .col-md-6,
+    .col-lg-3, .col-lg-4, .col-lg-5, .col-lg-6 {
+      position: relative;
+      width: 100%;
+      padding-right: 15px;
+      padding-left: 15px;
+    }
+
+    .col-6 {
+      flex: 0 0 50%;
+      max-width: 50%;
+    }
+
+    @media (min-width: 768px) {
+      .col-md-3 { flex: 0 0 25%; max-width: 25%; }
+      .col-md-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+      .col-md-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+      .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+    }
+
+    @media (min-width: 992px) {
+      .col-lg-3 { flex: 0 0 25%; max-width: 25%; }
+      .col-lg-4 { flex: 0 0 33.333333%; max-width: 33.333333%; }
+      .col-lg-5 { flex: 0 0 41.666667%; max-width: 41.666667%; }
+      .col-lg-6 { flex: 0 0 50%; max-width: 50%; }
+      .offset-lg-1 { margin-left: 8.333333%; }
+    }
+
+    /* Card Component */
+    .card {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      word-wrap: break-word;
+      background-clip: border-box;
+      border: 1px solid rgba(0, 0, 0, 0.125);
+      border-radius: 0.25rem;
+    }
+
+    .card-body {
+      flex: 1 1 auto;
+      min-height: 1px;
+      padding: 1.25rem;
+    }
+
+    .card-title {
+      margin-bottom: 0.75rem;
+    }
+
+    .card-text:last-child {
+      margin-bottom: 0;
+    }
+
+    /* Vanilla Modal Styles */
+    .modal-open {
+      overflow: hidden;
+    }
+
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 1050;
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+      outline: 0;
+      background: rgba(0, 0, 0, 0.5);
+    }
+
+    .modal.show {
+      display: block;
+    }
+
+    .modal-dialog {
+      position: relative;
+      width: auto;
+      margin: 0.5rem;
+      pointer-events: none;
+    }
+
+    .modal-dialog-centered {
+      display: flex;
+      align-items: center;
+      min-height: calc(100% - 1rem);
+    }
+
+    @media (min-width: 576px) {
+      .modal-dialog {
+        max-width: 500px;
+        margin: 1.75rem auto;
+      }
+      .modal-dialog-centered {
+        min-height: calc(100% - 3.5rem);
+      }
+    }
+
+    .modal-content {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      width: 100%;
+      pointer-events: auto;
+      background-color: #fff;
+      background-clip: padding-box;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      border-radius: 0.3rem;
+      outline: 0;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      padding: 1rem 1rem;
+      border-bottom: 1px solid #dee2e6;
+      border-top-left-radius: calc(0.3rem - 1px);
+      border-top-right-radius: calc(0.3rem - 1px);
+    }
+
+    .modal-title {
+      margin-bottom: 0;
+      line-height: 1.5;
+      font-size: 1.25rem;
+    }
+
+    .modal-body {
+      position: relative;
+      flex: 1 1 auto;
+      padding: 1rem;
+    }
+
+    .modal-footer {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      padding: 0.75rem;
+      border-top: 1px solid #dee2e6;
+      border-bottom-right-radius: calc(0.3rem - 1px);
+      border-bottom-left-radius: calc(0.3rem - 1px);
+    }
+
+    .close {
+      float: right;
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1;
+      color: #000;
+      text-shadow: 0 1px 0 #fff;
+      opacity: 0.5;
+      padding: 1rem 1rem;
+      margin: -1rem -1rem -1rem auto;
+      background-color: transparent;
+      border: 0;
+    }
+
+    .close:hover {
+      opacity: 0.75;
+    }
+
+    .btn {
+      display: inline-block;
+      font-weight: 400;
+      color: #212529;
+      text-align: center;
+      vertical-align: middle;
+      user-select: none;
+      background-color: transparent;
+      border: 1px solid transparent;
+      padding: 0.375rem 0.75rem;
+      font-size: 1rem;
+      line-height: 1.5;
+      border-radius: 0.25rem;
+      transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out;
+    }
+
+    .btn-secondary {
+      color: #fff;
+      background-color: #6c757d;
+      border-color: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background-color: #5a6268;
+      border-color: #545b62;
+    }
+
+    /*--------------------------------------------------------------
+    # Original Template CSS (style.css)
+    --------------------------------------------------------------*/
+    a {
+      color: #007bff;
+      transition: 0.5s;
+      text-decoration: none;
+    }
+
+    a:hover, a:active, a:focus {
+      color: #0b6bd3;
+      outline: none;
+      text-decoration: none;
+    }
+
+    p {
+      padding: 0;
+      margin: 0 0 30px 0;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: "Montserrat", sans-serif;
+      font-weight: 400;
+      margin: 0 0 20px 0;
+      padding: 0;
+    }
+
+    /* Back to top button */
+    .back-to-top {
+      position: fixed;
+      display: none;
+      background: #007bff;
+      color: #fff;
+      width: 44px;
+      height: 44px;
+      text-align: center;
+      line-height: 1;
+      font-size: 16px;
+      border-radius: 50%;
+      right: 15px;
+      bottom: 15px;
+      transition: background 0.5s;
+      z-index: 11;
+    }
+
+    .back-to-top i {
+      padding-top: 12px;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .back-to-top {
+        bottom: 15px;
+      }
+    }
+
+    /*--------------------------------------------------------------
+    # Header
+    --------------------------------------------------------------*/
+    #header {
+      height: 80px;
+      transition: all 0.5s;
+      z-index: 997;
+      padding: 20px 0;
+      background: #fff;
+      box-shadow: 0px 0px 30px rgba(127, 137, 161, 0.3);
+    }
+
+    #header.header-scrolled, #header.header-pages {
+      height: 60px;
+      padding: 10px 0;
+    }
+
+    @media (max-width: 991px) {
+      #header {
+        height: 60px;
+        padding: 10px 0;
+      }
+    }
+
+    #header .logo h1 {
+      font-size: 36px;
+      margin: 0;
+      padding: 0;
+      line-height: 1;
+      font-weight: 400;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    @media (max-width: 991px) {
+      #header .logo h1 {
+        font-size: 28px;
+        padding: 8px 0;
+      }
+    }
+
+    #header .logo h1 a, #header .logo h1 a:hover {
+      color: #00366f;
+      text-decoration: none;
+    }
+
+    #header .logo img {
+      padding: 0;
+      margin: 7px 0;
+      max-height: 44px;
+    }
+
+    /*--------------------------------------------------------------
+    # Navigation Menu
+    --------------------------------------------------------------*/
+    .main-nav, .main-nav * {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .main-nav > ul > li {
+      position: relative;
+      white-space: nowrap;
+      float: left;
+    }
+
+    .main-nav a {
+      display: block;
+      position: relative;
+      color: #004289;
+      padding: 10px 15px;
+      transition: 0.3s;
+      font-size: 14px;
+      font-family: "Montserrat", sans-serif;
+      font-weight: 500;
+    }
+
+    .main-nav a:hover, .main-nav .active > a, .main-nav li:hover > a {
+      color: #007bff;
+      text-decoration: none;
+    }
+
+    /* Mobile Navigation */
+    .mobile-nav {
+      position: fixed;
+      top: 0;
+      bottom: 0;
+      z-index: 9999;
+      overflow-y: auto;
+      left: -260px;
+      width: 260px;
+      padding-top: 18px;
+      background: rgba(19, 39, 57, 0.8);
+      transition: 0.4s;
+    }
+
+    .mobile-nav * {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .mobile-nav a {
+      display: block;
+      position: relative;
+      color: #fff;
+      padding: 10px 20px;
+      font-weight: 500;
+    }
+
+    .mobile-nav a:hover, .mobile-nav .active > a, .mobile-nav li:hover > a {
+      color: #74b5fc;
+      text-decoration: none;
+    }
+
+    .mobile-nav-toggle {
+      position: fixed;
+      right: 0;
+      top: 0;
+      z-index: 9998;
+      border: 0;
+      background: none;
+      font-size: 24px;
+      transition: all 0.4s;
+      outline: none !important;
+      line-height: 1;
+      cursor: pointer;
+      text-align: right;
+    }
+
+    .mobile-nav-toggle i {
+      margin: 18px 18px 0 0;
+      color: #004289;
+    }
+
+    .mobile-nav-overly {
+      width: 100%;
+      height: 100%;
+      z-index: 9997;
+      top: 0;
+      left: 0;
+      position: fixed;
+      background: rgba(19, 39, 57, 0.8);
+      overflow: hidden;
+      display: none;
+    }
+
+    .mobile-nav-active {
+      overflow: hidden;
+    }
+
+    .mobile-nav-active .mobile-nav {
+      left: 0;
+    }
+
+    .mobile-nav-active .mobile-nav-toggle i {
+      color: #fff;
+    }
+
+    /*--------------------------------------------------------------
+    # Intro Section
+    --------------------------------------------------------------*/
+    #intro {
+      width: 100%;
+      position: relative;
+      background: #1545B3 url("assets/img/intro-bg.png") center bottom no-repeat;
+      background-size: cover;
+      padding: 200px 0 120px 0;
+    }
+
+    @media (max-width: 991px) {
+      #intro {
+        padding: 140px 0 60px 0;
+      }
+    }
+
+    @media (max-width: 574px) {
+      #intro {
+        padding: 100px 0 20px 0;
+      }
+    }
+
+    #intro .intro-img {
+      width: 50%;
+      float: right;
+    }
+
+    @media (max-width: 991px) {
+      #intro .intro-img {
+        width: 80%;
+        float: none;
+        margin: 0 auto 25px auto;
+      }
+    }
+
+    #intro .intro-info {
+      width: 50%;
+      float: left;
+    }
+
+    @media (max-width: 991px) {
+      #intro .intro-info {
+        width: 80%;
+        float: none;
+        margin: auto;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 767px) {
+      #intro .intro-info {
+        width: 100%;
+      }
+    }
+
+    #intro .intro-info h2 {
+      color: #fff;
+      margin-bottom: 40px;
+      font-size: 48px;
+      font-weight: 700;
+    }
+
+    #intro .intro-info h2 span {
+      color: #74b5fc;
+      text-decoration: none;
+    }
+
+    @media (max-width: 767px) {
+      #intro .intro-info h2 {
+        font-size: 34px;
+        margin-bottom: 30px;
+      }
+    }
+
+    #intro .intro-info .btn-get-started, #intro .intro-info .btn-services {
+      font-family: "Montserrat", sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      display: inline-block;
+      padding: 10px 32px;
+      border-radius: 50px;
+      transition: 0.5s;
+      margin: 0 20px 20px 0;
+      color: #fff;
+    }
+
+    #intro .intro-info .btn-get-started {
+      background: #007bff;
+      border: 2px solid #007bff;
+      color: #fff;
+    }
+
+    #intro .intro-info .btn-get-started:hover {
+      background: none;
+      border-color: #fff;
+      color: #fff;
+    }
+
+    #intro .intro-info .btn-services {
+      background: none;
+      border: 2px solid #fff;
+    }
+
+    #intro .intro-info .btn-services:hover {
+      background: #007bff;
+      border-color: #007bff;
+      color: #fff;
+    }
+
+    /*--------------------------------------------------------------
+    # Sections
+    --------------------------------------------------------------*/
+    .section-header h3 {
+      font-size: 36px;
+      color: #283d50;
+      text-align: center;
+      font-weight: 500;
+      position: relative;
+    }
+
+    .section-header p {
+      text-align: center;
+      margin: auto;
+      font-size: 15px;
+      padding-bottom: 60px;
+      color: #556877;
+      width: 50%;
+    }
+
+    @media (max-width: 767px) {
+      .section-header p {
+        width: 100%;
+      }
+    }
+
+    .section-bg {
+      background: #ecf5ff;
+    }
+
+    /* Services Section */
+    #services {
+      padding: 60px 0 40px 0;
+      box-shadow: inset 0px 0px 12px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    #services .box {
+      padding: 30px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 10px;
+      margin: 0 10px 40px 10px;
+      background: #fff;
+      box-shadow: 0 10px 29px 0 rgba(68, 88, 144, 0.1);
+      transition: all 0.3s ease-in-out;
+    }
+
+    #services .box:hover {
+      transform: translateY(-5px);
+    }
+
+    #services .icon {
+      position: absolute;
+      left: -10px;
+      top: calc(50% - 32px);
+    }
+
+    #services .icon i {
+      font-size: 64px;
+      line-height: 1;
+      transition: 0.5s;
+    }
+
+    #services .title {
+      margin-left: 40px;
+      font-weight: 700;
+      margin-bottom: 15px;
+      font-size: 18px;
+    }
+
+    #services .title p {
+      margin-bottom: 0;
+      color: #111;
+    }
+
+    #services .description {
+      font-size: 14px;
+      margin-left: 40px;
+      line-height: 24px;
+      margin-bottom: 0;
+    }
+
+    /* Why Us Section */
+    #why-us {
+      padding: 60px 0;
+      background: #1545B3;
+    }
+
+    #why-us .section-header h3, #why-us .section-header p {
+      color: #fff;
+    }
+
+    #why-us .card {
+      background: #184ecd;
+      border-color: #184ecd;
+      border-radius: 10px;
+      margin: 0 15px;
+      padding: 15px 0;
+      text-align: center;
+      color: #fff;
+      transition: 0.3s ease-in-out;
+      height: 100%;
+    }
+
+    @media (max-width: 991px) {
+      #why-us .card {
+        margin: 0;
+      }
+    }
+
+    #why-us .card:hover {
+      background: #003b7a;
+      border-color: #003b7a;
+    }
+
+    #why-us .card i {
+      font-size: 48px;
+      padding-top: 15px;
+      color: #bfddfe;
+    }
+
+    #why-us .card h5 {
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    #why-us .card p {
+      font-size: 15px;
+      color: #d8eafe;
+    }
+
+    #why-us .counters {
+      padding-top: 40px;
+    }
+
+    #why-us .counters span {
+      font-family: "Montserrat", sans-serif;
+      font-weight: bold;
+      font-size: 48px;
+      display: block;
+      color: #fff;
+    }
+
+    #why-us .counters p {
+      padding: 0;
+      margin: 0 0 20px 0;
+      font-family: "Montserrat", sans-serif;
+      font-size: 14px;
+      color: #cce5ff;
+    }
+
+    /* Contact Section */
+    #contact {
+      box-shadow: 0px 0px 12px 0px rgba(0, 0, 0, 0.1);
+      padding: 60px 0;
+      overflow: hidden;
+    }
+
+    #contact .section-header {
+      padding-bottom: 30px;
+    }
+
+    #contact .info {
+      color: #283d50;
+    }
+
+    #contact .info i {
+      font-size: 32px;
+      color: #007bff;
+      float: left;
+      line-height: 1;
+    }
+
+    #contact .info p {
+      padding: 0 0 10px 36px;
+      line-height: 28px;
+      font-size: 14px;
+    }
+
+    /*--------------------------------------------------------------
+    # Footer
+    --------------------------------------------------------------*/
+    #footer {
+      background: #184ecd;
+      padding: 0 0 30px 0;
+      color: #eee;
+      font-size: 14px;
+    }
+
+    #footer .footer-top {
+      background: #1545B3;
+      padding: 60px 0 30px 0;
+    }
+
+    #footer .footer-top .footer-info {
+      margin-bottom: 30px;
+    }
+
+    #footer .footer-top .footer-info h3 {
+      font-size: 34px;
+      margin: 0 0 20px 0;
+      padding: 2px 0 2px 0;
+      line-height: 1;
+      font-family: "Montserrat", sans-serif;
+      color: #fff;
+      font-weight: 400;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    #footer .footer-top .footer-info p {
+      font-size: 13px;
+      line-height: 24px;
+      margin-bottom: 0;
+      font-family: "Montserrat", sans-serif;
+      color: #ecf5ff;
+    }
+
+    #footer .footer-top h4 {
+      font-size: 14px;
+      font-weight: bold;
+      color: #fff;
+      text-transform: uppercase;
+      position: relative;
+      padding-bottom: 10px;
+    }
+
+    #footer .footer-top .footer-links {
+      margin-bottom: 30px;
+    }
+
+    #footer .footer-top .footer-links ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #footer .footer-top .footer-links ul li {
+      padding: 8px 0;
+    }
+
+    #footer .footer-top .footer-links ul li:first-child {
+      padding-top: 0;
+    }
+
+    #footer .footer-top .footer-links ul a {
+      color: #ecf5ff;
+    }
+
+    #footer .footer-top .footer-links ul a:hover {
+      color: #74b5fc;
+    }
+
+    #footer .footer-top .footer-contact {
+      margin-bottom: 30px;
+    }
+
+    #footer .footer-top .footer-contact p {
+      line-height: 26px;
+    }
+
+    #footer .copyright {
+      text-align: center;
+      padding-top: 30px;
+    }
+
+    /*--------------------------------------------------------------
+    # Price Banner & Customizations (From Original style.css)
+    --------------------------------------------------------------*/
+    a:visited {
+      color: #666;
+    }
+
+    #exampleModalCenter .modal-header h3 {
+      font-size: 32px;
+      margin: 0 0 10px 0;
+      padding: 0;
+      line-height: 1;
+      font-family: "Montserrat", sans-serif;
+      font-weight: 300;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #007bff;
+    }
+
+    .intro-img {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .price-container {
+      position: relative;
+      display: inline-block;
+      text-align: center;
+      width: 300px;
+    }
+
+    .price-text {
+      position: relative;
+    }
+
+    .regular-price {
+      color: white;
+      text-decoration: line-through;
+      font-size: 20px;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .sale-label {
+      font-size: 20px;
+      color: yellow;
+      position: absolute;
+      left: -10px;
+      top: 30%;
+      transform: translateY(-50%) rotate(-45deg);
+      transform-origin: bottom left;
+      font-family: 'Dancing Script', cursive;
+    }
+
+    .sale-price {
+      color: red;
+      font-size: 50px;
+      font-weight: bold;
+      display: inline-block;
+      margin-top: 10px;
+      margin-left: 25px;
+    }
+
+    .hst {
+      font-size: 20px;
+      color: yellow;
+      display: inline-block;
+      margin-left: 0px;
+      vertical-align: middle;
+    }
+
+    .validity {
+      color: white;
+      font-size: 20px;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .in-class {
+      color: rgb(61, 171, 61);
+      font-size: 25px;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .course-name {
+      color: white;
+      font-size: 20px;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .additional-info {
+      color: yellow;
+      font-size: 18px;
+      display: block;
+      margin-top: 10px;
+    }
+
+    #regular-price, #sale-label, #sale-price, #hst, #validity, #in-class, #course-name, #additional-info1, #additional-info2 {
+      display: inline-block;
+      opacity: 1;
+      visibility: visible;
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="fixed-top">
+    <div class="container">
+
+      <div class="logo float-left">
+        <a href="#intro" class="scrollto"><img src="assets/img/acelogo.png" alt="ACE Driving School" class="img-fluid"></a>
+      </div>
+
+      <nav class="main-nav float-right d-none d-lg-block">
+        <ul>
+          <li><a href="#" data-toggle="modal" data-target="#exampleModalCenter2">Pricing</a></li>
+          <li><a href="#contact">Contact Us</a></li>
+          <li><a href="https://aceweblearning.com">Online Course Access</a></li>
+          <li><a href="studentresources.html">Student Resources</a></li>
+        </ul>
+      </nav><!-- .main-nav -->
+
+    </div>
+  </header><!-- #header -->
+
+  <!-- ======= Intro Section ======= -->
+  <section id="intro" class="clearfix">
+    <div class="container">
+
+      <div class="intro-img">
+        <div class="price-container">
+          <div class="price-text">
+            <span class="regular-price" id="regular-price"></span>  <!-- Regular Price -->
+            <span class="sale-label" id="sale-label"></span>  <!-- Sale Label -->
+            <span class="sale-price" id="sale-price"></span>  <!-- Sale Price -->
+            <span class="hst" id="hst"></span>  <!-- HST -->
+            <span class="validity" id="validity"></span>  <!-- Validity -->
+            <span class="in-class" id="in-class"></span>  <!-- In-Class Price -->
+            <span class="course-name" id="course-name"></span>  <!-- Course Name -->
+            <span class="additional-info" id="additional-info1"></span>  <!-- Additional Info 1 -->
+            <span class="additional-info" id="additional-info2"></span>  <!-- Additional Info 2 -->
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-info">
+        <h2>For<br><span>Safe</span><br>Driving</h2>
+        <div>
+          <button type="button" class="btn-get-started scrollto" data-toggle="modal" data-target="#exampleModalCenter">
+            Register Now</button>
+          <button type="button" class="btn-services scrollto" data-toggle="modal" data-target="#exampleModalCenter">
+            Course Schedule</button>
+        </div>
+      </div>
+
+    </div>
+  </section><!-- End Intro Section -->
+
+  <main id="main">
+
+    <!-- ======= Modal Section ======= -->
+
+    <!-- Modal 1 -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <div class="section-header">
+              <h3>Register Early Classes fill Up!</h3>
+            </div>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="cognito">
+              <script src="https://www.cognitoforms.com/s/i8ya9E4UaUiJYxDFhQBBsA"></script>
+              <script>if (typeof Cognito !== 'undefined') { Cognito.load("forms", { id: "45" }); }</script>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ======= End of Modal 1 Section ======= -->
+
+    <!-- Modal 2 -->
+    <div class="modal fade" id="exampleModalCenter2" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalCenterTitle">Pricing</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">×</span>
+            </button>
+          </div>
+          <div class="modal-body">
+            <div class="intro-img">
+              <img src="assets/img/acepricebanner.jpg" alt="" class="img-fluid">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- ======= End of Modal 2 Section ======= -->
+
+    <!-- ======= Services Section ======= -->
+    <section id="services" class="section-bg">
+      <div class="container">
+
+        <header class="section-header">
+          <h3>Services</h3>
+          <p>Serving Windsor-Lasalle-Tecumseh-Belle River-Amherstburg.<br>We are commited to staying ahead of the rest by providing the best learning experience.</p>
+        </header>
+
+        <div class="row">
+
+          <div class="col-md-6 col-lg-5 offset-lg-1 wow bounceInUp" data-wow-duration="1.4s">
+            <div class="box">
+              <div class="icon"><i class="ion-ios-analytics-outline" style="color: #ff689b;"></i></div>
+              <h4 class="title"><p>Free Pickup &amp; Dropoff</p></h4>
+              <p class="description">Within citiy limits for your in-car training hours</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-5 wow bounceInUp" data-wow-duration="1.4s">
+            <div class="box">
+              <div class="icon"><i class="ion-ios-bookmarks-outline" style="color: #e9bf06;"></i></div>
+              <h4 class="title"><p>MTO Certification</p></h4>
+              <p class="description">Get certified after completing the BDE course</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-5 offset-lg-1 wow bounceInUp" data-wow-delay="0.1s" data-wow-duration="1.4s">
+            <div class="box">
+              <div class="icon"><i class="ion-ios-paper-outline" style="color: #3fcdc7;"></i></div>
+              <h4 class="title"><p>Friendly Instructors</p></h4>
+              <p class="description">Delivering the best learning experince</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-5 wow bounceInUp" data-wow-delay="0.1s" data-wow-duration="1.4s">
+            <div class="box">
+              <div class="icon"><i class="ion-ios-speedometer-outline" style="color:#41cf2e;"></i></div>
+              <h4 class="title"><p>Safe School Vehicles</p></h4>
+              <p class="description">Use our school vehicles for your road test</p>
+            </div>
+          </div>
+
+          <div class="col-md-6 col-lg-5 offset-lg-1 wow bounceInUp" data-wow-delay="0.2s" data-wow-duration="1.4s">
+            <div class="box">
+              <div class="icon"><i class="ion-ios-world-outline" style="color: #d6ff22;"></i></div>
+              <h4 class="title"><p>Online Classes</p></h4>
+              <p class="description">Learn online using our virtual classrooms</p>
+            </div>
+          </div>
+          <div class="col-md-6 col-lg-5 wow bounceInUp" data-wow-delay="0.2s" data-wow-duration="1.4s">
+            <div class="box">
+              <div class="icon"><i class="ion-ios-clock-outline" style="color: #4680ff;"></i></div>
+              <h4 class="title"><p>In-car Training</p></h4>
+              <p class="description">Hourly training with qualified instructors</p>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Services Section -->
+
+    <!-- ======= Why Us Section ======= -->
+    <section id="why-us" class="wow fadeIn">
+      <div class="container">
+        <header class="section-header">
+          <h3>Beginner Driver's Education Course</h3>
+          <p>Industry leading lesson plans developed by local instructors.</p>
+        </header>
+
+        <div class="row row-eq-height justify-content-center">
+
+          <div class="col-lg-4 mb-4">
+            <div class="card wow bounceInUp">
+              <i class="fa fa-check-square-o"></i>
+              <div class="card-body">
+                <h5 class="card-title">Classroom Driving Instruction</h5>
+                <p class="card-text">Maximum of 5 hours/day of classroom driving instruction as required by the MTO.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 mb-4">
+            <div class="card wow bounceInUp">
+              <i class="fa fa-car"></i>
+              <div class="card-body">
+                <h5 class="card-title">In-Vehicle Instruction</h5>
+                <p class="card-text">One-on-one In-car training scheduled with a Certified Driving Instructor.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4 mb-4">
+            <div class="card wow bounceInUp">
+              <i class="fa fa-graduation-cap"></i>
+              <div class="card-body">
+                <h5 class="card-title">Get Certified!</h5>
+                <p class="card-text">After completeion recieve your certification recognized by the auto insurance industry.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="row counters">
+
+          <div class="col-lg-3 col-6 text-center">
+            <span data-toggle="counter-up">20</span>
+            <p>Hours<br>In Classroom</p>
+          </div>
+
+          <div class="col-lg-3 col-6 text-center">
+            <span data-toggle="counter-up">10</span>
+            <p>Hours<br>In-Car Training</p>
+          </div>
+
+          <div class="col-lg-3 col-6 text-center">
+            <span data-toggle="counter-up">10</span>
+            <p>Hours<br>Flexable Allocation</p>
+          </div>
+
+          <div class="col-lg-3 col-6 text-center">
+            <span data-toggle="counter-up">40</span>
+            <p>Hours<br>Total for Certification</p>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Why Us Section -->
+
+    <!-- ======= Contact Section ======= -->
+    <section id="contact">
+      <div class="container-fluid">
+
+        <div class="section-header">
+          <h3>Contact Us</h3>
+        </div>
+
+        <div class="row wow fadeInUp">
+
+          <div class="col-lg-6">
+            <div class="map mb-4 mb-lg-0">
+              <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2951.1119750899734!2d-83.02376598454566!3d42.29747607919125!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x883b2c58e73d6b87%3A0x2319abbf5e79a528!2s278%20Tecumseh%20Rd%20E%2C%20Windsor%2C%20ON%20N8X%202R3!5e0!3m2!1sen!2sca!4v1587503364290!5m2!1sen!2sca" frameborder="0" style="border:0; width: 100%; height: 312px;" allowfullscreen></iframe>
+            </div>
+          </div>
+
+          <div class="col-lg-6">
+            <div class="row">
+              <div class="col-md-5 info">
+                <i class="ion-ios-location-outline"></i>
+                <p>278 Tecumseh Rd E, Windsor, Ontario N8X 2R2, Canada</p>
+              </div>
+              <div class="col-md-4 info">
+                <i class="ion-ios-email-outline"></i>
+                <p>info@acedrivingschool.ca</p>
+              </div>
+              <div class="col-md-3 info">
+                <i class="ion-ios-telephone-outline"></i>
+                <p>+1 519 946 3393</p>
+              </div>
+            </div>
+
+            <div class="form">
+              <div class="text-center text-primary">
+                <h3>Send Us A Message</h3>
+              </div>
+              <iframe src="https://www.cognitoforms.com/f/i8ya9E4UaUiJYxDFhQBBsA?id=11" style="position:relative;width:1px;min-width:100%;*width:100%;" frameborder="0" scrolling="yes" seamless="seamless" height="512" width="100%"></iframe>
+              <script src="https://www.cognitoforms.com/scripts/embed.js"></script>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section><!-- End Contact Section -->
+
+  </main><!-- End #main -->
+
+  <!-- ======= Footer ======= -->
+  <footer id="footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row">
+
+          <div class="col-lg-4 col-md-4 footer-info">
+            <h3>Local Leader</h3>
+            <p>Our BDE curriculum meets all MTO Standards,
+addresses local traffic safety issues and prepares our graduates to pass
+the road-tests.  Unlike other driving schools, we have no curriculum royalty
+or corporate fees to pay.  Those cost savings are being passed on to
+our students in the form of reduced course fees.</p>
+          </div>
+
+          <div class="col-lg-4 col-md-4 footer-links">
+            <h4>Page Links</h4>
+            <ul>
+              <li><a href="#intro">Home</a></li>
+              <li><a href="studentresources.html">Student Resources</a></li>
+              <li><a href="#">Terms of Service</a></li>
+              <li><a href="privacypolicy.html">Privacy Policy</a></li>
+              <li><a href="careers.html">Careers</a></li>
+            </ul>
+          </div>
+
+          <div class="col-lg-4 col-md-4 footer-contact">
+            <h4>Contact</h4>
+            <p>
+              278 Tecumseh Rd E <br>
+              Windsor, Ontario N8X 2R2 <br>
+              Canada <br>
+              <strong>Phone:</strong> +1 519 946 3393<br>
+              <strong>Email:</strong> info@acedrivingschool.ca<br>
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="copyright">
+        &copy; Copyright <strong>ACE Driving School 2021</strong>.
+      </div>
+    </div>
+  </footer><!-- End Footer -->
+
+  <a href="#" class="back-to-top"><i class="fa fa-chevron-up"></i></a>
+
+  <!-- ======= Main Vanilla JS ======= -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      "use strict";
+
+      // 1. Google Sheets CSV Fetch & Parse Logic (For the Intro Price Banner)
+      async function fetchCSVData() {
+        try {
+          const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTGFypKKaBXxRgUX3Vip2YzseORYRUACHHLeq3UTmL2_AZ2NJYK2MFzJdbgZ7kmnRZ3eCnDPy6fylC3/pub?output=csv');
+          if (!response.ok) {
+            throw new Error('Failed to fetch CSV');
+          }
+          const data = await response.text();
+          parseCSVData(data);
+        } catch (error) {
+          console.error('Error loading CSV:', error);
+        }
+      }
+
+      function parseCSVData(csvData) {
+        const rows = csvData.split('\n');
+        let additionalInfoCount = 1; // Track additional info entries (additional-info1, additional-info2, etc.)
+
+        rows.forEach(row => {
+          const columns = row.split(',');
+
+          // Ignore empty rows or rows without valid data
+          if (columns.length < 2) return;
+
+          const className = columns[0].trim();
+          let textValue = columns.slice(1).join(',').trim().replace(/\"/g, ''); // Remove any quotes around the text
+
+          // Update HTML elements based on class names
+          switch (className) {
+            case 'regular-price':
+              document.getElementById('regular-price').textContent = textValue;
+              break;
+            case 'sale-label':
+              document.getElementById('sale-label').textContent = textValue;
+              break;
+            case 'sale-price':
+              document.getElementById('sale-price').textContent = textValue;
+              break;
+            case 'hst':
+              document.getElementById('hst').textContent = textValue;
+              break;
+            case 'validity':
+              document.getElementById('validity').textContent = textValue;
+              break;
+            case 'in-class':
+              document.getElementById('in-class').textContent = textValue;
+              break;
+            case 'course-name':
+              document.getElementById('course-name').textContent = textValue;
+              break;
+            case 'additional-info':
+              const additionalInfoElement = document.getElementById(`additional-info${additionalInfoCount}`);
+              if (additionalInfoElement) {
+                additionalInfoElement.textContent = textValue;
+              }
+              additionalInfoCount++;
+              break;
+          }
+        });
+      }
+
+      fetchCSVData();
+
+      // 2. Mobile Navigation Cloning (Replaces assets/vendor/mobile-nav/mobile-nav.js)
+      const mainNav = document.querySelector('.main-nav');
+      if (mainNav) {
+        const mobileNav = mainNav.cloneNode(true);
+        mobileNav.className = 'mobile-nav d-lg-none';
+        document.body.appendChild(mobileNav);
+
+        const toggleBtn = document.createElement('button');
+        toggleBtn.type = 'button';
+        toggleBtn.className = 'mobile-nav-toggle d-lg-none';
+        toggleBtn.innerHTML = '<i class="fa fa-bars"></i>';
+        document.body.prepend(toggleBtn);
+
+        const overlay = document.createElement('div');
+        overlay.className = 'mobile-nav-overly';
+        document.body.appendChild(overlay);
+
+        const toggleMobileNav = function() {
+          document.body.classList.toggle('mobile-nav-active');
+          const icon = toggleBtn.querySelector('i');
+          icon.classList.toggle('fa-bars');
+          icon.classList.toggle('fa-times');
+          overlay.style.display = document.body.classList.contains('mobile-nav-active') ? 'block' : 'none';
+        };
+
+        toggleBtn.addEventListener('click', toggleMobileNav);
+        overlay.addEventListener('click', toggleMobileNav);
+      }
+
+      // 3. Vanilla Modal Handling (Replaces Bootstrap data-toggle="modal")
+      const openModal = function(modalSelector) {
+        const modal = document.querySelector(modalSelector);
+        if (!modal) return;
+        modal.classList.add('show');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+      };
+
+      const closeModal = function(modal) {
+        if (!modal) return;
+        modal.classList.remove('show');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+      };
+
+      document.querySelectorAll('[data-toggle="modal"]').forEach(trigger => {
+        trigger.addEventListener('click', function(e) {
+          e.preventDefault();
+          openModal(this.getAttribute('data-target'));
+        });
+      });
+
+      document.querySelectorAll('[data-dismiss="modal"]').forEach(btn => {
+        btn.addEventListener('click', function() {
+          closeModal(this.closest('.modal'));
+        });
+      });
+
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) closeModal(modal);
+        });
+      });
+
+      // 4. Header Scroll State, Back-to-Top Button & Active Nav Link
+      const header = document.getElementById('header');
+      const backToTop = document.querySelector('.back-to-top');
+      const sections = document.querySelectorAll('section');
+      const navLinks = document.querySelectorAll('.main-nav a, .mobile-nav a');
+
+      const onScroll = function() {
+        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+        if (scrollTop > 100) {
+          header.classList.add('header-scrolled');
+          if (backToTop) backToTop.style.display = 'block';
+        } else {
+          header.classList.remove('header-scrolled');
+          if (backToTop) backToTop.style.display = 'none';
+        }
+
+        const headerHeight = header.offsetHeight;
+        sections.forEach(sec => {
+          const top = sec.offsetTop - headerHeight;
+          const bottom = top + sec.offsetHeight;
+          if (scrollTop >= top && scrollTop <= bottom) {
+            const id = sec.getAttribute('id');
+            navLinks.forEach(link => {
+              if (link.parentElement) link.parentElement.classList.remove('active');
+              if (link.getAttribute('href') === '#' + id && link.parentElement) {
+                link.parentElement.classList.add('active');
+              }
+            });
+          }
+        });
+      };
+
+      window.addEventListener('scroll', onScroll);
+      onScroll();
+
+      // 5. Smooth Scroll for Navigation & Back-to-Top
+      if (backToTop) {
+        backToTop.addEventListener('click', function(e) {
+          e.preventDefault();
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      }
+
+      document.querySelectorAll('.main-nav a, .mobile-nav a, .scrollto').forEach(link => {
+        link.addEventListener('click', function(e) {
+          const hash = this.hash;
+          if (!hash) return;
+          const target = document.querySelector(hash);
+          if (target) {
+            e.preventDefault();
+            let topSpace = header ? header.offsetHeight : 0;
+            if (header && !header.classList.contains('header-scrolled')) {
+              topSpace -= 20;
+            }
+            window.scrollTo({
+              top: target.offsetTop - topSpace,
+              behavior: 'smooth'
+            });
+
+            if (document.body.classList.contains('mobile-nav-active')) {
+              document.body.classList.remove('mobile-nav-active');
+              const toggleIcon = document.querySelector('.mobile-nav-toggle i');
+              if (toggleIcon) {
+                toggleIcon.classList.remove('fa-times');
+                toggleIcon.classList.add('fa-bars');
+              }
+              const overlay = document.querySelector('.mobile-nav-overly');
+              if (overlay) overlay.style.display = 'none';
+            }
+          }
+        });
+      });
+
+      // 6. CounterUp Animation for [data-toggle="counter-up"]
+      const counters = document.querySelectorAll('[data-toggle="counter-up"]');
+      if (counters.length && 'IntersectionObserver' in window) {
+        const counterObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const el = entry.target;
+              const target = parseInt(el.textContent, 10);
+              const duration = 1000;
+              const start = performance.now();
+
+              const update = function(now) {
+                const progress = Math.min((now - start) / duration, 1);
+                el.textContent = Math.floor(progress * target);
+                if (progress < 1) {
+                  requestAnimationFrame(update);
+                } else {
+                  el.textContent = target;
+                }
+              };
+
+              requestAnimationFrame(update);
+              observer.unobserve(el);
+            }
+          });
+        }, { threshold: 0.2 });
+
+        counters.forEach(c => counterObserver.observe(c));
+      }
+    });
+  </script>
+
+</body>
+
+</html>
