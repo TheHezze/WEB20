@@ -122,7 +122,8 @@
       -webkit-font-smoothing: antialiased;
     }
 
-    body.nav-open {
+    body.nav-open,
+    body.modal-open {
       overflow: hidden;
     }
 
@@ -172,7 +173,7 @@
       transform: translateY(0);
     }
 
-    /* Animated Counter Styles */
+    /* Animated Counter Styles (Used only for hours, days, classes & steps) */
     [data-toggle="counter-up"] {
       font-variant-numeric: tabular-nums;
       display: inline-block;
@@ -264,7 +265,7 @@
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 14px;
     }
 
     .portal-link {
@@ -273,6 +274,10 @@
       font-weight: 800;
       text-decoration: none;
       white-space: nowrap;
+    }
+
+    .portal-link:hover {
+      text-decoration: underline;
     }
 
     .button-link,
@@ -364,11 +369,6 @@
                   linear-gradient(135deg, #0b2a49 0%, #123f76 52%, #1f56d2 100%);
       isolation: isolate;
       padding-block: 0;
-    }
-
-    .hero::before,
-    .hero::after {
-      content: none;
     }
 
     .hero-grid {
@@ -971,7 +971,7 @@
     .region-courses {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 16px;
       padding: 16px;
       flex: 1;
     }
@@ -979,12 +979,18 @@
     .price-card {
       display: flex;
       min-width: 0;
-      min-height: 310px;
+      min-height: 300px;
       flex-direction: column;
-      padding: 20px;
+      padding: 24px;
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 20px;
       background: var(--white);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .price-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-sm);
     }
 
     .price-card.featured {
@@ -997,11 +1003,11 @@
       align-self: flex-start;
       width: fit-content;
       margin: 0;
-      padding: 6px 9px;
+      padding: 6px 10px;
       border-radius: 999px;
       color: var(--blue);
       background: #eaf1ff;
-      font-size: .67rem;
+      font-size: .68rem;
       font-weight: 900;
       letter-spacing: .08em;
       text-transform: uppercase;
@@ -1015,8 +1021,8 @@
     .price-card h4 {
       margin: 18px 0 5px;
       color: var(--navy);
-      font-size: 1rem;
-      line-height: 1.15;
+      font-size: 1.05rem;
+      line-height: 1.2;
     }
 
     .price-card.featured h4 {
@@ -1027,20 +1033,20 @@
       min-height: 34px;
       margin: 0;
       color: var(--muted);
-      font-size: .78rem;
+      font-size: .8rem;
     }
 
     .price-card.featured .delivery-note {
-      color: rgba(255, 255, 255, .7);
+      color: rgba(255, 255, 255, .72);
     }
 
     .price-wrap {
-      margin: 18px 0 8px;
+      margin: 18px 0 12px;
     }
 
     .price {
       color: var(--navy);
-      font-size: clamp(1.7rem, 3vw, 2.25rem);
+      font-size: clamp(1.75rem, 3vw, 2.3rem);
       font-weight: 950;
       line-height: 1;
       letter-spacing: -.045em;
@@ -1071,18 +1077,38 @@
       color: rgba(255, 255, 255, .72);
     }
 
-    .price-card-link {
+    .price-card-btn {
+      margin-top: auto;
       align-self: flex-start;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 16px;
+      border-radius: 999px;
+      border: 1px solid rgba(31, 86, 210, 0.25);
+      background: var(--ice);
       color: var(--blue);
-      font-size: .78rem;
+      font-size: .8rem;
       font-weight: 850;
-      text-decoration: underline;
-      text-decoration-thickness: 1px;
-      text-underline-offset: 4px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
     }
 
-    .price-card.featured .price-card-link {
-      color: var(--yellow);
+    .price-card-btn:hover {
+      background: var(--blue);
+      color: var(--white);
+      transform: translateY(-1px);
+    }
+
+    .price-card.featured .price-card-btn {
+      background: var(--yellow);
+      border-color: var(--yellow);
+      color: var(--navy);
+    }
+
+    .price-card.featured .price-card-btn:hover {
+      background: #ffd052;
     }
 
     /* Journey / 3 Easy Steps + Animated Counters Banner */
@@ -1107,6 +1133,7 @@
 
     .journey-copy > p {
       color: var(--muted);
+      margin: 14px 0 24px;
     }
 
     .steps {
@@ -1360,12 +1387,6 @@
       opacity: .62;
     }
 
-    .review-placeholder:hover {
-      transform: none;
-      background: transparent;
-      border-color: rgba(13, 47, 82, .25);
-    }
-
     .review-placeholder small {
       font-size: inherit;
       font-weight: 400;
@@ -1551,49 +1572,162 @@
       }
     }
 
-    /* Registration Section */
-    .register-shell {
-      position: relative;
-      overflow: hidden;
-      display: grid;
-      grid-template-columns: .7fr 1.3fr;
-      gap: 48px;
-      padding: 42px;
+    /* Compact CTA Banner (Replaces the bulky inline form block) */
+    .cta-banner-section {
+      padding-block: 0 88px;
+    }
+
+    .cta-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+      padding: 42px 48px;
       border-radius: 30px;
-      background: var(--navy);
+      background: linear-gradient(135deg, var(--navy), #1545b3);
+      color: var(--white);
       box-shadow: var(--shadow);
     }
 
-    .register-copy {
-      color: var(--white);
-    }
-
-    .register-copy .eyebrow {
+    .cta-banner .eyebrow {
       color: var(--yellow);
+      margin-bottom: 10px;
     }
 
-    .register-copy h2 {
+    .cta-banner h2 {
       margin: 0;
-      font-size: clamp(2rem, 4vw, 3.25rem);
-      line-height: 1.05;
+      font-size: clamp(1.85rem, 3.4vw, 2.75rem);
+      line-height: 1.08;
       letter-spacing: -.04em;
     }
 
-    .register-copy p {
-      color: rgba(255, 255, 255, .72);
+    .cta-banner p {
+      margin: 10px 0 0;
+      color: rgba(255, 255, 255, .8);
+      max-width: 560px;
     }
 
-    .form-panel {
-      min-height: 400px;
-      padding: 22px;
-      border-radius: 21px;
+    .cta-banner-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+
+    .cta-banner .button-outline {
+      color: var(--white);
+      border-color: rgba(255, 255, 255, .35);
+    }
+
+    .cta-banner .button-outline:hover {
+      color: var(--navy);
       background: var(--white);
     }
 
-    .form-note {
-      margin: 0 0 14px;
-      color: var(--muted);
+    /* Registration Modal Dialog */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 1050;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(8, 25, 43, 0.68);
+      backdrop-filter: blur(6px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
+    }
+
+    .modal-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal-dialog {
+      width: 100%;
+      max-width: 720px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      border-radius: 26px;
+      background: var(--white);
+      box-shadow: 0 30px 90px rgba(4, 18, 34, 0.45);
+      overflow: hidden;
+      transform: translateY(18px) scale(0.98);
+      transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .modal-backdrop.open .modal-dialog {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 22px 28px;
+      color: var(--white);
+      background: linear-gradient(135deg, var(--navy), #1545b3);
+    }
+
+    .modal-header-text .eyebrow {
+      color: var(--yellow);
+      margin-bottom: 4px;
+      font-size: .74rem;
+    }
+
+    .modal-header-text h3 {
+      margin: 0;
+      font-size: 1.45rem;
+      letter-spacing: -.02em;
+    }
+
+    .modal-close {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--white);
+      font-size: 1.5rem;
+      line-height: 1;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background 0.18s ease, transform 0.18s ease;
+    }
+
+    .modal-close:hover {
+      background: rgba(255, 255, 255, 0.22);
+      transform: rotate(90deg);
+    }
+
+    .modal-body {
+      padding: 24px 28px;
+      overflow-y: auto;
+      flex: 1 1 auto;
+    }
+
+    .modal-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 28px;
+      border-top: 1px solid var(--line);
+      background: var(--ice);
       font-size: .88rem;
+      color: var(--muted);
+    }
+
+    .modal-footer a {
+      color: var(--blue);
+      font-weight: 800;
+      text-decoration: none;
     }
 
     /* Contact Section */
@@ -1666,6 +1800,12 @@
       height: 270px;
       border: 0;
       border-radius: 17px;
+    }
+
+    .form-note {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: .88rem;
     }
 
     .message-card iframe {
@@ -1779,7 +1919,7 @@
         border: 0;
       }
       .region-courses {
-        min-height: 310px;
+        min-height: 300px;
       }
       .reviews-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1793,8 +1933,9 @@
       .review-card:nth-child(n+3) {
         border-top: 1px solid var(--line);
       }
-      .register-shell {
-        grid-template-columns: 1fr;
+      .cta-banner {
+        flex-direction: column;
+        align-items: flex-start;
       }
     }
 
@@ -1952,9 +2093,6 @@
       .review-card:first-child {
         border-left: 0 !important;
       }
-      .reviews-actions .button {
-        text-align: center;
-      }
       .recognition-title {
         margin-top: 58px;
       }
@@ -1987,12 +2125,14 @@
         width: 50px;
         height: 50px;
       }
-      .register-shell {
-        padding: 25px 16px;
+      .cta-banner {
+        padding: 28px 22px;
         border-radius: 22px;
       }
-      .form-panel {
-        padding: 13px;
+      .modal-header,
+      .modal-body,
+      .modal-footer {
+        padding-inline: 18px;
       }
       .contact-card,
       .message-card {
@@ -2021,6 +2161,7 @@
 <body>
   <a class="skip-link" href="#main-content">Skip to main content</a>
 
+  <!-- ======= Header (No duplicate buttons) ======= -->
   <header class="site-header">
     <div class="container nav-shell">
       <a class="brand" href="#top" aria-label="ACE Driving School home">
@@ -2029,18 +2170,18 @@
       <nav class="site-nav" id="site-nav" aria-label="Main navigation">
         <ul class="nav-links">
           <li><a href="#top">Home</a></li>
-          <li><a href="/services">Services</a></li>
           <li><a href="#pricing">Pricing</a></li>
-          <li><a href="#register">Course Schedule</a></li>
+          <li><a href="#program">3-Step Program</a></li>
+          <li><a href="/services">Services</a></li>
           <li><a href="/studentresources">Student Resources</a></li>
           <li><a href="#contact">Contact</a></li>
           <li class="mobile-only"><a href="https://aceweblearning.com/">Online Course Access</a></li>
-          <li><a class="button-link" href="#register">Register Now</a></li>
+          <li class="mobile-only"><a class="button-link" href="#register" data-open-register>Register / Schedule</a></li>
         </ul>
       </nav>
       <div class="nav-actions">
         <a class="portal-link" href="https://aceweblearning.com/">Online Course Access</a>
-        <a class="button-link" href="#register">Register Now</a>
+        <button class="button-link" type="button" data-open-register>Register / Schedule</button>
         <button class="nav-toggle" type="button" aria-controls="site-nav" aria-expanded="false" aria-label="Open navigation">
           <span></span>
         </button>
@@ -2049,6 +2190,7 @@
   </header>
 
   <main id="main-content">
+    <!-- ======= Hero Section ======= -->
     <section class="hero" id="top">
       <div class="container hero-grid">
         <div>
@@ -2056,8 +2198,8 @@
           <h1>For <span>Safe</span> Driving.</h1>
           <p class="hero-copy">Learn safe and confident driving through our complete Beginner Driver Education course, online classes and one-on-one in-car lessons.</p>
           <div class="hero-actions">
-            <a class="button button-primary" href="#register">Register Now</a>
-            <a class="button button-outline" href="#pricing">View Pricing</a>
+            <button class="button button-primary" type="button" data-open-register>Register / View Schedule</button>
+            <a class="button button-outline" href="#pricing">Compare Packages</a>
           </div>
           <p class="current-student">Already enrolled? <a href="https://aceweblearning.com/">Open your online course</a> or visit <a href="/studentresources">Student Resources</a>.</p>
         </div>
@@ -2102,6 +2244,7 @@
       </div>
     </section>
 
+    <!-- ======= Trust Bar ======= -->
     <div class="trust-bar">
       <div class="container trust-grid">
         <div class="trust-item">
@@ -2119,6 +2262,7 @@
       </div>
     </div>
 
+    <!-- ======= Mock Test Feature (Static Prices — No Counters) ======= -->
     <section class="mock-feature" aria-labelledby="mock-feature-title">
       <div class="container">
         <div class="mock-feature-panel">
@@ -2130,11 +2274,11 @@
           <div class="mock-options">
             <div class="mock-option">
               <strong>Meet at Windsor DriveTest</strong>
-              <span>$<span data-toggle="counter-up" data-target="40">0</span> + HST</span>
+              <span>$40 + HST</span>
             </div>
             <div class="mock-option">
               <strong>Windsor pickup and drop-off</strong>
-              <span>$<span data-toggle="counter-up" data-target="80">0</span> + HST</span>
+              <span>$80 + HST</span>
             </div>
             <div class="mock-option">
               <strong>Available Saturdays</strong>
@@ -2146,6 +2290,7 @@
       </div>
     </section>
 
+    <!-- ======= Pricing Section ======= -->
     <section id="pricing">
       <div class="container">
         <header class="pricing-heading">
@@ -2174,41 +2319,42 @@
       </div>
     </section>
 
+    <!-- ======= 3 Easy Steps + Animated Hours Breakdown ======= -->
     <section class="section-soft" id="program">
       <div class="container">
         <div class="journey-grid">
           <div class="journey-copy">
             <p class="eyebrow" style="color:var(--blue)">Help in Getting Your</p>
             <h2>G2 in <span data-toggle="counter-up" data-target="3">0</span> Easy Steps</h2>
-            <p></p>
-            <a class="button button-secondary" href="/services">See Course Details</a>
+            <p>Our MTO-approved curriculum combines flexible classroom learning with personalized in-car coaching.</p>
+            <a class="button button-secondary" href="/services">See All Course Details</a>
           </div>
           <div class="steps">
             <article class="step">
               <div class="step-number" data-toggle="counter-up" data-target="1" data-pad="2">00</div>
               <div>
                 <h3>In-class or online Drivers Ed</h3>
-                <p><span class="inline-counter-badge" data-toggle="counter-up" data-target="5">0</span><strong>-hour days</strong> to help prepare for your G1. In the <span class="inline-counter-badge" data-toggle="counter-up" data-target="4">0</span> <strong>classes</strong>, you will learn; the rules of the road, defensive driving techniques, fines &amp; penalties, and more as required by the MTO.</p>
+                <p><span class="inline-counter-badge" data-toggle="counter-up" data-target="5">0</span><strong>-hour days</strong> to help prepare for your G1. In the <span class="inline-counter-badge" data-toggle="counter-up" data-target="4">0</span> <strong>classes</strong>, you will learn the rules of the road, defensive driving techniques, fines &amp; penalties, and more as required by the MTO.</p>
               </div>
             </article>
             <article class="step">
               <div class="step-number" data-toggle="counter-up" data-target="2" data-pad="2">00</div>
               <div>
                 <h3>In-vehicle Lessons</h3>
-                <p>After sucessfully completing the course and passing your G1 writen-exam. Get <span class="inline-counter-badge" data-toggle="counter-up" data-target="10">0</span> <strong>hours</strong> of one-on-one in-car training with a certified driving instructor.</p>
+                <p>After successfully completing the course and passing your G1 written exam, get <span class="inline-counter-badge" data-toggle="counter-up" data-target="10">0</span> <strong>hours</strong> of one-on-one in-car training with a certified driving instructor.</p>
               </div>
             </article>
             <article class="step">
               <div class="step-number" data-toggle="counter-up" data-target="3" data-pad="2">00</div>
               <div>
                 <h3>Getting certified</h3>
-                <p>After completing steps 1 &amp; 2 you are now ready to receive your certification. This allows you to get your G2 after only <span class="inline-counter-badge" data-toggle="counter-up" data-target="8">0</span> <strong>months</strong> of your G1. Additionaly, your cerification is automatically recognized by the auto insurance industry, allowing for cheaper insurance.</p>
+                <p>After completing steps 1 &amp; 2 you are ready to receive your certification. This allows you to get your G2 after only <span class="inline-counter-badge" data-toggle="counter-up" data-target="8">0</span> <strong>months</strong> of your G1, and is recognized by the auto insurance industry for potential discounts.</p>
               </div>
             </article>
           </div>
         </div>
 
-        <!-- Animated Hours Counter Band (From Original Site) -->
+        <!-- Animated Hours Counter Band -->
         <div class="bde-counters-band" aria-label="Beginner Driver Education course hour breakdown">
           <div class="bde-counter-item">
             <span data-toggle="counter-up" data-target="20">0</span>
@@ -2230,12 +2376,12 @@
       </div>
     </section>
 
+    <!-- ======= Reviews Section ======= -->
     <section class="reviews-section" id="reviews">
       <div class="container">
         <header class="reviews-heading">
           <p class="eyebrow">Reviews</p>
           <h2>Trusted in our Community</h2>
-          <p></p>
         </header>
         <div class="reviews-grid">
           <article class="review-card">
@@ -2248,7 +2394,6 @@
             </div>
             <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
             <p class="review-text">I'm so happy I chose Ace Driving School! Thanks to their amazing teaching, I passed my G2 on the first try with confidence. …</p>
-            <a class="review-more" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Read more on Google</a>
           </article>
 
           <article class="review-card">
@@ -2261,7 +2406,6 @@
             </div>
             <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
             <p class="review-text">Najo trained my daughter. Great instructor and she passed on the first try. Recommend ace driving school! Good prices too.</p>
-            <a class="review-more" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">View on Google</a>
           </article>
 
           <article class="review-card">
@@ -2274,7 +2418,6 @@
             </div>
             <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
             <p class="review-text">Best experience at ace driving school. I passed my G2 and G1 first try due to their amazing professionalism and organization. …</p>
-            <a class="review-more" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Read more on Google</a>
           </article>
 
           <article class="review-card">
@@ -2287,7 +2430,6 @@
             </div>
             <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
             <p class="review-text">Ace driving school is the best. Clean cars and always punctual.Very good service and instructors...</p>
-            <a class="review-more" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Read more on Google</a>
           </article>
 
           <article class="review-card">
@@ -2300,7 +2442,6 @@
             </div>
             <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
             <p class="review-text">Thank you ACE!<br><br>I did the online learn at your own pace program. …</p>
-            <a class="review-more" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Read more on Google</a>
           </article>
 
           <article class="review-card">
@@ -2313,7 +2454,6 @@
             </div>
             <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
             <p class="review-text">Ace driving school was fantastic the in class was very informational and I got to learn so much on how to drive. …</p>
-            <a class="review-more" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Read more on Google</a>
           </article>
         </div>
 
@@ -2324,15 +2464,14 @@
       </div>
     </section>
 
+    <!-- ======= Reputation & Awards Strip ======= -->
     <section class="reputation-strip" aria-label="ACE Driving School ratings, awards and directory listings">
       <div class="container">
-        <a class="google-score" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener" aria-label="ACE Driving School has a 4.7 rating from 430 Google reviews">
+        <a class="google-score" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener" aria-label="ACE Driving School has a 4.8 rating on Google">
           <img class="score-google" src="assets/img/reviews/google-g.svg" alt="Google">
           <span class="score-stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></span>
           <span class="score-value">4.8 / 5</span>
           Based on 1k+ Reviews on Google and More
-          <span class="score-count"></span>
-          <span class="score-date"></span>
         </a>
 
         <h2 class="recognition-title">Community recognition</h2>
@@ -2381,24 +2520,24 @@
       </div>
     </section>
 
-    <section id="register">
-      <div class="container register-shell">
-        <div class="register-copy">
-          <p class="eyebrow">Registration and schedule</p>
-          <h2>REGISTER EARLY! CLASSROOMS FILL UP</h2>
-          <p></p>
-          <p>Questions first? Call <a href="tel:+15199463393">519-946-3393</a>.</p>
-        </div>
-        <div class="form-panel">
-          <p class="form-note"></p>
-          <div class="cognito">
-            <script src="https://www.cognitoforms.com/s/i8ya9E4UaUiJYxDFhQBBsA"></script>
-            <script>if (typeof Cognito !== 'undefined') { Cognito.load("forms", { id: "45" }); }</script>
+    <!-- ======= Compact Registration Callout Banner (Opens Modal) ======= -->
+    <section class="cta-banner-section" id="register">
+      <div class="container">
+        <div class="cta-banner">
+          <div>
+            <p class="eyebrow">Registration &amp; Schedule</p>
+            <h2>Register Early — Classrooms Fill Up!</h2>
+            <p>View upcoming online and in-person class dates and reserve your spot in under 2 minutes.</p>
+          </div>
+          <div class="cta-banner-actions">
+            <button class="button button-primary" type="button" data-open-register>Open Registration &amp; Schedule</button>
+            <a class="button button-outline" href="tel:+15199463393">Call 519-946-3393</a>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- ======= Contact Section ======= -->
     <section class="section-soft" id="contact">
       <div class="container">
         <header class="section-heading">
@@ -2448,6 +2587,30 @@
     </section>
   </main>
 
+  <!-- ======= Registration & Schedule Modal ======= -->
+  <div class="modal-backdrop" id="registerModal" role="dialog" aria-modal="true" aria-labelledby="registerModalTitle" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div class="modal-header-text">
+          <p class="eyebrow">Course Registration &amp; Dates</p>
+          <h3 id="registerModalTitle">Register Early — Classrooms Fill Up!</h3>
+        </div>
+        <button type="button" class="modal-close" data-close-register aria-label="Close registration modal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="cognito">
+          <script src="https://www.cognitoforms.com/s/i8ya9E4UaUiJYxDFhQBBsA"></script>
+          <script>if (typeof Cognito !== 'undefined') { Cognito.load("forms", { id: "45" }); }</script>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span>Need help choosing a course? Call <a href="tel:+15199463393">519-946-3393</a></span>
+        <button type="button" class="button button-outline" style="min-height:38px; padding:6px 16px;" data-close-register>Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======= Footer ======= -->
   <footer class="site-footer">
     <div class="container footer-grid">
       <div>
@@ -2458,11 +2621,12 @@
         <h3>Page links</h3>
         <ul class="footer-links">
           <li><a href="#top">Home</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+          <li><a href="#register" data-open-register>Course Schedule</a></li>
           <li><a href="/services">Services</a></li>
           <li><a href="/studentresources">Student Resources</a></li>
           <li><a href="/privacypolicy">Privacy Policy</a></li>
           <li><a href="/careers">Careers</a></li>
-          <li><span>Terms of Service</span></li>
         </ul>
       </div>
       <div>
@@ -2499,13 +2663,45 @@
       });
 
       document.querySelectorAll('.site-nav a').forEach(link => link.addEventListener('click', closeNav));
+
+      // 2. Registration Modal Controller
+      const registerModal = document.getElementById('registerModal');
+
+      const openRegisterModal = (e) => {
+        if (e) e.preventDefault();
+        closeNav();
+        registerModal.classList.add('open');
+        registerModal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('modal-open');
+      };
+
+      const closeRegisterModal = () => {
+        registerModal.classList.remove('open');
+        registerModal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('modal-open');
+      };
+
+      document.addEventListener('click', (e) => {
+        const trigger = e.target.closest('[data-open-register]');
+        if (trigger) {
+          openRegisterModal(e);
+          return;
+        }
+        if (e.target.closest('[data-close-register]') || e.target === registerModal) {
+          closeRegisterModal();
+        }
+      });
+
       document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') closeNav();
+        if (event.key === 'Escape') {
+          closeNav();
+          closeRegisterModal();
+        }
       });
 
       document.getElementById('year').textContent = new Date().getFullYear();
 
-      // 2. Visible Step-by-Step Counter Animation for Hours, Days, Classes, Months & Steps
+      // 3. Step-by-Step Counter Animation (Strictly for Hours, Days, Classes, Months & Steps)
       const counters = document.querySelectorAll('[data-toggle="counter-up"]');
       const activeTimers = new WeakMap();
 
@@ -2530,12 +2726,10 @@
         if (Number.isNaN(target)) return;
         const pad = parseInt(el.dataset.pad || '0', 10);
 
-        // Start visibly at 0
         let current = 0;
         el.textContent = formatCounterValue(0, pad);
 
-        // Total duration ~1.5s; step interval scales so small numbers (3, 4, 5, 8, 10) step visibly
-        const totalDuration = 1500;
+        const totalDuration = 1400;
         const stepTime = Math.max(35, Math.floor(totalDuration / Math.max(target, 1)));
 
         const delayId = setTimeout(() => {
@@ -2554,7 +2748,7 @@
           }, stepTime);
 
           activeTimers.set(el, { intervalId, delayId: null });
-        }, 180);
+        }, 160);
 
         activeTimers.set(el, { intervalId: null, delayId });
       };
@@ -2567,7 +2761,6 @@
             if (entry.isIntersecting) {
               startCounter(el);
             } else {
-              // Reset to 0 when scrolled out of view so it re-animates when scrolled back
               stopCounter(el);
               el.textContent = formatCounterValue(0, pad);
             }
@@ -2579,7 +2772,7 @@
         counters.forEach(startCounter);
       }
 
-      // 3. Regional Pricing Grid from Google Sheet (Website Data Tab)
+      // 4. Regional Pricing Grid from Google Sheet (Website Data Tab)
       const grid = document.getElementById('price-grid');
       const status = document.getElementById('pricing-state');
       const sheetUrl = (document.documentElement.dataset.pricingSheetUrl || '').trim();
@@ -2720,10 +2913,16 @@
           priceWrap.append(oldPrice);
         }
 
-        const link = document.createElement('a');
-        link.className = 'price-card-link';
-        link.href = item.registration_url || '#register';
-        link.textContent = 'Register / View Schedule';
+        const customUrl = item.registration_url && item.registration_url !== '#register' ? item.registration_url : '';
+        const actionEl = document.createElement(customUrl ? 'a' : 'button');
+        actionEl.className = 'price-card-btn';
+        if (customUrl) {
+          actionEl.href = customUrl;
+        } else {
+          actionEl.type = 'button';
+          actionEl.setAttribute('data-open-register', '');
+        }
+        actionEl.textContent = 'Select & View Dates';
 
         card.append(format, title, note, priceWrap);
 
@@ -2741,7 +2940,7 @@
           card.append(info);
         }
 
-        card.append(link);
+        card.append(actionEl);
         return card;
       };
 
@@ -2793,7 +2992,7 @@
         });
       };
 
-      // 4. Legacy 2-Column Google Sheet Price Banner Parser
+      // 5. Legacy 2-Column Google Sheet Price Banner Parser
       const parseLegacyBannerCsv = csvData => {
         const banner = document.getElementById('legacy-price-banner');
         if (!banner) return false;
