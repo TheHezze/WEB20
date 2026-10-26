@@ -103,6 +103,7 @@
       --radius: 24px;
       --radius-sm: 15px;
       --container: 1180px;
+      --header-h: 78px;
     }
 
     * {
@@ -226,11 +227,11 @@
     }
 
     .nav-shell {
-      min-height: 78px;
+      min-height: var(--header-h);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 28px;
+      gap: 20px;
     }
 
     .brand {
@@ -240,14 +241,14 @@
     }
 
     .brand img {
-      width: 188px;
+      width: 184px;
       height: auto;
     }
 
     .nav-links {
       display: flex;
       align-items: center;
-      gap: 25px;
+      gap: clamp(14px, 1.8vw, 25px);
       list-style: none;
       margin: 0;
       padding: 0;
@@ -258,6 +259,7 @@
       color: var(--navy);
       font-size: .94rem;
       font-weight: 750;
+      white-space: nowrap;
       transition: color .15s ease;
     }
 
@@ -265,14 +267,16 @@
       color: var(--blue);
     }
 
+    /* Strictly hidden whenever desktop horizontal nav is active */
     .mobile-only {
-      display: none;
+      display: none !important;
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
       gap: 14px;
+      flex: 0 0 auto;
     }
 
     .portal-link {
@@ -290,7 +294,7 @@
     .button-link,
     .button {
       display: inline-flex;
-      min-height: 48px;
+      min-height: 46px;
       align-items: center;
       justify-content: center;
       gap: 8px;
@@ -300,6 +304,7 @@
       text-decoration: none;
       font-weight: 850;
       line-height: 1.2;
+      white-space: nowrap;
       cursor: pointer;
       transition: transform .18s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, color .18s ease;
     }
@@ -347,12 +352,19 @@
       position: relative;
       width: 46px;
       height: 46px;
+      flex: 0 0 46px;
       padding: 0;
       border: 1px solid var(--line);
       border-radius: 50%;
       color: var(--navy);
       background: var(--white);
       cursor: pointer;
+      transition: background .18s ease, border-color .18s ease;
+    }
+
+    .nav-toggle:hover {
+      background: var(--ice);
+      border-color: var(--navy);
     }
 
     .nav-toggle span,
@@ -379,6 +391,24 @@
       transform: translateY(-7px) rotate(-45deg);
     }
 
+    /* Backdrop behind mobile/tablet nav drawer */
+    .nav-backdrop {
+      position: fixed;
+      inset: var(--header-h) 0 0 0;
+      z-index: 90;
+      background: rgba(8, 25, 43, 0.42);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity .24s ease, visibility .24s ease;
+    }
+
+    body.nav-open .nav-backdrop {
+      opacity: 1;
+      visibility: visible;
+    }
+
     /* Hero Section */
     .hero {
       position: relative;
@@ -392,11 +422,11 @@
     }
 
     .hero-grid {
-      min-height: 650px;
+      min-height: 640px;
       display: grid;
-      grid-template-columns: minmax(0, 1.08fr) minmax(390px, .92fr);
+      grid-template-columns: minmax(0, 1.08fr) minmax(370px, .92fr);
       align-items: center;
-      gap: 72px;
+      gap: clamp(36px, 5vw, 72px);
       padding-block: 74px;
     }
 
@@ -435,7 +465,7 @@
     .hero h1 {
       max-width: 720px;
       margin: 0;
-      font-size: clamp(3rem, 6.8vw, 5.8rem);
+      font-size: clamp(2.9rem, 6.2vw, 5.6rem);
       line-height: .97;
       letter-spacing: -.058em;
     }
@@ -445,17 +475,17 @@
     }
 
     .hero-copy {
-      max-width: 660px;
-      margin: 25px 0 0;
-      color: rgba(255, 255, 255, .86);
-      font-size: clamp(1.05rem, 1.6vw, 1.22rem);
+      max-width: 640px;
+      margin: 24px 0 0;
+      color: rgba(255, 255, 255, .88);
+      font-size: clamp(1.04rem, 1.5vw, 1.2rem);
     }
 
     .hero-actions {
       display: flex;
       flex-wrap: wrap;
       gap: 12px;
-      margin-top: 31px;
+      margin-top: 30px;
     }
 
     .hero .button-outline {
@@ -469,7 +499,7 @@
 
     .current-student {
       margin-top: 24px;
-      color: rgba(255, 255, 255, .78);
+      color: rgba(255, 255, 255, .8);
       font-size: .94rem;
     }
 
@@ -482,7 +512,7 @@
     /* Road Card & Legacy Google Sheet Price Banner */
     .road-card {
       position: relative;
-      padding: 33px;
+      padding: 32px;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, .2);
       border-radius: 30px;
@@ -523,7 +553,7 @@
 
     .program-total strong {
       color: var(--yellow);
-      font-size: 5.6rem;
+      font-size: clamp(4.4rem, 6vw, 5.6rem);
       line-height: .76;
       letter-spacing: -.07em;
       min-width: 1.25em;
@@ -546,6 +576,9 @@
       padding: 16px 13px;
       border-radius: 17px;
       background: rgba(255, 255, 255, .11);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
     }
 
     .hour-chip b {
@@ -558,14 +591,14 @@
     .hour-chip span {
       display: block;
       margin-top: 8px;
-      color: rgba(255, 255, 255, .8);
-      font-size: .78rem;
-      line-height: 1.28;
+      color: rgba(255, 255, 255, .84);
+      font-size: .8rem;
+      line-height: 1.3;
     }
 
     .road-card-note {
       margin: 22px 0 0;
-      color: rgba(255, 255, 255, .76);
+      color: rgba(255, 255, 255, .78);
       font-size: .88rem;
     }
 
@@ -675,7 +708,7 @@
     }
 
     .trust-item {
-      padding: 24px 28px;
+      padding: 22px 26px;
     }
 
     .trust-item + .trust-item {
@@ -685,19 +718,20 @@
     .trust-item b {
       display: block;
       color: var(--navy);
-      font-size: 1.03rem;
+      font-size: 1.02rem;
     }
 
     .trust-item span {
       display: block;
-      margin-top: 2px;
+      margin-top: 3px;
       color: var(--muted);
       font-size: .9rem;
+      line-height: 1.45;
     }
 
     /* Sections */
     section {
-      padding-block: 96px;
+      padding-block: 92px;
     }
 
     .section-soft {
@@ -723,7 +757,7 @@
     .section-heading h2 {
       margin: 0;
       color: var(--navy);
-      font-size: clamp(2.15rem, 4vw, 3.65rem);
+      font-size: clamp(2.1rem, 4vw, 3.55rem);
       line-height: 1.05;
       letter-spacing: -.045em;
     }
@@ -744,15 +778,15 @@
 
     /* Mock Test Feature */
     .mock-feature {
-      padding-block: 70px 0;
+      padding-block: 68px 0;
     }
 
     .mock-feature-panel {
       display: grid;
       grid-template-columns: 1.15fr .85fr;
-      gap: 42px;
+      gap: 40px;
       align-items: center;
-      padding: 42px;
+      padding: clamp(28px, 4vw, 44px);
       border-radius: 28px;
       color: var(--white);
       background: linear-gradient(135deg, var(--navy), #174d94);
@@ -771,16 +805,16 @@
     .mock-feature h2 {
       max-width: 720px;
       margin: 0;
-      font-size: clamp(2.1rem, 4vw, 3.4rem);
-      line-height: 1.04;
+      font-size: clamp(2rem, 3.8vw, 3.3rem);
+      line-height: 1.05;
       letter-spacing: -.045em;
     }
 
     .mock-feature-copy {
       max-width: 720px;
       margin: 18px 0 0;
-      color: rgba(255, 255, 255, .84);
-      font-size: 1.05rem;
+      color: rgba(255, 255, 255, .86);
+      font-size: 1.04rem;
     }
 
     .mock-options {
@@ -789,27 +823,30 @@
     }
 
     .mock-option {
-      padding: 19px 20px;
+      padding: 17px 20px;
       border: 1px solid rgba(255, 255, 255, .18);
       border-radius: 17px;
       background: rgba(255, 255, 255, .08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
     .mock-option strong {
-      display: block;
       color: var(--yellow);
-      font-size: 1rem;
+      font-size: .98rem;
     }
 
     .mock-option span {
-      display: block;
-      margin-top: 3px;
-      color: rgba(255, 255, 255, .82);
-      font-size: .9rem;
+      color: rgba(255, 255, 255, .9);
+      font-size: .92rem;
+      font-weight: 700;
     }
 
     .mock-feature-link {
-      margin-top: 8px;
+      margin-top: 6px;
       justify-self: start;
     }
 
@@ -821,7 +858,7 @@
     .pricing-heading h2 {
       margin: 0;
       color: var(--navy);
-      font-size: clamp(2.15rem, 4vw, 3.65rem);
+      font-size: clamp(2.1rem, 4vw, 3.55rem);
       line-height: 1.05;
       letter-spacing: -.045em;
     }
@@ -923,34 +960,31 @@
     .region-grid {
       display: grid;
       grid-template-columns: 1fr;
-      gap: 36px;
+      gap: 28px;
       align-items: stretch;
     }
 
     .pricing-region {
       display: grid;
-      grid-template-columns: minmax(220px, 300px) 1fr;
+      grid-template-columns: minmax(220px, 280px) 1fr;
       align-items: center;
-      overflow: visible;
-      padding-block: 0;
-      border: 0;
-      border-radius: 0;
-      background: transparent;
-      box-shadow: none;
+      gap: 20px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      background: var(--ice);
     }
 
     .region-head {
-      min-height: 205px;
-      padding: 24px;
-      border: 0;
-      background: transparent;
+      padding: 16px;
+      text-align: center;
     }
 
     .region-head h3 {
-      margin: 18px 0 5px;
+      margin: 14px 0 4px;
       color: var(--navy);
-      font-size: 1.65rem;
-      letter-spacing: -.035em;
+      font-size: 1.5rem;
+      letter-spacing: -.03em;
       text-align: center;
     }
 
@@ -964,8 +998,8 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 20px;
-      min-height: 110px;
+      gap: 18px;
+      min-height: 96px;
     }
 
     .region-logo {
@@ -979,13 +1013,13 @@
       display: block;
       width: auto;
       max-width: 100%;
-      height: 78px;
+      height: 76px;
       object-fit: contain;
       mix-blend-mode: multiply;
     }
 
     .region-logo.wide img {
-      height: 84px;
+      height: 82px;
       filter: contrast(1.12) saturate(1.08);
     }
 
@@ -997,23 +1031,22 @@
     .region-logo.amherstburg img {
       position: static;
       width: 100%;
-      max-width: 190px;
-      height: 100px;
+      max-width: 185px;
+      height: 94px;
       object-fit: contain;
     }
 
     .region-courses {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 16px;
-      padding: 16px;
       flex: 1;
     }
 
     .price-card {
       display: flex;
       min-width: 0;
-      min-height: 300px;
+      min-height: 290px;
       flex-direction: column;
       padding: 24px;
       border: 1px solid var(--line);
@@ -1037,11 +1070,11 @@
       align-self: flex-start;
       width: fit-content;
       margin: 0;
-      padding: 6px 10px;
+      padding: 6px 11px;
       border-radius: 999px;
       color: var(--blue);
       background: #eaf1ff;
-      font-size: .68rem;
+      font-size: .7rem;
       font-weight: 900;
       letter-spacing: .08em;
       text-transform: uppercase;
@@ -1053,10 +1086,10 @@
     }
 
     .price-card h4 {
-      margin: 18px 0 5px;
+      margin: 16px 0 6px;
       color: var(--navy);
-      font-size: 1.05rem;
-      line-height: 1.2;
+      font-size: 1.08rem;
+      line-height: 1.25;
     }
 
     .price-card.featured h4 {
@@ -1064,23 +1097,22 @@
     }
 
     .delivery-note {
-      min-height: 34px;
       margin: 0;
       color: var(--muted);
-      font-size: .8rem;
+      font-size: .84rem;
     }
 
     .price-card.featured .delivery-note {
-      color: rgba(255, 255, 255, .75);
+      color: rgba(255, 255, 255, .78);
     }
 
     .price-wrap {
-      margin: 18px 0 12px;
+      margin: 18px 0 14px;
     }
 
     .price {
       color: var(--navy);
-      font-size: clamp(1.75rem, 3vw, 2.3rem);
+      font-size: clamp(1.8rem, 2.8vw, 2.3rem);
       font-weight: 950;
       line-height: 1;
       letter-spacing: -.045em;
@@ -1104,11 +1136,11 @@
     .additional {
       margin: 0 0 8px;
       color: var(--muted);
-      font-size: .78rem;
+      font-size: .8rem;
     }
 
     .price-card.featured .additional {
-      color: rgba(255, 255, 255, .75);
+      color: rgba(255, 255, 255, .78);
     }
 
     .price-card-btn {
@@ -1117,12 +1149,12 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 9px 16px;
+      padding: 10px 18px;
       border-radius: 999px;
       border: 1px solid rgba(31, 86, 210, 0.25);
       background: var(--ice);
       color: var(--blue);
-      font-size: .8rem;
+      font-size: .82rem;
       font-weight: 850;
       text-decoration: none;
       cursor: pointer;
@@ -1148,8 +1180,8 @@
     /* Journey / 3 Easy Steps + Animated Counters Banner */
     .journey-grid {
       display: grid;
-      grid-template-columns: .8fr 1.2fr;
-      gap: 72px;
+      grid-template-columns: .82fr 1.18fr;
+      gap: clamp(32px, 5vw, 68px);
       align-items: center;
     }
 
@@ -1172,7 +1204,7 @@
 
     .steps {
       display: grid;
-      gap: 13px;
+      gap: 14px;
     }
 
     .step {
@@ -1180,7 +1212,7 @@
       grid-template-columns: 64px 1fr;
       gap: 18px;
       align-items: center;
-      padding: 20px;
+      padding: 20px 22px;
       border: 1px solid var(--line);
       border-radius: 18px;
       background: var(--white);
@@ -1199,7 +1231,7 @@
     }
 
     .step h3 {
-      margin: 0 0 3px;
+      margin: 0 0 4px;
       color: var(--navy);
       font-size: 1.1rem;
     }
@@ -1207,7 +1239,7 @@
     .step p {
       margin: 0;
       color: var(--muted);
-      font-size: .92rem;
+      font-size: .93rem;
     }
 
     /* Classic 4-Column Hours Counter Strip */
@@ -1227,7 +1259,7 @@
     .bde-counter-item span {
       font-family: "Montserrat", sans-serif;
       font-weight: 800;
-      font-size: clamp(2.6rem, 4.2vw, 3.5rem);
+      font-size: clamp(2.5rem, 4vw, 3.4rem);
       line-height: 1;
       color: var(--yellow);
       display: inline-block;
@@ -1259,7 +1291,7 @@
     .reviews-heading h2 {
       margin: 0;
       color: var(--navy);
-      font-size: clamp(2.15rem, 4vw, 3.65rem);
+      font-size: clamp(2.1rem, 4vw, 3.55rem);
       line-height: 1.05;
       letter-spacing: -.045em;
     }
@@ -1278,9 +1310,9 @@
 
     .review-card {
       display: flex;
-      min-height: 310px;
+      min-height: 300px;
       flex-direction: column;
-      padding: 27px 30px;
+      padding: 27px 28px;
       border: 0;
       border-left: 1px solid var(--line);
       border-radius: 0;
@@ -1318,7 +1350,7 @@
       order: 2;
       margin: 0 0 20px;
       color: #52677d;
-      font-size: .91rem;
+      font-size: .92rem;
       line-height: 1.55;
     }
 
@@ -1484,7 +1516,7 @@
     }
 
     .recognition-title {
-      margin: 70px 0 20px;
+      margin: 64px 0 20px;
       color: var(--navy);
       font-size: .82rem;
       font-weight: 900;
@@ -1610,7 +1642,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 32px;
-      padding: 42px 48px;
+      padding: clamp(30px, 4.5vw, 44px) clamp(26px, 5vw, 48px);
       border-radius: 30px;
       background: linear-gradient(135deg, var(--navy), #1545b3);
       color: var(--white);
@@ -1624,14 +1656,14 @@
 
     .cta-banner h2 {
       margin: 0;
-      font-size: clamp(1.85rem, 3.4vw, 2.75rem);
+      font-size: clamp(1.8rem, 3.4vw, 2.7rem);
       line-height: 1.08;
       letter-spacing: -.04em;
     }
 
     .cta-banner p {
       margin: 10px 0 0;
-      color: rgba(255, 255, 255, .82);
+      color: rgba(255, 255, 255, .84);
       max-width: 560px;
     }
 
@@ -1764,7 +1796,7 @@
     /* Contact Section */
     .contact-grid {
       display: grid;
-      grid-template-columns: .85fr 1.15fr;
+      grid-template-columns: .88fr 1.12fr;
       gap: 24px;
     }
 
@@ -1930,124 +1962,190 @@
       font-size: 14px;
     }
 
-    /* Responsive Media Queries */
-    @media (max-width: 1040px) {
+    /* ==========================================================================
+       Responsive Breakpoints
+       1. 1120px: Hide secondary text link in header to keep desktop nav spacious
+       2. 980px : Unified Tablet Portrait & Mobile Drawer Breakpoint (No Phantom CTA)
+       3. 760px : Phablet / Small Tablet adjustments
+       4. 560px : Mobile Phone adjustments
+       ========================================================================== */
+
+    @media (max-width: 1120px) {
       .portal-link {
         display: none;
       }
-      .mobile-only {
-        display: list-item;
-      }
-      .hero-grid {
-        grid-template-columns: 1fr .78fr;
-        gap: 38px;
-      }
-      .region-grid {
-        grid-template-columns: 1fr;
-      }
-      .pricing-region {
-        display: grid;
-        grid-template-columns: 300px 1fr;
-      }
-      .region-head {
-        border: 0;
-      }
-      .region-courses {
-        min-height: 300px;
-      }
-      .reviews-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-      .review-card:nth-child(3n+1) {
-        border-left: 1px solid var(--line);
-      }
-      .review-card:nth-child(2n+1) {
-        border-left: 0;
-      }
-      .review-card:nth-child(n+3) {
-        border-top: 1px solid var(--line);
-      }
-      .cta-banner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
     }
 
-    @media (max-width: 860px) {
+    @media (max-width: 980px) {
+      /* Unified Navigation Drawer Switch — eliminates duplicate Register button */
       .nav-toggle {
         display: block;
       }
+
       .nav-actions .button-link {
         display: none;
       }
+
+      .mobile-only {
+        display: list-item !important;
+      }
+
       .site-nav {
         position: fixed;
-        inset: 79px 0 auto;
-        max-height: calc(100vh - 79px);
-        max-height: calc(100dvh - 79px);
-        overflow: auto;
-        padding: 22px 20px 30px;
+        inset: var(--header-h) 0 auto 0;
+        z-index: 99;
+        max-height: calc(100vh - var(--header-h));
+        max-height: calc(100dvh - var(--header-h));
+        overflow-y: auto;
+        padding: 20px 24px 28px;
         border-bottom: 1px solid var(--line);
         background: var(--white);
-        box-shadow: 0 24px 48px rgba(13, 47, 82, .14);
-        transform: translateY(-130%);
+        box-shadow: 0 24px 48px rgba(13, 47, 82, .16);
+        transform: translateY(-120%);
         opacity: 0;
         visibility: hidden;
-        transition: transform .24s ease, opacity .24s ease, visibility .24s ease;
+        transition: transform .24s cubic-bezier(0.22, 1, 0.36, 1), opacity .22s ease, visibility .22s ease;
       }
-      .nav-open .site-nav {
+
+      body.nav-open .site-nav {
         transform: translateY(0);
         opacity: 1;
         visibility: visible;
       }
+
       .nav-links {
-        width: min(100%, var(--container));
+        width: min(100%, 640px);
         margin-inline: auto;
         flex-direction: column;
         align-items: stretch;
         gap: 0;
       }
-      .nav-links a {
+
+      .nav-links a:not(.button-link) {
         display: block;
-        padding: 13px 4px;
+        padding: 14px 6px;
         border-bottom: 1px solid var(--line);
+        font-size: 1rem;
       }
+
       .nav-links .button-link {
-        margin-top: 14px;
+        display: flex;
+        width: 100%;
+        margin-top: 16px;
         text-align: center;
         border: 0;
       }
-      .hero-grid,
-      .journey-grid,
-      .mock-feature-panel {
+
+      /* Tablet Portrait Hero & Card Layout */
+      .hero-grid {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        gap: 44px;
+        padding-block: 58px 86px;
+      }
+
+      .road-card {
+        max-width: 680px;
+      }
+
+      /* Trust Bar stays 3-col on Tablet Portrait with tighter padding */
+      .trust-item {
+        padding: 18px 20px;
+      }
+
+      /* Mock Test & 3-Step Program stack cleanly on Tablet Portrait */
+      .mock-feature-panel,
+      .journey-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
+      .mock-options {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .mock-option:nth-child(3) {
+        grid-column: 1 / -1;
+      }
+
+      /* Pricing Region stacks municipality header above 2-col course cards */
+      .pricing-region {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        padding: 22px;
+      }
+
+      .region-head {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 4px 12px 8px;
+      }
+
+      .region-logos {
+        min-height: 82px;
+        max-width: 340px;
+        width: 100%;
+      }
+
+      /* Reviews 2-column grid on Tablet Portrait */
+      .reviews-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .review-card:nth-child(3n+1) {
+        border-left: 1px solid var(--line);
+      }
+
+      .review-card:nth-child(2n+1) {
+        border-left: 0;
+      }
+
+      .review-card:nth-child(n+3) {
+        border-top: 1px solid var(--line);
+      }
+
+      .cta-banner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .contact-grid {
         grid-template-columns: 1fr;
       }
-      .hero-grid {
-        padding-block: 65px 90px;
+
+      .footer-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 36px;
       }
-      .road-card {
-        max-width: 600px;
+
+      .footer-grid > div:first-child {
+        grid-column: 1 / -1;
       }
+    }
+
+    @media (max-width: 760px) {
       .trust-grid {
         grid-template-columns: 1fr;
       }
+
       .trust-item + .trust-item {
         border-left: 0;
         border-top: 1px solid var(--line);
       }
+
       .bde-counters-band {
         grid-template-columns: repeat(2, 1fr);
+        padding: 28px 20px;
       }
+
+      .mock-options {
+        grid-template-columns: 1fr;
+      }
+
       .section-heading {
         align-items: flex-start;
         flex-direction: column;
-      }
-      .contact-grid,
-      .footer-grid {
-        grid-template-columns: 1fr;
-      }
-      .footer-grid {
-        gap: 34px;
       }
     }
 
@@ -2055,62 +2153,90 @@
       .container {
         width: min(calc(100% - 28px), var(--container));
       }
+
       .brand img {
         width: 158px;
       }
+
       .hero h1 {
-        font-size: clamp(3rem, 15vw, 4.5rem);
+        font-size: clamp(2.75rem, 13vw, 4.2rem);
       }
+
       .hero-grid {
-        min-height: auto;
-        gap: 45px;
+        gap: 38px;
+        padding-block: 48px 76px;
       }
+
+      .road-card {
+        padding: 24px 20px;
+      }
+
       .hours-list {
         grid-template-columns: 1fr;
       }
+
       .hour-chip {
         min-height: auto;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 14px;
+        padding: 14px 16px;
       }
+
+      .hour-chip b {
+        min-width: 2ch;
+      }
+
+      .hour-chip span {
+        margin-top: 0;
+        font-size: .86rem;
+      }
+
       section {
-        padding-block: 72px;
+        padding-block: 68px;
       }
+
       .mock-feature {
-        padding-top: 52px;
+        padding-top: 48px;
       }
+
       .mock-feature-panel {
-        gap: 28px;
-        padding: 28px 22px;
+        gap: 24px;
+        padding: 26px 20px;
       }
+
       .pricing-heading {
         margin-bottom: 12px;
       }
+
       .pricing-region {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
+        padding: 16px;
+        border-radius: 22px;
       }
-      .region-head {
-        min-height: auto;
-        padding: 0 0 8px;
-        border: 0;
-      }
-      .region-logos {
-        min-height: 88px;
-      }
-      .region-logo img,
-      .region-logo.amherstburg img {
-        height: 72px;
-      }
-      .region-logo.amherstburg img {
-        max-width: 170px;
-      }
+
       .region-courses {
-        min-height: 0;
-        padding: 0;
+        grid-template-columns: 1fr;
       }
+
       .price-card {
         min-height: 0;
+        padding: 20px;
       }
+
+      .step {
+        grid-template-columns: 52px 1fr;
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .step-number {
+        width: 52px;
+        height: 52px;
+        font-size: 1.1rem;
+      }
+
+      /* Horizontal Touch Carousel for Reviews on Phone */
       .reviews-grid {
         display: flex;
         width: calc(100% + 14px);
@@ -2120,61 +2246,99 @@
         scroll-snap-type: x mandatory;
         -webkit-overflow-scrolling: touch;
       }
+
       .review-card {
         min-width: min(82vw, 320px);
-        min-height: 300px;
+        min-height: 290px;
         border-top: 0 !important;
         border-left: 1px solid var(--line) !important;
         scroll-snap-align: start;
       }
+
       .review-card:first-child {
         border-left: 0 !important;
       }
+
       .recognition-title {
-        margin-top: 58px;
+        margin-top: 52px;
       }
+
       .awards-arc {
         gap: 10px;
         min-height: 155px;
       }
+
       .award-mark {
         width: 105px;
       }
+
       .award-mark img {
         width: 58px;
         height: 58px;
       }
+
       .award-mark strong {
         font-size: .8rem;
       }
+
       .award-mark span {
         font-size: .66rem;
       }
+
       .platform-group {
         gap: 26px;
         padding-right: 26px;
       }
+
       .platform-link {
         width: 125px;
         flex-basis: 125px;
       }
+
       .platform-link img {
         width: 50px;
         height: 50px;
       }
+
       .cta-banner {
-        padding: 28px 22px;
+        padding: 26px 20px;
         border-radius: 22px;
       }
+
+      .cta-banner-actions {
+        width: 100%;
+      }
+
+      .cta-banner-actions .button {
+        flex: 1 1 100%;
+      }
+
+      .modal-backdrop {
+        padding: 12px;
+      }
+
       .modal-header,
       .modal-body,
       .modal-footer {
         padding-inline: 18px;
       }
+
+      .modal-footer {
+        flex-direction: column;
+        align-items: stretch;
+        text-align: center;
+      }
+
       .contact-card,
       .message-card {
-        padding: 23px 18px;
+        padding: 22px 18px;
       }
+
+      .footer-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
+      }
+
       .footer-bottom {
         flex-direction: column;
         align-items: flex-start;
@@ -2182,12 +2346,6 @@
     }
 
     @media (max-width: 430px) {
-      .region-courses {
-        grid-template-columns: 1fr;
-      }
-      .delivery-note {
-        min-height: 0;
-      }
       .map-menu {
         left: auto;
         right: 0;
@@ -2242,6 +2400,7 @@
       </div>
     </div>
   </header>
+  <div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
 
   <main id="main-content">
     <!-- ======= Hero Section ======= -->
@@ -2706,8 +2865,10 @@
 
   <script>
     (() => {
-      // 1. Mobile Navigation Toggle
+      // 1. Mobile & Tablet Navigation Toggle (Synchronized at 980px)
       const navToggle = document.querySelector('.nav-toggle');
+      const navBackdrop = document.getElementById('nav-backdrop');
+
       const closeNav = () => {
         if (!document.body.classList.contains('nav-open')) return;
         document.body.classList.remove('nav-open');
@@ -2721,13 +2882,17 @@
         navToggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
       });
 
+      if (navBackdrop) {
+        navBackdrop.addEventListener('click', closeNav);
+      }
+
       document.querySelectorAll('.site-nav a').forEach(link => link.addEventListener('click', closeNav));
 
       window.addEventListener('resize', () => {
-        if (window.innerWidth > 860) closeNav();
+        if (window.innerWidth > 980) closeNav();
       });
 
-      // 2. Registration Modal Controller + Focus Management
+      // 2. Registration Modal Controller + Focus Trap
       const registerModal = document.getElementById('registerModal');
       const modalCloseBtn = registerModal.querySelector('.modal-close');
       let lastFocusedElement = null;
@@ -2779,6 +2944,23 @@
           closeNav();
           closeRegisterModal();
           closeMapChoices();
+          return;
+        }
+
+        if (event.key === 'Tab' && registerModal.classList.contains('open')) {
+          const focusables = registerModal.querySelectorAll(
+            'button, [href], input, select, textarea, iframe, [tabindex]:not([tabindex="-1"])'
+          );
+          if (!focusables.length) return;
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (event.shiftKey && document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          } else if (!event.shiftKey && document.activeElement === last) {
+            event.preventDefault();
+            first.focus();
+          }
         }
       });
 
