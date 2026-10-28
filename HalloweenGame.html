@@ -1,0 +1,1428 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Haunted Horizon — Interactive RGB Motion Halloween Background</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #07030d;
+            font-family: 'Inter', sans-serif;
+            color: #f8fafc;
+        }
+        .font-spooky {
+            font-family: 'Creepster', cursive;
+            letter-spacing: 0.06em;
+        }
+        #sceneCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            cursor: crosshair;
+        }
+        .hud-glass {
+            background: rgba(13, 8, 22, 0.82);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(249, 115, 22, 0.28);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 25px rgba(249, 115, 22, 0.12);
+        }
+        input[type="range"] {
+            accent-color: #f97316;
+        }
+        /* Custom scrollbar for HUD drawer */
+        #hudPanel::-webkit-scrollbar {
+            width: 6px;
+        }
+        #hudPanel::-webkit-scrollbar-track {
+            background: rgba(15, 10, 25, 0.4);
+        }
+        #hudPanel::-webkit-scrollbar-thumb {
+            background: rgba(249, 115, 22, 0.4);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden select-none">
+
+    <!-- Primary Fullscreen Halloween Scene Canvas -->
+    <canvas id="sceneCanvas"></canvas>
+
+    <!-- Hidden Video Element for Live Webcam RGB Stream -->
+    <video id="webcamVideo" playsinline autoplay muted class="hidden"></video>
+
+    <!-- Top-Left Ambient Status & Quick Toggle Bar (Starts completely hidden) -->
+    <div id="topLeftBar" class="fixed top-4 left-4 z-30 flex items-center gap-2.5 opacity-0 pointer-events-none transition-all duration-300">
+        <button id="toggleHudBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium text-orange-300 hover:text-orange-200 hover:border-orange-400/60 transition-all shadow-lg" title="Toggle Control Panel (Shortcut: H or Double-Click)">
+            <i class="ph-fill ph-sliders-horizontal text-lg text-orange-400"></i>
+            <span id="toggleHudText">Controls</span>
+        </button>
+
+        <div id="statusBadge" class="hud-glass px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border border-amber-500/30">
+            <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+            <span id="statusDotSolid" class="w-2.5 h-2.5 rounded-full bg-amber-400 -ml-4"></span>
+            <span id="statusLabel" class="text-amber-200">Initializing RGB Camera...</span>
+        </div>
+    </div>
+
+    <!-- Top-Right Quick Action Buttons (Starts completely hidden) -->
+    <div id="topRightBar" class="fixed top-4 right-4 z-30 flex items-center gap-2.5 opacity-0 pointer-events-none transition-all duration-300">
+        <button id="lightningBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-purple-300 hover:text-white hover:border-purple-400/60 transition-all" title="Trigger Thunder & Scare Burst (Shortcut: Space)">
+            <i class="ph-fill ph-lightning text-amber-400 text-lg"></i>
+            <span class="hidden sm:inline">Thunder Scare</span>
+        </button>
+        <button id="audioToggleBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:border-orange-400/60 transition-all" title="Toggle Procedural Spooky Synth Audio">
+            <i id="audioIcon" class="ph-fill ph-speaker-slash text-slate-400 text-lg"></i>
+            <span id="audioLabel" class="hidden sm:inline">Sound Off</span>
+        </button>
+    </div>
+
+    <!-- Main Toggleable HUD Control Panel (Starts completely hidden) -->
+    <aside id="hudPanel" class="fixed top-16 left-4 z-30 w-80 sm:w-96 max-h-[calc(100vh-5rem)] overflow-y-auto hud-glass rounded-2xl p-5 transition-all duration-300 opacity-0 -translate-x-8 pointer-events-none">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-orange-500/20">
+            <div class="flex items-center gap-2.5">
+                <i class="ph-fill ph-skull text-2xl text-orange-500"></i>
+                <div>
+                    <h1 class="font-spooky text-2xl text-orange-400 leading-none">Haunted Horizon</h1>
+                    <p class="text-[11px] text-slate-400 mt-0.5">RGB Camera Motion Interactive Scene</p>
+                </div>
+            </div>
+            <button id="closeHudBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Hide HUD (Shortcut: H or Double-Click)">
+                <i class="ph-bold ph-x text-base"></i>
+            </button>
+        </div>
+
+        <!-- Camera Control & Live RGB Diff Radar -->
+        <div class="space-y-3 mb-5">
+            <button id="cameraToggleBtn" class="w-full py-2.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg shadow-orange-950/50 transition-all">
+                <i id="cameraBtnIcon" class="ph-fill ph-video-camera text-lg"></i>
+                <span id="cameraBtnText">Start RGB Camera Motion</span>
+            </button>
+
+            <div class="relative rounded-xl overflow-hidden border border-orange-500/25 bg-black/70 aspect-[4/3]">
+                <canvas id="radarCanvas" width="160" height="120" class="w-full h-full object-cover"></canvas>
+                <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-orange-300 border border-orange-500/20">
+                    RGB Δ-MOTION RADAR (80×60)
+                </div>
+                <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-emerald-300" id="motionMeterText">
+                    Motion: 0%
+                </div>
+            </div>
+        </div>
+
+        <!-- Motion & Visual Sliders -->
+        <div class="space-y-4 text-xs">
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="sensitivitySlider" class="text-slate-300 font-medium">RGB Motion Sensitivity</label>
+                    <span id="sensitivityVal" class="text-orange-400 font-mono">65%</span>
+                </div>
+                <input id="sensitivitySlider" type="range" min="15" max="95" value="65" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="rgbTrailSlider" class="text-slate-300 font-medium">Chromatic RGB Ghost Trail</label>
+                    <span id="rgbTrailVal" class="text-orange-400 font-mono">45%</span>
+                </div>
+                <input id="rgbTrailSlider" type="range" min="0" max="100" value="45" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="entityDensitySlider" class="text-slate-300 font-medium">Spooky Swarm Density</label>
+                    <span id="entityDensityVal" class="text-orange-400 font-mono">100%</span>
+                </div>
+                <input id="entityDensitySlider" type="range" min="40" max="180" value="100" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+
+            <!-- Ghost Behavior Mode -->
+            <div>
+                <label class="block text-slate-300 font-medium mb-1.5">Specter Motion Response</label>
+                <div class="grid grid-cols-3 gap-1.5" id="ghostModeGroup">
+                    <button data-mode="swirl" class="ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all">
+                        Vortex Swirl
+                    </button>
+                    <button data-mode="attract" class="ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all">
+                        Haunt (Attract)
+                    </button>
+                    <button data-mode="repel" class="ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all">
+                        Scare (Repel)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer Legend -->
+        <div class="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">H</kbd> or <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Double-Click</kbd> UI</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Space</kbd> Lightning</span>
+        </div>
+    </aside>
+
+    <script>
+        /**
+         * HAUNTED HORIZON — Interactive RGB Webcam Motion Halloween Scene
+         * Uses HTML5 Canvas, real-time getUserMedia RGB frame-differencing,
+         * ghostly RGB trail compositing, and automatic mouse/touch motion fallback.
+         */
+        function initHalloweenScene() {
+            const canvas = document.getElementById('sceneCanvas');
+            const ctx = canvas.getContext('2d');
+            const video = document.getElementById('webcamVideo');
+            const radarCanvas = document.getElementById('radarCanvas');
+            const radarCtx = radarCanvas.getContext('2d');
+
+            // Offscreen low-res buffer for fast RGB frame differencing
+            const GRID_W = 80;
+            const GRID_H = 60;
+            const procCanvas = document.createElement('canvas');
+            procCanvas.width = GRID_W;
+            procCanvas.height = GRID_H;
+            const procCtx = procCanvas.getContext('2d', { willReadFrequently: true });
+
+            // Offscreen persistent canvas for chromatic RGB motion trail overlay
+            const trailCanvas = document.createElement('canvas');
+            trailCanvas.width = GRID_W;
+            trailCanvas.height = GRID_H;
+            const trailCtx = trailCanvas.getContext('2d');
+
+            // Central reactive application state
+            const state = {
+                width: window.innerWidth,
+                height: window.innerHeight,
+                time: 0,
+                cameraActive: false,
+                cameraStarting: false,
+                stream: null,
+                prevFrameData: null,
+                sensitivity: 65,      // 15..95
+                rgbTrailOpacity: 0.45, // 0..1
+                densityScale: 1.0,    // 0.4..1.8
+                ghostMode: 'swirl',   // 'swirl' | 'attract' | 'repel'
+                lightningFlash: 0,
+                lightningBolt: null,
+                audioEnabled: false,
+                hudVisible: false,
+                // Motion hotspots detected in current frame: { x, y, intensity, r, g, b, vx, vy }
+                motionPoints: [],
+                // Smoothed primary motion centroid
+                centroid: {
+                    x: window.innerWidth * 0.5,
+                    y: window.innerHeight * 0.45,
+                    active: false,
+                    energy: 0
+                },
+                pointer: {
+                    x: window.innerWidth * 0.5,
+                    y: window.innerHeight * 0.45,
+                    prevX: window.innerWidth * 0.5,
+                    prevY: window.innerHeight * 0.45,
+                    activeTimer: 0
+                },
+                stars: [],
+                fogBanks: [],
+                gravestones: [],
+                pumpkins: [],
+                bats: [],
+                ghosts: [],
+                particles: [],
+                eyes: []
+            };
+
+            let audioCtx = null;
+            let windGainNode = null;
+
+            function initAudio() {
+                if (audioCtx) return;
+                try {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContextClass();
+
+                    // Create continuous eerie wind drone using filtered pink-like noise
+                    const bufferSize = audioCtx.sampleRate * 3;
+                    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                    const output = noiseBuffer.getChannelData(0);
+                    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+                    for (let i = 0; i < bufferSize; i++) {
+                        const white = Math.random() * 2 - 1;
+                        b0 = 0.99886 * b0 + white * 0.0555179;
+                        b1 = 0.99332 * b1 + white * 0.0750759;
+                        b2 = 0.96900 * b2 + white * 0.1538520;
+                        b3 = 0.86650 * b3 + white * 0.3104856;
+                        b4 = 0.55000 * b4 + white * 0.5329522;
+                        b5 = -0.7616 * b5 - white * 0.0168980;
+                        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
+                        b6 = white * 0.115926;
+                    }
+
+                    const whiteNoise = audioCtx.createBufferSource();
+                    whiteNoise.buffer = noiseBuffer;
+                    whiteNoise.loop = true;
+
+                    const filter = audioCtx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 260;
+                    filter.Q.value = 3.5;
+
+                    windGainNode = audioCtx.createGain();
+                    windGainNode.gain.value = 0.01;
+
+                    whiteNoise.connect(filter);
+                    filter.connect(windGainNode);
+                    windGainNode.connect(audioCtx.destination);
+                    whiteNoise.start(0);
+                } catch (err) {
+                    console.warn('Web Audio API unavailable:', err);
+                }
+            }
+
+            function playThunderSound() {
+                if (!state.audioEnabled || !audioCtx) return;
+                try {
+                    const now = audioCtx.currentTime;
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(110, now);
+                    osc.frequency.exponentialRampToValueAtTime(28, now + 1.4);
+
+                    gain.gain.setValueAtTime(0.28, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.55);
+                } catch (e) {
+                    // Ignore audio context state errors
+                }
+            }
+
+            function buildWorldEntities() {
+                const w = state.width;
+                const h = state.height;
+
+                // 1. Twinkling night stars
+                state.stars = [];
+                const starCount = Math.floor((w * h) / 11000);
+                for (let i = 0; i < starCount; i++) {
+                    state.stars.push({
+                        x: Math.random() * w,
+                        y: Math.random() * (h * 0.68),
+                        r: Math.random() * 1.7 + 0.4,
+                        alpha: Math.random() * 0.7 + 0.2,
+                        speed: Math.random() * 2.2 + 0.6,
+                        phase: Math.random() * Math.PI * 2
+                    });
+                }
+
+                // 2. Layered drifting graveyard fog banks
+                state.fogBanks = [];
+                for (let i = 0; i < 7; i++) {
+                    state.fogBanks.push({
+                        x: Math.random() * w,
+                        y: h * (0.62 + (i / 7) * 0.34),
+                        width: w * (0.55 + Math.random() * 0.45),
+                        height: h * (0.09 + Math.random() * 0.08),
+                        vx: (i % 2 === 0 ? 1 : -1) * (0.18 + Math.random() * 0.25),
+                        hue: i % 2 === 0 ? 275 : 22
+                    });
+                }
+
+                // 3. Silhouette gravestones along the foreground ridge
+                state.gravestones = [];
+                const graveCount = Math.max(5, Math.floor(w / 190));
+                for (let i = 0; i < graveCount; i++) {
+                    const gx = (w / graveCount) * i + 45 + Math.random() * 65;
+                    state.gravestones.push({
+                        x: gx,
+                        y: h * 0.84 + Math.random() * (h * 0.05),
+                        w: 26 + Math.random() * 18,
+                        h: 42 + Math.random() * 28,
+                        tilt: (Math.random() - 0.5) * 0.24,
+                        type: i % 3 // 0: rounded arch, 1: cross, 2: notched slab
+                    });
+                }
+
+                // 4. Interactive Carved Jack-o'-Lanterns along the foreground
+                state.pumpkins = [];
+                const pumpkinCount = Math.max(5, Math.min(11, Math.floor(w / 165)));
+                for (let i = 0; i < pumpkinCount; i++) {
+                    const px = (w / (pumpkinCount + 0.5)) * (i + 0.6) + (Math.random() - 0.5) * 35;
+                    const py = h * 0.89 + (Math.random() - 0.5) * 24;
+                    state.pumpkins.push({
+                        x: px,
+                        y: py,
+                        radiusX: 28 + Math.random() * 16,
+                        radiusY: 22 + Math.random() * 13,
+                        excitation: 0.15,
+                        flickerOffset: Math.random() * 100,
+                        grinStyle: i % 2
+                    });
+                }
+
+                // 5. Glowing Monster Eyes peeking from dark bushes
+                state.eyes = [];
+                for (let i = 0; i < 6; i++) {
+                    state.eyes.push({
+                        x: Math.random() * (w * 0.9) + w * 0.05,
+                        y: h * (0.76 + Math.random() * 0.16),
+                        blinkTimer: Math.random() * 200,
+                        alertness: 0,
+                        color: i % 2 === 0 ? '#ef4444' : '#facc15'
+                    });
+                }
+
+                syncSwarmCounts();
+            }
+
+            function syncSwarmCounts() {
+                const w = state.width;
+                const h = state.height;
+                const targetBats = Math.round(22 * state.densityScale);
+                const targetGhosts = Math.round(9 * state.densityScale);
+
+                while (state.bats.length < targetBats) {
+                    state.bats.push({
+                        x: Math.random() * w,
+                        y: Math.random() * (h * 0.65),
+                        vx: (Math.random() - 0.5) * 3.2,
+                        vy: (Math.random() - 0.5) * 1.4,
+                        size: 11 + Math.random() * 9,
+                        wingPhase: Math.random() * Math.PI * 2,
+                        wingSpeed: 0.22 + Math.random() * 0.12,
+                        scared: 0
+                    });
+                }
+                if (state.bats.length > targetBats) {
+                    state.bats.length = targetBats;
+                }
+
+                while (state.ghosts.length < targetGhosts) {
+                    state.ghosts.push({
+                        x: Math.random() * w,
+                        y: Math.random() * (h * 0.75),
+                        vx: (Math.random() - 0.5) * 1.5,
+                        vy: (Math.random() - 0.5) * 1.0,
+                        size: 26 + Math.random() * 18,
+                        hue: Math.random() > 0.45 ? 175 : 275, // Spectral cyan-green or eerie violet
+                        phase: Math.random() * Math.PI * 2,
+                        trail: []
+                    });
+                }
+                if (state.ghosts.length > targetGhosts) {
+                    state.ghosts.length = targetGhosts;
+                }
+            }
+
+            function spawnParticle(x, y, r, g, b, isEmber = false) {
+                if (state.particles.length > 260) {
+                    state.particles.shift();
+                }
+                const angle = Math.random() * Math.PI * 2;
+                const speed = isEmber ? (1.2 + Math.random() * 3.4) : (0.6 + Math.random() * 2.4);
+                state.particles.push({
+                    x,
+                    y,
+                    vx: Math.cos(angle) * speed * 0.65,
+                    vy: -Math.abs(Math.sin(angle) * speed) - (isEmber ? 1.4 : 0.7),
+                    size: isEmber ? (2 + Math.random() * 3.5) : (3 + Math.random() * 6),
+                    life: 1.0,
+                    decay: 0.014 + Math.random() * 0.02,
+                    r: isEmber ? 255 : r,
+                    g: isEmber ? (110 + Math.floor(Math.random() * 110)) : g,
+                    b: isEmber ? 20 : b,
+                    isEmber
+                });
+            }
+
+            function triggerLightning(originX) {
+                const startX = typeof originX === 'number'
+                    ? originX
+                    : state.width * (0.2 + Math.random() * 0.6);
+                state.lightningFlash = 1.0;
+
+                const segments = [];
+                let currX = startX;
+                let currY = 0;
+                const maxSteps = 14;
+                for (let i = 0; i < maxSteps; i++) {
+                    const nextX = currX + (Math.random() - 0.5) * 95;
+                    const nextY = currY + (state.height * 0.72) / maxSteps;
+                    segments.push({ x1: currX, y1: currY, x2: nextX, y2: nextY });
+                    currX = nextX;
+                    currY = nextY;
+                }
+                state.lightningBolt = { segments, alpha: 1.0 };
+
+                // Scatter nearby bats & excite pumpkins on thunder
+                state.bats.forEach(bat => {
+                    bat.scared = 1.0;
+                    bat.vx = (Math.random() - 0.5) * 9;
+                    bat.vy = -2 - Math.random() * 4;
+                });
+                state.pumpkins.forEach(p => {
+                    p.excitation = Math.min(1.5, p.excitation + 0.85);
+                });
+
+                playThunderSound();
+            }
+
+            function updateStatusUI(mode, message) {
+                const dot = document.getElementById('statusDot');
+                const dotSolid = document.getElementById('statusDotSolid');
+                const label = document.getElementById('statusLabel');
+                const badge = document.getElementById('statusBadge');
+                const btnIcon = document.getElementById('cameraBtnIcon');
+                const btnText = document.getElementById('cameraBtnText');
+
+                if (mode === 'active') {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping';
+                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 -ml-4';
+                    badge.className = 'hud-glass px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border border-emerald-500/40';
+                    label.className = 'text-emerald-200';
+                    label.textContent = message || 'RGB Camera Motion Active';
+                    btnIcon.className = 'ph-fill ph-video-camera-slash text-lg';
+                    btnText.textContent = 'Stop RGB Camera (Use Mouse)';
+                } else if (mode === 'starting') {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping';
+                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 -ml-4';
+                    badge.className = 'hud-glass px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border border-amber-500/40';
+                    label.className = 'text-amber-200';
+                    label.textContent = message || 'Requesting RGB Camera...';
+                } else {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-orange-400 opacity-75';
+                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-orange-400 -ml-4';
+                    badge.className = 'hud-glass px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border border-orange-500/30';
+                    label.className = 'text-orange-200';
+                    label.textContent = message || 'Cursor / Touch Fallback Active';
+                    btnIcon.className = 'ph-fill ph-video-camera text-lg';
+                    btnText.textContent = 'Start RGB Camera Motion';
+                }
+            }
+
+            async function toggleCamera() {
+                if (state.cameraStarting) return;
+
+                if (state.cameraActive) {
+                    if (state.stream) {
+                        state.stream.getTracks().forEach(track => track.stop());
+                        state.stream = null;
+                    }
+                    video.srcObject = null;
+                    state.cameraActive = false;
+                    state.prevFrameData = null;
+                    updateStatusUI('fallback', 'Camera Off — Cursor Fallback');
+                    return;
+                }
+
+                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                    updateStatusUI('fallback', 'Webcam API Unavailable — Cursor Mode');
+                    return;
+                }
+
+                state.cameraStarting = true;
+                updateStatusUI('starting', 'Starting RGB Camera...');
+
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({
+                        video: {
+                            width: { ideal: 320 },
+                            height: { ideal: 240 },
+                            facingMode: 'user'
+                        },
+                        audio: false
+                    });
+                    state.stream = stream;
+                    video.srcObject = stream;
+                    await video.play();
+                    state.cameraActive = true;
+                    state.prevFrameData = null;
+                    updateStatusUI('active', 'RGB Camera Motion Active');
+                } catch (err) {
+                    console.warn('Webcam access declined or unavailable, using mouse/touch fallback:', err);
+                    state.cameraActive = false;
+                    updateStatusUI('fallback', 'Mouse / Touch Motion Active');
+                } finally {
+                    state.cameraStarting = false;
+                }
+            }
+
+            function processRgbMotionFrame() {
+                state.motionPoints = [];
+
+                // Fade persistent RGB trail buffer smoothly
+                trailCtx.fillStyle = 'rgba(7, 3, 13, 0.18)';
+                trailCtx.fillRect(0, 0, GRID_W, GRID_H);
+
+                if (state.cameraActive && video.readyState >= 2) {
+                    // Draw mirrored video frame onto 80x60 processing canvas
+                    procCtx.save();
+                    procCtx.scale(-1, 1);
+                    procCtx.drawImage(video, -GRID_W, 0, GRID_W, GRID_H);
+                    procCtx.restore();
+
+                    const frame = procCtx.getImageData(0, 0, GRID_W, GRID_H);
+                    const data = frame.data;
+
+                    // Threshold derived from sensitivity slider (15..95 -> 130..28)
+                    const diffThreshold = Math.max(24, 155 - state.sensitivity * 1.3);
+
+                    if (state.prevFrameData) {
+                        const prev = state.prevFrameData;
+                        const trailImg = trailCtx.getImageData(0, 0, GRID_W, GRID_H);
+                        const trailData = trailImg.data;
+
+                        let sumX = 0;
+                        let sumY = 0;
+                        let totalWeight = 0;
+                        let activeCells = 0;
+
+                        for (let y = 0; y < GRID_H; y++) {
+                            for (let x = 0; x < GRID_W; x++) {
+                                const idx = (y * GRID_W + x) * 4;
+                                const r = data[idx];
+                                const g = data[idx + 1];
+                                const b = data[idx + 2];
+
+                                const dr = Math.abs(r - prev[idx]);
+                                const dg = Math.abs(g - prev[idx + 1]);
+                                const db = Math.abs(b - prev[idx + 2]);
+                                const rgbDiff = dr + dg + db;
+
+                                if (rgbDiff > diffThreshold) {
+                                    const intensity = Math.min(1.0, (rgbDiff - diffThreshold) / 220);
+                                    activeCells++;
+
+                                    // Boost spooky Halloween hues in the chromatic motion trail
+                                    trailData[idx] = Math.min(255, r + 95);
+                                    trailData[idx + 1] = Math.min(255, Math.floor(g * 0.65) + 35);
+                                    trailData[idx + 2] = Math.min(255, b + 115);
+                                    trailData[idx + 3] = Math.min(255, Math.floor(intensity * 245));
+
+                                    const screenX = (x / GRID_W) * state.width;
+                                    const screenY = (y / GRID_H) * state.height;
+
+                                    sumX += screenX * intensity;
+                                    sumY += screenY * intensity;
+                                    totalWeight += intensity;
+
+                                    // Sample hotspot points for entity interactions & particle emission
+                                    if ((x + y) % 3 === 0) {
+                                        state.motionPoints.push({
+                                            x: screenX,
+                                            y: screenY,
+                                            intensity,
+                                            r: Math.min(255, r + 60),
+                                            g: Math.min(255, g + 20),
+                                            b: Math.min(255, b + 80)
+                                        });
+                                    }
+                                }
+                            }
+                        }
+
+                        trailCtx.putImageData(trailImg, 0, 0);
+
+                        const motionPercent = Math.min(100, Math.round((activeCells / (GRID_W * GRID_H * 0.22)) * 100));
+                        document.getElementById('motionMeterText').textContent = `Motion: ${motionPercent}%`;
+
+                        if (totalWeight > 1.2) {
+                            const targetX = sumX / totalWeight;
+                            const targetY = sumY / totalWeight;
+                            state.centroid.x += (targetX - state.centroid.x) * 0.28;
+                            state.centroid.y += (targetY - state.centroid.y) * 0.28;
+                            state.centroid.active = true;
+                            state.centroid.energy = Math.min(1.0, totalWeight / 35);
+
+                            // Sudden huge full-frame movement triggers a rare lightning scare
+                            if (motionPercent > 82 && state.lightningFlash <= 0.05 && Math.random() < 0.08) {
+                                triggerLightning(state.centroid.x);
+                            }
+                        } else {
+                            state.centroid.active = false;
+                            state.centroid.energy *= 0.9;
+                        }
+                    }
+
+                    state.prevFrameData = new Uint8ClampedArray(data);
+                } else {
+                    // Fallback: Use Mouse / Touch Pointer Motion
+                    const dx = state.pointer.x - state.pointer.prevX;
+                    const dy = state.pointer.y - state.pointer.prevY;
+                    const dist = Math.hypot(dx, dy);
+                    state.pointer.prevX = state.pointer.x;
+                    state.pointer.prevY = state.pointer.y;
+
+                    if (dist > 1.2 || state.pointer.activeTimer > 0) {
+                        const intensity = Math.min(1.0, dist / 28 + 0.35);
+                        state.motionPoints.push({
+                            x: state.pointer.x,
+                            y: state.pointer.y,
+                            intensity,
+                            r: 255,
+                            g: 135,
+                            b: 45
+                        });
+
+                        // Paint pointer motion onto the offscreen RGB trail buffer
+                        const gx = (state.pointer.x / state.width) * GRID_W;
+                        const gy = (state.pointer.y / state.height) * GRID_H;
+                        const grad = trailCtx.createRadialGradient(gx, gy, 0.5, gx, gy, 5.5);
+                        grad.addColorStop(0, 'rgba(255, 130, 40, 0.85)');
+                        grad.addColorStop(0.5, 'rgba(168, 85, 247, 0.45)');
+                        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        trailCtx.fillStyle = grad;
+                        trailCtx.beginPath();
+                        trailCtx.arc(gx, gy, 5.5, 0, Math.PI * 2);
+                        trailCtx.fill();
+
+                        state.centroid.x += (state.pointer.x - state.centroid.x) * 0.32;
+                        state.centroid.y += (state.pointer.y - state.centroid.y) * 0.32;
+                        state.centroid.active = true;
+                        state.centroid.energy = intensity;
+                        if (state.pointer.activeTimer > 0) state.pointer.activeTimer--;
+
+                        const pct = Math.min(100, Math.round(intensity * 75));
+                        document.getElementById('motionMeterText').textContent = `Cursor: ${pct}%`;
+                    } else {
+                        state.centroid.active = false;
+                        state.centroid.energy *= 0.9;
+                        document.getElementById('motionMeterText').textContent = 'Cursor: 0%';
+                    }
+                }
+
+                // Render HUD Radar Preview when HUD is visible
+                if (state.hudVisible) {
+                    radarCtx.fillStyle = '#07030d';
+                    radarCtx.fillRect(0, 0, radarCanvas.width, radarCanvas.height);
+                    if (state.cameraActive && video.readyState >= 2) {
+                        radarCtx.save();
+                        radarCtx.globalAlpha = 0.28;
+                        radarCtx.drawImage(procCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
+                        radarCtx.restore();
+                    }
+                    radarCtx.drawImage(trailCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
+
+                    if (state.centroid.active) {
+                        const rx = (state.centroid.x / state.width) * radarCanvas.width;
+                        const ry = (state.centroid.y / state.height) * radarCanvas.height;
+                        radarCtx.strokeStyle = '#34d399';
+                        radarCtx.lineWidth = 1.5;
+                        radarCtx.beginPath();
+                        radarCtx.arc(rx, ry, 7, 0, Math.PI * 2);
+                        radarCtx.stroke();
+                    }
+                }
+
+                // Emit spooky particles at the strongest motion points
+                if (state.motionPoints.length > 0) {
+                    const spawnBudget = Math.min(6, Math.ceil(state.motionPoints.length / 8));
+                    for (let i = 0; i < spawnBudget; i++) {
+                        const pt = state.motionPoints[Math.floor(Math.random() * state.motionPoints.length)];
+                        if (Math.random() < 0.75) {
+                            spawnParticle(pt.x, pt.y, pt.r, pt.g, pt.b, Math.random() < 0.45);
+                        }
+                    }
+                }
+
+                // Modulate eerie wind audio volume based on motion energy
+                if (state.audioEnabled && windGainNode && audioCtx) {
+                    const targetGain = 0.04 + state.centroid.energy * 0.18;
+                    windGainNode.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.15);
+                }
+            }
+
+            function drawSkyAndMoon(w, h) {
+                // Twilight-to-midnight vertical sky gradient
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+                skyGrad.addColorStop(0, '#05020a');
+                skyGrad.addColorStop(0.45, '#130726');
+                skyGrad.addColorStop(0.78, '#271033');
+                skyGrad.addColorStop(1, '#09040e');
+                ctx.fillStyle = skyGrad;
+                ctx.fillRect(0, 0, w, h);
+
+                // Twinkling stars
+                for (let i = 0; i < state.stars.length; i++) {
+                    const s = state.stars[i];
+                    const twinkle = 0.35 + 0.65 * Math.sin(state.time * s.speed + s.phase);
+                    ctx.fillStyle = `rgba(255, 245, 235, ${s.alpha * twinkle})`;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Giant Harvest Blood Moon (shifts subtly with motion centroid)
+                const moonX = w * 0.76 + (state.centroid.x - w * 0.5) * -0.025;
+                const moonY = h * 0.22 + (state.centroid.y - h * 0.5) * -0.02;
+                const moonRadius = Math.min(w, h) * 0.11;
+
+                // Outer eerie aura
+                const moonGlow = ctx.createRadialGradient(moonX, moonY, moonRadius * 0.4, moonX, moonY, moonRadius * 3.2);
+                moonGlow.addColorStop(0, 'rgba(251, 146, 60, 0.42)');
+                moonGlow.addColorStop(0.45, 'rgba(194, 65, 12, 0.16)');
+                moonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                ctx.fillStyle = moonGlow;
+                ctx.beginPath();
+                ctx.arc(moonX, moonY, moonRadius * 3.2, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Moon disc
+                const discGrad = ctx.createRadialGradient(
+                    moonX - moonRadius * 0.25,
+                    moonY - moonRadius * 0.25,
+                    moonRadius * 0.1,
+                    moonX,
+                    moonY,
+                    moonRadius
+                );
+                discGrad.addColorStop(0, '#fff7ed');
+                discGrad.addColorStop(0.55, '#fdba74');
+                discGrad.addColorStop(1, '#ea580c');
+                ctx.fillStyle = discGrad;
+                ctx.beginPath();
+                ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Subtle moon craters
+                ctx.fillStyle = 'rgba(154, 52, 18, 0.16)';
+                ctx.beginPath();
+                ctx.arc(moonX - moonRadius * 0.3, moonY + moonRadius * 0.15, moonRadius * 0.22, 0, Math.PI * 2);
+                ctx.arc(moonX + moonRadius * 0.28, moonY - moonRadius * 0.2, moonRadius * 0.16, 0, Math.PI * 2);
+                ctx.arc(moonX + moonRadius * 0.1, moonY + moonRadius * 0.4, moonRadius * 0.12, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            function drawHauntedLandscape(w, h) {
+                // Distant hill behind the Haunted Mansion
+                ctx.fillStyle = '#0d0618';
+                ctx.beginPath();
+                ctx.moveTo(0, h * 0.78);
+                ctx.quadraticCurveTo(w * 0.26, h * 0.56, w * 0.58, h * 0.74);
+                ctx.quadraticCurveTo(w * 0.82, h * 0.65, w, h * 0.77);
+                ctx.lineTo(w, h);
+                ctx.lineTo(0, h);
+                ctx.closePath();
+                ctx.fill();
+
+                // Gothic Haunted Mansion Silhouette on the left-center hill
+                const mx = w * 0.25;
+                const my = h * 0.64;
+                const scale = Math.min(1.15, Math.max(0.65, w / 1300));
+
+                ctx.save();
+                ctx.translate(mx, my);
+                ctx.scale(scale, scale);
+
+                ctx.fillStyle = '#07030e';
+                // Main hall & towers
+                ctx.fillRect(-75, -70, 150, 85);
+                ctx.fillRect(-105, -50, 35, 65);
+                ctx.fillRect(70, -50, 35, 65);
+                ctx.fillRect(-32, -125, 64, 140);
+
+                // Steep Gothic Spire Roofs
+                ctx.beginPath();
+                ctx.moveTo(-42, -125);
+                ctx.lineTo(0, -195);
+                ctx.lineTo(42, -125);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(-112, -50);
+                ctx.lineTo(-87, -105);
+                ctx.lineTo(-62, -50);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.beginPath();
+                ctx.moveTo(62, -50);
+                ctx.lineTo(87, -105);
+                ctx.lineTo(112, -50);
+                ctx.closePath();
+                ctx.fill();
+
+                // Glowing Haunted Windows (flicker with motion energy)
+                const winGlow = 0.65 + 0.35 * Math.sin(state.time * 4) + state.centroid.energy * 0.3;
+                ctx.fillStyle = `rgba(251, 146, 60, ${Math.min(1, winGlow)})`;
+                ctx.shadowColor = '#f97316';
+                ctx.shadowBlur = 14;
+
+                // Spire arched window
+                ctx.beginPath();
+                ctx.arc(0, -100, 9, Math.PI, 0);
+                ctx.lineTo(9, -82);
+                ctx.lineTo(-9, -82);
+                ctx.closePath();
+                ctx.fill();
+
+                // Lower windows
+                ctx.fillRect(-56, -45, 14, 22);
+                ctx.fillRect(42, -45, 14, 22);
+                ctx.fillRect(-93, -32, 12, 18);
+                ctx.fillRect(81, -32, 12, 18);
+                ctx.shadowBlur = 0;
+                ctx.restore();
+
+                // Twisted Gnarled Trees on left and right edges
+                drawDeadTree(w * 0.08, h * 0.82, -78 * scale, -0.18, 5);
+                drawDeadTree(w * 0.91, h * 0.83, -84 * scale, 0.2, 5);
+            }
+
+            function drawDeadTree(x, y, len, angle, depth) {
+                if (depth <= 0) return;
+                const sway = Math.sin(state.time * 1.4 + depth) * (0.015 + state.centroid.energy * 0.03);
+                const endX = x + Math.sin(angle + sway) * Math.abs(len);
+                const endY = y - Math.cos(angle + sway) * Math.abs(len);
+
+                ctx.strokeStyle = '#06020b';
+                ctx.lineWidth = Math.max(1.5, depth * 2.4);
+                ctx.lineCap = 'round';
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(endX, endY);
+                ctx.stroke();
+
+                drawDeadTree(endX, endY, len * 0.72, angle - 0.42, depth - 1);
+                drawDeadTree(endX, endY, len * 0.68, angle + 0.38, depth - 1);
+            }
+
+            function drawRgbTrailAndFog(w, h) {
+                // Blend live RGB motion trail buffer onto the scene
+                if (state.rgbTrailOpacity > 0.01) {
+                    ctx.save();
+                    ctx.globalCompositeOperation = 'screen';
+                    ctx.globalAlpha = state.rgbTrailOpacity;
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.drawImage(trailCanvas, 0, 0, w, h);
+                    ctx.restore();
+                }
+
+                // Drifting eerie fog banks
+                for (let i = 0; i < state.fogBanks.length; i++) {
+                    const fog = state.fogBanks[i];
+                    fog.x += fog.vx * (1 + state.centroid.energy * 1.5);
+                    if (fog.x - fog.width > w) fog.x = -fog.width * 0.8;
+                    if (fog.x + fog.width < 0) fog.x = w + fog.width * 0.8;
+
+                    const grad = ctx.createRadialGradient(fog.x, fog.y, 10, fog.x, fog.y, fog.width * 0.6);
+                    grad.addColorStop(0, `hsla(${fog.hue}, 70%, 45%, 0.13)`);
+                    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = grad;
+                    ctx.beginPath();
+                    ctx.ellipse(fog.x, fog.y, fog.width * 0.6, fog.height, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Foreground Cemetery Ground Ridge
+                ctx.fillStyle = '#050209';
+                ctx.beginPath();
+                ctx.moveTo(0, h * 0.82);
+                ctx.quadraticCurveTo(w * 0.3, h * 0.77, w * 0.62, h * 0.83);
+                ctx.quadraticCurveTo(w * 0.85, h * 0.87, w, h * 0.81);
+                ctx.lineTo(w, h);
+                ctx.lineTo(0, h);
+                ctx.closePath();
+                ctx.fill();
+
+                // Gravestones
+                for (let i = 0; i < state.gravestones.length; i++) {
+                    const g = state.gravestones[i];
+                    ctx.save();
+                    ctx.translate(g.x, g.y);
+                    ctx.rotate(g.tilt);
+                    ctx.fillStyle = '#120b1d';
+                    ctx.strokeStyle = 'rgba(251, 146, 60, 0.18)';
+                    ctx.lineWidth = 1;
+
+                    ctx.beginPath();
+                    ctx.moveTo(-g.w / 2, 0);
+                    ctx.lineTo(-g.w / 2, -g.h * 0.65);
+                    ctx.arc(0, -g.h * 0.65, g.w / 2, Math.PI, 0);
+                    ctx.lineTo(g.w / 2, 0);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.restore();
+                }
+
+                // Peeking Monster Eyes in the dark brush
+                for (let i = 0; i < state.eyes.length; i++) {
+                    const eye = state.eyes[i];
+                    const distToMotion = state.centroid.active
+                        ? Math.hypot(eye.x - state.centroid.x, eye.y - state.centroid.y)
+                        : 9999;
+
+                    if (distToMotion < 240) {
+                        eye.alertness = Math.min(1, eye.alertness + 0.08);
+                    } else {
+                        eye.alertness = Math.max(0.15, eye.alertness - 0.02);
+                    }
+
+                    const blink = Math.sin(state.time * 2.5 + eye.blinkTimer) > -0.85;
+                    if (blink) {
+                        ctx.save();
+                        ctx.fillStyle = eye.color;
+                        ctx.globalAlpha = eye.alertness * 0.85;
+                        ctx.shadowColor = eye.color;
+                        ctx.shadowBlur = 10;
+                        ctx.beginPath();
+                        ctx.ellipse(eye.x - 6, eye.y, 3.2, 1.8 * eye.alertness, -0.15, 0, Math.PI * 2);
+                        ctx.ellipse(eye.x + 6, eye.y, 3.2, 1.8 * eye.alertness, 0.15, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    }
+                }
+            }
+
+            function updateAndDrawPumpkins() {
+                for (let i = 0; i < state.pumpkins.length; i++) {
+                    const p = state.pumpkins[i];
+
+                    // Check proximity to RGB motion hotspots
+                    for (let j = 0; j < state.motionPoints.length; j++) {
+                        const mp = state.motionPoints[j];
+                        const d = Math.hypot(mp.x - p.x, mp.y - p.y);
+                        if (d < 160) {
+                            p.excitation = Math.min(1.6, p.excitation + 0.09 * mp.intensity);
+                            if (Math.random() < 0.15) {
+                                spawnParticle(p.x + (Math.random() - 0.5) * 20, p.y - p.radiusY * 0.6, 255, 160, 20, true);
+                            }
+                        }
+                    }
+                    p.excitation = Math.max(0.18, p.excitation * 0.96);
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+
+                    // Outer candle aura when excited by motion
+                    const glowRadius = p.radiusX * (1.5 + p.excitation * 1.4);
+                    const aura = ctx.createRadialGradient(0, 0, p.radiusX * 0.2, 0, 0, glowRadius);
+                    aura.addColorStop(0, `rgba(255, 165, 30, ${0.25 + p.excitation * 0.35})`);
+                    aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = aura;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Stem
+                    ctx.fillStyle = '#1f2912';
+                    ctx.beginPath();
+                    ctx.moveTo(-4, -p.radiusY * 0.9);
+                    ctx.quadraticCurveTo(-8, -p.radiusY * 1.35, 5, -p.radiusY * 1.3);
+                    ctx.lineTo(6, -p.radiusY * 0.88);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Pumpkin ribbed body
+                    const bodyGrad = ctx.createRadialGradient(0, -p.radiusY * 0.2, 4, 0, 0, p.radiusX);
+                    bodyGrad.addColorStop(0, '#ea580c');
+                    bodyGrad.addColorStop(0.7, '#9a3412');
+                    bodyGrad.addColorStop(1, '#431407');
+                    ctx.fillStyle = bodyGrad;
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, p.radiusX, p.radiusY, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Carved Glowing Eyes & Jagged Grin
+                    const flicker = 0.78 + 0.22 * Math.sin(state.time * 14 + p.flickerOffset);
+                    ctx.fillStyle = p.excitation > 0.7 ? '#fef08a' : `rgba(253, 186, 116, ${flicker})`;
+                    ctx.shadowColor = '#f97316';
+                    ctx.shadowBlur = 10 + p.excitation * 16;
+
+                    // Left & Right Triangle Eyes
+                    ctx.beginPath();
+                    ctx.moveTo(-p.radiusX * 0.48, -p.radiusY * 0.12);
+                    ctx.lineTo(-p.radiusX * 0.28, -p.radiusY * 0.45);
+                    ctx.lineTo(-p.radiusX * 0.12, -p.radiusY * 0.12);
+                    ctx.closePath();
+
+                    ctx.moveTo(p.radiusX * 0.12, -p.radiusY * 0.12);
+                    ctx.lineTo(p.radiusX * 0.28, -p.radiusY * 0.45);
+                    ctx.lineTo(p.radiusX * 0.48, -p.radiusY * 0.12);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Carved Mouth
+                    ctx.beginPath();
+                    ctx.moveTo(-p.radiusX * 0.55, p.radiusY * 0.18);
+                    ctx.lineTo(-p.radiusX * 0.25, p.radiusY * 0.38);
+                    ctx.lineTo(0, p.radiusY * 0.22);
+                    ctx.lineTo(p.radiusX * 0.25, p.radiusY * 0.38);
+                    ctx.lineTo(p.radiusX * 0.55, p.radiusY * 0.18);
+                    ctx.lineTo(p.radiusX * 0.32, p.radiusY * 0.56);
+                    ctx.lineTo(-p.radiusX * 0.32, p.radiusY * 0.56);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+            }
+
+            function updateAndDrawBats(w, h) {
+                for (let i = 0; i < state.bats.length; i++) {
+                    const b = state.bats[i];
+                    b.wingPhase += b.wingSpeed * (1 + b.scared * 1.4);
+
+                    // Scatter away from nearby RGB motion hotspots
+                    for (let j = 0; j < state.motionPoints.length; j += 2) {
+                        const mp = state.motionPoints[j];
+                        const dx = b.x - mp.x;
+                        const dy = b.y - mp.y;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < 135 && dist > 1) {
+                            const force = ((135 - dist) / 135) * 1.4;
+                            b.vx += (dx / dist) * force;
+                            b.vy += (dy / dist) * force;
+                            b.scared = 1.0;
+                        }
+                    }
+
+                    b.scared = Math.max(0, b.scared - 0.02);
+
+                    // Limit speed & gently steer back to sky band
+                    const maxSpd = 3.2 + b.scared * 5.0;
+                    const spd = Math.hypot(b.vx, b.vy);
+                    if (spd > maxSpd) {
+                        b.vx = (b.vx / spd) * maxSpd;
+                        b.vy = (b.vy / spd) * maxSpd;
+                    }
+                    if (b.y > h * 0.72) b.vy -= 0.12;
+                    if (b.y < 30) b.vy += 0.12;
+
+                    b.x += b.vx;
+                    b.y += b.vy;
+
+                    if (b.x < -40) b.x = w + 40;
+                    if (b.x > w + 40) b.x = -40;
+
+                    // Draw Bat Silhouette
+                    const flap = Math.sin(b.wingPhase) * b.size * 0.75;
+                    ctx.save();
+                    ctx.translate(b.x, b.y);
+                    ctx.rotate(b.vx * 0.05);
+
+                    ctx.fillStyle = '#090412';
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(-b.size * 0.6, -flap - b.size * 0.3, -b.size * 1.35, -flap * 0.5);
+                    ctx.quadraticCurveTo(-b.size * 0.7, b.size * 0.25, 0, b.size * 0.25);
+                    ctx.quadraticCurveTo(b.size * 0.7, b.size * 0.25, b.size * 1.35, -flap * 0.5);
+                    ctx.quadraticCurveTo(b.size * 0.6, -flap - b.size * 0.3, 0, 0);
+                    ctx.fill();
+
+                    // Glowing red eyes when startled by RGB motion
+                    if (b.scared > 0.15) {
+                        ctx.fillStyle = `rgba(239, 68, 68, ${b.scared})`;
+                        ctx.beginPath();
+                        ctx.arc(-2.2, -1, 1.4, 0, Math.PI * 2);
+                        ctx.arc(2.2, -1, 1.4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+            }
+
+            function updateAndDrawGhosts(w, h) {
+                for (let i = 0; i < state.ghosts.length; i++) {
+                    const g = state.ghosts[i];
+                    g.phase += 0.04;
+
+                    if (state.centroid.active) {
+                        const dx = state.centroid.x - g.x;
+                        const dy = state.centroid.y - g.y;
+                        const dist = Math.max(25, Math.hypot(dx, dy));
+                        const nx = dx / dist;
+                        const ny = dy / dist;
+
+                        if (state.ghostMode === 'attract') {
+                            g.vx += nx * 0.14;
+                            g.vy += ny * 0.14;
+                        } else if (state.ghostMode === 'repel') {
+                            if (dist < 280) {
+                                g.vx -= nx * 0.26;
+                                g.vy -= ny * 0.26;
+                            }
+                        } else {
+                            // Vortex Swirl around user's RGB motion centroid
+                            g.vx += (-ny * 0.18) + nx * 0.05;
+                            g.vy += (nx * 0.18) + ny * 0.05;
+                        }
+                    } else {
+                        g.vx += Math.cos(state.time + g.phase) * 0.02;
+                        g.vy += Math.sin(state.time * 0.8 + g.phase) * 0.02;
+                    }
+
+                    g.vx *= 0.965;
+                    g.vy *= 0.965;
+                    g.x += g.vx;
+                    g.y += g.vy;
+
+                    if (g.x < -50) g.x = w + 50;
+                    if (g.x > w + 50) g.x = -50;
+                    if (g.y < 40) g.vy += 0.15;
+                    if (g.y > h * 0.82) g.vy -= 0.15;
+
+                    g.trail.unshift({ x: g.x, y: g.y });
+                    if (g.trail.length > 12) g.trail.pop();
+
+                    ctx.save();
+                    // Draw ectoplasm tail
+                    for (let t = g.trail.length - 1; t >= 1; t--) {
+                        const pt = g.trail[t];
+                        const ratio = 1 - t / g.trail.length;
+                        ctx.fillStyle = `hsla(${g.hue}, 85%, 70%, ${ratio * 0.18})`;
+                        ctx.beginPath();
+                        ctx.arc(pt.x, pt.y + t * 2, g.size * ratio * 0.65, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    // Ghost Head & Shroud
+                    ctx.translate(g.x, g.y + Math.sin(g.phase) * 5);
+                    ctx.rotate(g.vx * 0.06);
+
+                    const shroudGrad = ctx.createRadialGradient(0, -g.size * 0.2, 2, 0, 0, g.size * 1.25);
+                    shroudGrad.addColorStop(0, `hsla(${g.hue}, 90%, 88%, 0.78)`);
+                    shroudGrad.addColorStop(0.6, `hsla(${g.hue}, 85%, 65%, 0.35)`);
+                    shroudGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                    ctx.fillStyle = shroudGrad;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, g.size * 0.65, Math.PI, 0);
+                    ctx.lineTo(g.size * 0.65, g.size * 0.75);
+                    ctx.quadraticCurveTo(g.size * 0.3, g.size * 0.45, 0, g.size * 0.75);
+                    ctx.quadraticCurveTo(-g.size * 0.3, g.size * 0.45, -g.size * 0.65, g.size * 0.75);
+                    ctx.closePath();
+                    ctx.fill();
+
+                    // Hollow spooky eyes & mouth
+                    ctx.fillStyle = '#090412';
+                    ctx.beginPath();
+                    ctx.ellipse(-g.size * 0.2, -g.size * 0.08, 3.2, 4.5, 0, 0, Math.PI * 2);
+                    ctx.ellipse(g.size * 0.2, -g.size * 0.08, 3.2, 4.5, 0, 0, Math.PI * 2);
+                    ctx.ellipse(0, g.size * 0.16, 3.8, 5.2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.restore();
+                }
+            }
+
+            function updateAndDrawParticlesAndLightning(w, h) {
+                // Rising Embers & Spectral Wisps
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                for (let i = state.particles.length - 1; i >= 0; i--) {
+                    const pt = state.particles[i];
+                    pt.x += pt.vx;
+                    pt.y += pt.vy;
+                    pt.life -= pt.decay;
+
+                    if (pt.life <= 0) {
+                        state.particles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.fillStyle = `rgba(${pt.r}, ${pt.g}, ${pt.b}, ${pt.life * 0.85})`;
+                    ctx.beginPath();
+                    ctx.arc(pt.x, pt.y, pt.size * pt.life, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+
+                // Lightning Bolt & Screen Flash
+                if (state.lightningBolt && state.lightningBolt.alpha > 0.02) {
+                    ctx.save();
+                    ctx.strokeStyle = `rgba(243, 232, 255, ${state.lightningBolt.alpha})`;
+                    ctx.shadowColor = '#c084fc';
+                    ctx.shadowBlur = 22;
+                    ctx.lineWidth = 3.2;
+                    ctx.beginPath();
+                    for (let i = 0; i < state.lightningBolt.segments.length; i++) {
+                        const seg = state.lightningBolt.segments[i];
+                        ctx.moveTo(seg.x1, seg.y1);
+                        ctx.lineTo(seg.x2, seg.y2);
+                    }
+                    ctx.stroke();
+                    ctx.restore();
+                    state.lightningBolt.alpha *= 0.86;
+                }
+
+                if (state.lightningFlash > 0.01) {
+                    ctx.fillStyle = `rgba(216, 180, 254, ${state.lightningFlash * 0.38})`;
+                    ctx.fillRect(0, 0, w, h);
+                    state.lightningFlash *= 0.84;
+                }
+            }
+
+            function animate() {
+                state.time += 0.016;
+                const w = state.width;
+                const h = state.height;
+
+                processRgbMotionFrame();
+                drawSkyAndMoon(w, h);
+                drawHauntedLandscape(w, h);
+                drawRgbTrailAndFog(w, h);
+                updateAndDrawGhosts(w, h);
+                updateAndDrawBats(w, h);
+                updateAndDrawPumpkins();
+                updateAndDrawParticlesAndLightning(w, h);
+
+                requestAnimationFrame(animate);
+            }
+
+            function resizeScene() {
+                state.width = window.innerWidth;
+                state.height = window.innerHeight;
+                canvas.width = state.width;
+                canvas.height = state.height;
+                buildWorldEntities();
+            }
+
+            window.addEventListener('resize', resizeScene);
+
+            // Mouse & Touch fallback listeners
+            window.addEventListener('mousemove', (e) => {
+                state.pointer.x = e.clientX;
+                state.pointer.y = e.clientY;
+                state.pointer.activeTimer = 8;
+            });
+
+            window.addEventListener('touchmove', (e) => {
+                if (e.touches && e.touches.length > 0) {
+                    state.pointer.x = e.touches[0].clientX;
+                    state.pointer.y = e.touches[0].clientY;
+                    state.pointer.activeTimer = 12;
+                }
+            }, { passive: true });
+
+            window.addEventListener('touchstart', (e) => {
+                if (e.touches && e.touches.length > 0) {
+                    state.pointer.x = e.touches[0].clientX;
+                    state.pointer.y = e.touches[0].clientY;
+                    state.pointer.prevX = state.pointer.x;
+                    state.pointer.prevY = state.pointer.y;
+                    state.pointer.activeTimer = 15;
+                }
+            }, { passive: true });
+
+            // HUD Toggle Buttons & Discreet Screen Toggle (H key or Double-Click)
+            const hudPanel = document.getElementById('hudPanel');
+            const topLeftBar = document.getElementById('topLeftBar');
+            const topRightBar = document.getElementById('topRightBar');
+
+            function toggleHud() {
+                state.hudVisible = !state.hudVisible;
+                if (state.hudVisible) {
+                    hudPanel.classList.remove('opacity-0', '-translate-x-8', 'pointer-events-none');
+                    topLeftBar.classList.remove('opacity-0', 'pointer-events-none');
+                    topRightBar.classList.remove('opacity-0', 'pointer-events-none');
+                } else {
+                    hudPanel.classList.add('opacity-0', '-translate-x-8', 'pointer-events-none');
+                    topLeftBar.classList.add('opacity-0', 'pointer-events-none');
+                    topRightBar.classList.add('opacity-0', 'pointer-events-none');
+                }
+            }
+
+            // Double-clicking anywhere on the background canvas toggles the hidden UI
+            canvas.addEventListener('dblclick', toggleHud);
+
+            document.getElementById('toggleHudBtn').addEventListener('click', toggleHud);
+            document.getElementById('closeHudBtn').addEventListener('click', toggleHud);
+            document.getElementById('cameraToggleBtn').addEventListener('click', toggleCamera);
+            document.getElementById('lightningBtn').addEventListener('click', () => triggerLightning());
+
+            // Audio Toggle
+            document.getElementById('audioToggleBtn').addEventListener('click', () => {
+                initAudio();
+                state.audioEnabled = !state.audioEnabled;
+                const icon = document.getElementById('audioIcon');
+                const label = document.getElementById('audioLabel');
+                if (state.audioEnabled) {
+                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+                    icon.className = 'ph-fill ph-speaker-high text-orange-400 text-lg';
+                    label.textContent = 'Sound On';
+                } else {
+                    if (windGainNode && audioCtx) {
+                        windGainNode.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.1);
+                    }
+                    icon.className = 'ph-fill ph-speaker-slash text-slate-400 text-lg';
+                    label.textContent = 'Sound Off';
+                }
+            });
+
+            // Sliders
+            document.getElementById('sensitivitySlider').addEventListener('input', (e) => {
+                state.sensitivity = Number(e.target.value);
+                document.getElementById('sensitivityVal').textContent = `${state.sensitivity}%`;
+            });
+
+            document.getElementById('rgbTrailSlider').addEventListener('input', (e) => {
+                const val = Number(e.target.value);
+                state.rgbTrailOpacity = val / 100;
+                document.getElementById('rgbTrailVal').textContent = `${val}%`;
+            });
+
+            document.getElementById('entityDensitySlider').addEventListener('input', (e) => {
+                const val = Number(e.target.value);
+                state.densityScale = val / 100;
+                document.getElementById('entityDensityVal').textContent = `${val}%`;
+                syncSwarmCounts();
+            });
+
+            // Ghost Behavior Mode Selector
+            const modeBtns = document.querySelectorAll('.ghost-mode-btn');
+            modeBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.ghostMode = btn.getAttribute('data-mode');
+                    modeBtns.forEach(b => {
+                        b.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all';
+                    });
+                    btn.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all';
+                });
+            });
+
+            // Keyboard Shortcuts (H for HUD, Space for Thunder Scare)
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'h' || e.key === 'H') {
+                    toggleHud();
+                } else if (e.code === 'Space') {
+                    e.preventDefault();
+                    triggerLightning();
+                }
+            });
+
+            // Initialize Scene, Start Animation Loop & Automatically Activate RGB Camera
+            resizeScene();
+            animate();
+            toggleCamera();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initHalloweenScene);
+        } else {
+            initHalloweenScene();
+        }
+    </script>
+</body>
+</html>

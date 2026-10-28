@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bunny Bounce - Hand-Tracked Arcade</title>
+  <script src="https://cdn.jsdelivr.net/npm/handtrackjs/dist/handtrack.min.js"></script>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: rgba(30, 41, 59, 0.85);
+      --border: #334155;
+      --accent-pink: #f472b6;
+      --accent-orange: #fb923c;
+      --accent-green: #4ade80;
+      --accent-red: #f87171;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      user-select: none;
+    }
+
+    body {
+      background: radial-gradient(circle at top, #1e293b, var(--bg));
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-pink), var(--accent-orange));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+
+    #status-bar {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .layout-container {
+      display: flex;
+      gap: 24px;
+      max-width: 1120px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .game-wrapper {
+      position: relative;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 2px solid var(--border);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.7);
+      background: #70c5ff;
+    }
+
+    canvas {
+      display: block;
+      cursor: none;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      width: 320px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 18px;
+      backdrop-filter: blur(12px);
+    }
+
+    .card-title {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .stat-box {
+      background: rgba(15, 23, 42, 0.6);
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .stat-number {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.2s ease;
+      background: linear-gradient(135deg, #10b981, #059669);
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn:hover:not(:disabled) {
+      filter: brightness(1.1);
+      transform: translateY(-2px);
+    }
+
+    .btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.3);
+    }
+
+    .camera-box {
+      position: relative;
+      height: 160px;
+      background: #000;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    #webcam-feed {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transform: scaleX(-1);
+    }
+
+    .tracking-indicator {
+      position: absolute;
+      bottom: 8px;
+      left: 8px;
+      font-size: 0.75rem;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 3px 8px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+    }
+
+    .dot.active {
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+    }
+
+    .legend-list {
+      list-style: none;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .legend-badge {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🐰 Bunny Bounce</h1>
+    <div id="status-bar">Initialize hand tracking or use mouse control to begin.</div>
+  </header>
+
+  <div class="layout-container">
+    <div class="game-wrapper">
+      <canvas id="gameCanvas" width="720" height="520"></canvas>
+    </div>
+
+    <div class="sidebar">
+      <div class="card">
+        <button id="camera-btn" class="btn">Enable Hand Tracking</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Match Statistics</div>
+        <div class="stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Score</div>
+            <div id="score-txt" class="stat-number">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Multiplier</div>
+            <div id="combo-txt" class="stat-number">1x</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Lives</div>
+            <div id="lives-txt" class="stat-number">❤️❤️❤️</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Vision FPS</div>
+            <div id="fps-txt" class="stat-number">--</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Vision Sensor</div>
+        <div class="camera-box">
+          <video id="webcam-feed" autoplay playsinline muted></video>
+          <div class="tracking-indicator">
+            <div id="tracking-dot" class="dot"></div>
+            <span id="tracking-label">Standby</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Legend</div>
+        <ul class="legend-list">
+          <li class="legend-item"><span class="legend-badge" style="background: #fb923c;"></span> Crisp Carrot (+10 pts)</li>
+          <li class="legend-item"><span class="legend-badge" style="background: #facc15;"></span> Golden Clover (+50 pts, Combo Boost)</li>
+          <li class="legend-item"><span class="legend-badge" style="background: #8b5cf6;"></span> Bramble Trap (-1 Heart, Break Combo)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Audio Synthesizer (Zero-asset sound effects)
+    const AudioEngine = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+      playCatch(isGolden) {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const t = this.ctx.currentTime;
+        
+        osc.type = isGolden ? "triangle" : "sine";
+        osc.frequency.setValueAtTime(isGolden ? 587.33 : 440, t);
+        osc.frequency.exponentialRampToValueAtTime(isGolden ? 1174.66 : 880, t + 0.15);
+        
+        gain.gain.setValueAtTime(0.2, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.15);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.15);
+      },
+      playBounce() {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const t = this.ctx.currentTime;
+        
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(220, t);
+        osc.frequency.exponentialRampToValueAtTime(440, t + 0.1);
+        
+        gain.gain.setValueAtTime(0.15, t);
+        gain.gain.linearRampToValueAtTime(0.01, t + 0.1);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.1);
+      },
+      playHit() {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        const t = this.ctx.currentTime;
+        
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(160, t);
+        osc.frequency.linearRampToValueAtTime(60, t + 0.25);
+        
+        gain.gain.setValueAtTime(0.3, t);
+        gain.gain.exponentialRampToValueAtTime(0.01, t + 0.25);
+        
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(t);
+        osc.stop(t + 0.25);
+      }
+    };
+
+    // Canvas Setup
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const video = document.getElementById('webcam-feed');
+    const cameraBtn = document.getElementById('camera-btn');
+    const statusBar = document.getElementById('status-bar');
+    const scoreDisplay = document.getElementById('score-txt');
+    const comboDisplay = document.getElementById('combo-txt');
+    const livesDisplay = document.getElementById('lives-txt');
+    const fpsDisplay = document.getElementById('fps-txt');
+    const trackingDot = document.getElementById('tracking-dot');
+    const trackingLabel = document.getElementById('tracking-label');
+
+    // Tracking State
+    let handModel = null;
+    let isTrackingRunning = false;
+    let targetX = canvas.width / 2;
+    let trackingFPS = 0;
+    let frameCounter = 0;
+    let fpsTimestamp = performance.now();
+
+    // Game Objects & State
+    let score = 0;
+    let combo = 1;
+    let lives = 3;
+    let isGameOver = false;
+    let spawnTimer = 0;
+    let difficultyMultiplier = 1;
+
+    const bunny = {
+      x: canvas.width / 2,
+      y: canvas.height - 40,
+      width: 70,
+      height: 70,
+      squashX: 1,
+      squashY: 1,
+      bounceOffset: 0,
+      bounceSpeed: 0.1,
+      earAngle: 0
+    };
+
+    const items = [];
+    const particles = [];
+    const clouds = [
+      { x: 50, y: 80, s: 0.8, v: 0.3 },
+      { x: 300, y: 40, s: 1.2, v: 0.45 },
+      { x: 550, y: 110, s: 0.6, v: 0.2 }
+    ];
+
+    // Handtrack.js Configuration
+    const modelParams = {
+      flipHorizontal: true,
+      maxNumBoxes: 1,
+      iouThreshold: 0.4,
+      scoreThreshold: 0.65
+    };
+
+    // Vision Inference Loop (Decoupled from Render Loop)
+    async function runDetection() {
+      if (!isTrackingRunning) return;
+      
+      const startTime = performance.now();
+      try {
+        const predictions = await handModel.detect(video);
+        if (predictions.length > 0) {
+          const bbox = predictions[0].bbox;
+          const centerX = bbox[0] + bbox[2] / 2;
+          const normalized = centerX / video.videoWidth;
+          targetX = normalized * canvas.width;
+          
+          trackingDot.classList.add('active');
+          trackingLabel.innerText = "Tracking Hand";
+        } else {
+          trackingDot.classList.remove('active');
+          trackingLabel.innerText = "Searching...";
+        }
+      } catch (err) {
+        console.error(err);
+      }
+
+      // Calculate vision inference rate
+      frameCounter++;
+      if (performance.now() - fpsTimestamp >= 1000) {
+        trackingFPS = frameCounter;
+        fpsDisplay.innerText = trackingFPS;
+        frameCounter = 0;
+        fpsTimestamp = performance.now();
+      }
+
+      if (isTrackingRunning) {
+        requestAnimationFrame(runDetection);
+      }
+    }
+
+    // Camera Toggle
+    cameraBtn.addEventListener('click', async () => {
+      AudioEngine.init();
+      if (!isTrackingRunning) {
+        cameraBtn.disabled = true;
+        statusBar.innerText = "Downloading neural network weights...";
+
+        try {
+          if (!handModel) {
+            handModel = await handTrack.load(modelParams);
+          }
+          statusBar.innerText = "Starting camera feed...";
+          const success = await handTrack.startVideo(video);
+          
+          if (success) {
+            isTrackingRunning = true;
+            cameraBtn.disabled = false;
+            cameraBtn.innerText = "Disable Hand Tracking";
+            cameraBtn.className = "btn btn-danger";
+            statusBar.innerText = "Tracking operational. Control bunny with hand position.";
+            runDetection();
+          } else {
+            statusBar.innerText = "Camera permission denied or camera missing.";
+            cameraBtn.disabled = false;
+          }
+        } catch (e) {
+          console.error(e);
+          statusBar.innerText = "Initialization failed. Mouse fallback is enabled.";
+          cameraBtn.disabled = false;
+        }
+      } else {
+        handTrack.stopVideo(video);
+        isTrackingRunning = false;
+        trackingDot.classList.remove('active');
+        trackingLabel.innerText = "Standby";
+        fpsDisplay.innerText = "--";
+        cameraBtn.innerText = "Enable Hand Tracking";
+        cameraBtn.className = "btn";
+        statusBar.innerText = "Hand tracking disabled. Mouse control active.";
+      }
+    });
+
+    // Mouse Tracking Fallback
+    canvas.addEventListener('mousemove', (e) => {
+      if (!isTrackingRunning) {
+        const rect = canvas.getBoundingClientRect();
+        targetX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      }
+    });
+
+    canvas.addEventListener('click', () => {
+      AudioEngine.init();
+      if (isGameOver) {
+        resetGame();
+      }
+    });
+
+    function resetGame() {
+      score = 0;
+      combo = 1;
+      lives = 3;
+      items.length = 0;
+      particles.length = 0;
+      difficultyMultiplier = 1;
+      isGameOver = false;
+      updateUI();
+    }
+
+    function createExplosion(x, y, color, count = 12) {
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 4 + 2;
+        particles.push({
+          x, y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          radius: Math.random() * 3 + 2,
+          color: color,
+          alpha: 1,
+          decay: Math.random() * 0.03 + 0.02
+        });
+      }
+    }
+
+    function spawnGameItem() {
+      const rand = Math.random();
+      let itemType = 'carrot';
+      
+      if (rand > 0.85) {
+        itemType = 'clover';
+      } else if (rand > 0.6) {
+        itemType = 'bramble';
+      }
+
+      const speedBase = 2.5 + difficultyMultiplier * 0.8;
+      items.push({
+        x: Math.random() * (canvas.width - 60) + 30,
+        y: -30,
+        type: itemType,
+        radius: itemType === 'clover' ? 16 : 14,
+        speed: speedBase * (itemType === 'bramble' ? 1.1 : 1.0),
+        rotation: 0,
+        rotSpeed: (Math.random() - 0.5) * 0.06
+      });
+    }
+
+    function drawClouds() {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
+      clouds.forEach(c => {
+        c.x += c.v;
+        if (c.x > canvas.width + 100) c.x = -100;
+        
+        ctx.beginPath();
+        ctx.arc(c.x, c.y, 25 * c.s, 0, Math.PI * 2);
+        ctx.arc(c.x + 20 * c.s, c.y - 10 * c.s, 30 * c.s, 0, Math.PI * 2);
+        ctx.arc(c.x + 45 * c.s, c.y, 20 * c.s, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    function drawMeadow() {
+      // Hills background
+      ctx.fillStyle = "#86efac";
+      ctx.beginPath();
+      ctx.arc(180, canvas.height + 260, 360, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(580, canvas.height + 240, 340, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Foreground platform
+      ctx.fillStyle = "#4ade80";
+      ctx.fillRect(0, canvas.height - 20, canvas.width, 20);
+      
+      ctx.fillStyle = "#22c55e";
+      ctx.fillRect(0, canvas.height - 8, canvas.width, 8);
+    }
+
+    function drawBunny(x, y) {
+      ctx.save();
+      ctx.translate(x, y + bunny.bounceOffset);
+      ctx.scale(bunny.squashX, bunny.squashY);
+
+      // Left Ear
+      ctx.save();
+      ctx.translate(-14, -25);
+      ctx.rotate(-0.15 + Math.sin(bunny.earAngle) * 0.1);
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.ellipse(0, -18, 9, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#f472b6";
+      ctx.beginPath();
+      ctx.ellipse(0, -18, 4.5, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Right Ear
+      ctx.save();
+      ctx.translate(14, -25);
+      ctx.rotate(0.15 - Math.sin(bunny.earAngle) * 0.1);
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.ellipse(0, -18, 9, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = "#f472b6";
+      ctx.beginPath();
+      ctx.ellipse(0, -18, 4.5, 15, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Body / Head
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.ellipse(0, 0, 32, 28, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Cheeks
+      ctx.fillStyle = "#fbcfe8";
+      ctx.beginPath();
+      ctx.arc(-16, 4, 6, 0, Math.PI * 2);
+      ctx.arc(16, 4, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eyes
+      ctx.fillStyle = "#1e293b";
+      ctx.beginPath();
+      ctx.arc(-10, -4, 3.5, 0, Math.PI * 2);
+      ctx.arc(10, -4, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Eye glimmer
+      ctx.fillStyle = "#ffffff";
+      ctx.beginPath();
+      ctx.arc(-11, -5, 1.2, 0, Math.PI * 2);
+      ctx.arc(9, -5, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Nose & Mouth
+      ctx.fillStyle = "#fb7185";
+      ctx.beginPath();
+      ctx.ellipse(0, 3, 3, 2, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#94a3b8";
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, 5);
+      ctx.lineTo(0, 8);
+      ctx.moveTo(-5, 9);
+      ctx.quadraticCurveTo(0, 12, 5, 9);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawCarrot(x, y, rot) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+
+      // Greens
+      ctx.fillStyle = "#22c55e";
+      ctx.beginPath();
+      ctx.ellipse(0, -16, 3, 7, 0.3, 0, Math.PI * 2);
+      ctx.ellipse(-4, -14, 2.5, 6, -0.4, 0, Math.PI * 2);
+      ctx.ellipse(4, -14, 2.5, 6, 0.8, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Root
+      ctx.fillStyle = "#ea580c";
+      ctx.beginPath();
+      ctx.moveTo(-8, -10);
+      ctx.lineTo(8, -10);
+      ctx.lineTo(0, 16);
+      ctx.closePath();
+      ctx.fill();
+
+      // Highlight
+      ctx.fillStyle = "#fb923c";
+      ctx.beginPath();
+      ctx.moveTo(-5, -8);
+      ctx.lineTo(5, -8);
+      ctx.lineTo(0, 12);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.restore();
+    }
+
+    function drawClover(x, y, rot) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+      ctx.fillStyle = "#facc15";
+      ctx.shadowColor = "#fde047";
+      ctx.shadowBlur = 10;
+
+      for (let i = 0; i < 4; i++) {
+        ctx.rotate(Math.PI / 2);
+        ctx.beginPath();
+        ctx.arc(0, -7, 6, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+      ctx.restore();
+    }
+
+    function drawBramble(x, y, rot) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(rot);
+
+      ctx.fillStyle = "#7c3aed";
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        ctx.rotate(Math.PI / 4);
+        ctx.lineTo(0, -16);
+        ctx.lineTo(4, -6);
+      }
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.fillStyle = "#4c1d95";
+      ctx.beginPath();
+      ctx.arc(0, 0, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function updateUI() {
+      scoreDisplay.innerText = score;
+      comboDisplay.innerText = `${combo}x`;
+      livesDisplay.innerText = "❤️".repeat(Math.max(0, lives));
+    }
+
+    // Main Engine Frame Loop
+    function gameLoop(now) {
+      // Background Sky Gradient
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, "#60a5fa");
+      grad.addColorStop(1, "#bae6fd");
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      drawClouds();
+      drawMeadow();
+
+      // Smooth Position Interpolation (EMA)
+      bunny.x += (targetX - bunny.x) * 0.16;
+      bunny.x = Math.max(40, Math.min(canvas.width - 40, bunny.x));
+
+      // Bunny Idle Bounce Dynamics
+      bunny.bounceOffset = Math.sin(now * 0.008) * 3;
+      bunny.earAngle = now * 0.005;
+
+      // Recover Squash/Stretch
+      bunny.squashX += (1 - bunny.squashX) * 0.12;
+      bunny.squashY += (1 - bunny.squashY) * 0.12;
+
+      if (!isGameOver) {
+        difficultyMultiplier = 1 + score / 300;
+        
+        // Spawn scheduler
+        spawnTimer++;
+        if (spawnTimer > Math.max(30, 70 - difficultyMultiplier * 6)) {
+          spawnGameItem();
+          spawnTimer = 0;
+        }
+
+        // Process Items
+        for (let i = items.length - 1; i >= 0; i--) {
+          const item = items[i];
+          item.y += item.speed;
+          item.rotation += item.rotSpeed;
+
+          // Render Item
+          if (item.type === 'carrot') drawCarrot(item.x, item.y, item.rotation);
+          else if (item.type === 'clover') drawClover(item.x, item.y, item.rotation);
+          else if (item.type === 'bramble') drawBramble(item.x, item.y, item.rotation);
+
+          // Catch Collision
+          const dx = item.x - bunny.x;
+          const dy = item.y - (bunny.y + bunny.bounceOffset);
+          const dist = Math.hypot(dx, dy);
+
+          if (dist < item.radius + 32) {
+            if (item.type === 'bramble') {
+              lives--;
+              combo = 1;
+              AudioEngine.playHit();
+              createExplosion(item.x, item.y, "#a855f7", 18);
+              bunny.squashX = 1.35;
+              bunny.squashY = 0.7;
+              if (lives <= 0) isGameOver = true;
+            } else {
+              const isClover = item.type === 'clover';
+              const basePoints = isClover ? 50 : 10;
+              score += basePoints * combo;
+              if (isClover) combo = Math.min(8, combo + 1);
+              
+              AudioEngine.playCatch(isClover);
+              createExplosion(item.x, item.y, isClover ? "#facc15" : "#fb923c", 10);
+              bunny.squashX = 0.8;
+              bunny.squashY = 1.25;
+            }
+
+            updateUI();
+            items.splice(i, 1);
+            continue;
+          }
+
+          // Off-screen handling
+          if (item.y > canvas.height + 30) {
+            if (item.type !== 'bramble') {
+              combo = 1; // Reset multiplier on dropped food
+              updateUI();
+            }
+            items.splice(i, 1);
+          }
+        }
+      }
+
+      // Render Active Particles
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += 0.15; // Gravity
+        p.alpha -= p.decay;
+
+        if (p.alpha <= 0) {
+          particles.splice(i, 1);
+          continue;
+        }
+
+        ctx.save();
+        ctx.globalAlpha = p.alpha;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+
+      // Draw Main Bunny
+      drawBunny(bunny.x, bunny.y);
+
+      // Game Over Screen
+      if (isGameOver) {
+        ctx.fillStyle = "rgba(15, 23, 42, 0.8)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.font = "800 36px system-ui";
+        ctx.textAlign = "center";
+        ctx.fillText("ROUND COMPLETE", canvas.width / 2, canvas.height / 2 - 30);
+
+        ctx.font = "600 20px system-ui";
+        ctx.fillStyle = "#cbd5e1";
+        ctx.fillText(`Final Score: ${score}`, canvas.width / 2, canvas.height / 2 + 10);
+        
+        ctx.font = "500 15px system-ui";
+        ctx.fillStyle = "#94a3b8";
+        ctx.fillText("Click canvas to play again", canvas.width / 2, canvas.height / 2 + 50);
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Launch Game Engine
+    requestAnimationFrame(gameLoop);
+  </script>
+</body>
+</html>
