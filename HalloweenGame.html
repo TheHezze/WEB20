@@ -46,7 +46,6 @@
         input[type="range"] {
             accent-color: #f97316;
         }
-        /* Custom scrollbar for HUD drawer */
         #hudPanel::-webkit-scrollbar {
             width: 6px;
         }
@@ -83,6 +82,10 @@
 
     <!-- Top-Right Quick Action Buttons (Starts completely hidden) -->
     <div id="topRightBar" class="fixed top-4 right-4 z-30 flex items-center gap-2.5 opacity-0 pointer-events-none transition-all duration-300">
+        <button id="flipCameraQuickBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-orange-300 hover:text-white hover:border-orange-400/60 transition-all" title="Inverse Camera Left/Right (Shortcut: F1)">
+            <i class="ph-bold ph-arrows-left-right text-orange-400 text-lg"></i>
+            <span id="flipQuickLabel" class="hidden sm:inline">L/R: Mirrored</span>
+        </button>
         <button id="lightningBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-purple-300 hover:text-white hover:border-purple-400/60 transition-all" title="Trigger Thunder & Scare Burst (Shortcut: Space)">
             <i class="ph-fill ph-lightning text-amber-400 text-lg"></i>
             <span class="hidden sm:inline">Thunder Scare</span>
@@ -109,17 +112,27 @@
             </button>
         </div>
 
-        <!-- Camera Control & Live RGB Diff Radar -->
-        <div class="space-y-3 mb-5">
+        <!-- Camera Control, Left/Right Inversion & Live RGB Diff Radar -->
+        <div class="space-y-2.5 mb-5">
             <button id="cameraToggleBtn" class="w-full py-2.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg shadow-orange-950/50 transition-all">
                 <i id="cameraBtnIcon" class="ph-fill ph-video-camera text-lg"></i>
                 <span id="cameraBtnText">Start RGB Camera Motion</span>
             </button>
 
+            <button id="flipCameraBtn" class="w-full py-2 px-3.5 rounded-xl font-medium text-xs flex items-center justify-between border border-orange-500/35 bg-orange-950/40 hover:bg-orange-900/50 text-orange-200 transition-all" title="Press F1 to invert left and right camera motion">
+                <span class="flex items-center gap-2">
+                    <i class="ph-bold ph-arrows-left-right text-orange-400 text-sm"></i>
+                    <span>Camera Left / Right:</span>
+                </span>
+                <span id="flipStatusBadge" class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono text-[11px]">
+                    Mirrored (Press F1)
+                </span>
+            </button>
+
             <div class="relative rounded-xl overflow-hidden border border-orange-500/25 bg-black/70 aspect-[4/3]">
                 <canvas id="radarCanvas" width="160" height="120" class="w-full h-full object-cover"></canvas>
-                <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-orange-300 border border-orange-500/20">
-                    RGB Δ-MOTION RADAR (80×60)
+                <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-orange-300 border border-orange-500/20" id="radarHeaderLabel">
+                    RGB Δ-MOTION RADAR (80×60 • MIRROR)
                 </div>
                 <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-emerald-300" id="motionMeterText">
                     Motion: 0%
@@ -171,8 +184,10 @@
         </div>
 
         <!-- Footer Legend -->
-        <div class="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
-            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">H</kbd> or <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Double-Click</kbd> UI</span>
+        <div class="mt-5 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-400">
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F1</kbd> Flip L/R</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F11</kbd> Fullscreen</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">H</kbd> / <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Dbl-Click</kbd> UI</span>
             <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Space</kbd> Lightning</span>
         </div>
     </aside>
@@ -180,8 +195,12 @@
     <script>
         /**
          * HAUNTED HORIZON — Interactive RGB Webcam Motion Halloween Scene
-         * Uses HTML5 Canvas, real-time getUserMedia RGB frame-differencing,
-         * ghostly RGB trail compositing, and automatic mouse/touch motion fallback.
+         * Features:
+         * - Real-time getUserMedia RGB frame-differencing on an 80x60 grid
+         * - Instant Left/Right camera inversion via F1 (leaving F11 for Fullscreen)
+         * - Starts with camera ON and all screen UI hidden by default
+         * - Reactive bats, trailing ectoplasm ghosts, glowing Jack-o'-Lanterns,
+         *   spooky silhouette trees, fog layers, and mouse/touch fallback.
          */
         function initHalloweenScene() {
             const canvas = document.getElementById('sceneCanvas');
@@ -190,7 +209,6 @@
             const radarCanvas = document.getElementById('radarCanvas');
             const radarCtx = radarCanvas.getContext('2d');
 
-            // Offscreen low-res buffer for fast RGB frame differencing
             const GRID_W = 80;
             const GRID_H = 60;
             const procCanvas = document.createElement('canvas');
@@ -198,344 +216,242 @@
             procCanvas.height = GRID_H;
             const procCtx = procCanvas.getContext('2d', { willReadFrequently: true });
 
-            // Offscreen persistent canvas for chromatic RGB motion trail overlay
             const trailCanvas = document.createElement('canvas');
             trailCanvas.width = GRID_W;
             trailCanvas.height = GRID_H;
             const trailCtx = trailCanvas.getContext('2d');
 
-            // Central reactive application state
             const state = {
                 width: window.innerWidth,
                 height: window.innerHeight,
                 time: 0,
                 cameraActive: false,
                 cameraStarting: false,
+                mirrorCamera: true, // True = normal mirror, False = inverted left/right (toggled via F1)
                 stream: null,
                 prevFrameData: null,
-                sensitivity: 65,      // 15..95
-                rgbTrailOpacity: 0.45, // 0..1
-                densityScale: 1.0,    // 0.4..1.8
-                ghostMode: 'swirl',   // 'swirl' | 'attract' | 'repel'
-                lightningFlash: 0,
-                lightningBolt: null,
-                audioEnabled: false,
+                sensitivity: 65,
+                rgbTrailOpacity: 0.45,
+                densityScale: 1.0,
+                ghostMode: 'swirl',
                 hudVisible: false,
-                // Motion hotspots detected in current frame: { x, y, intensity, r, g, b, vx, vy }
-                motionPoints: [],
-                // Smoothed primary motion centroid
-                centroid: {
+                audioEnabled: false,
+                audioCtx: null,
+                masterGain: null,
+
+                hotspot: {
                     x: window.innerWidth * 0.5,
                     y: window.innerHeight * 0.45,
-                    active: false,
-                    energy: 0
+                    vx: 0,
+                    vy: 0,
+                    intensity: 0,
+                    active: false
                 },
+                motionPoints: [],
+
                 pointer: {
                     x: window.innerWidth * 0.5,
                     y: window.innerHeight * 0.45,
                     prevX: window.innerWidth * 0.5,
                     prevY: window.innerHeight * 0.45,
-                    activeTimer: 0
+                    speed: 0,
+                    lastMoveTime: 0
                 },
+
                 stars: [],
-                fogBanks: [],
-                gravestones: [],
-                pumpkins: [],
+                fogBands: [],
                 bats: [],
                 ghosts: [],
+                pumpkins: [],
                 particles: [],
-                eyes: []
+                lightningFlash: 0,
+                lightningBolt: null
             };
 
-            let audioCtx = null;
-            let windGainNode = null;
-
             function initAudio() {
-                if (audioCtx) return;
+                if (state.audioCtx) return;
                 try {
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    audioCtx = new AudioContextClass();
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    state.audioCtx = new AudioContext();
+                    state.masterGain = state.audioCtx.createGain();
+                    state.masterGain.gain.value = 0.18;
+                    state.masterGain.connect(state.audioCtx.destination);
 
-                    // Create continuous eerie wind drone using filtered pink-like noise
-                    const bufferSize = audioCtx.sampleRate * 3;
-                    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                    const output = noiseBuffer.getChannelData(0);
-                    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-                    for (let i = 0; i < bufferSize; i++) {
-                        const white = Math.random() * 2 - 1;
-                        b0 = 0.99886 * b0 + white * 0.0555179;
-                        b1 = 0.99332 * b1 + white * 0.0750759;
-                        b2 = 0.96900 * b2 + white * 0.1538520;
-                        b3 = 0.86650 * b3 + white * 0.3104856;
-                        b4 = 0.55000 * b4 + white * 0.5329522;
-                        b5 = -0.7616 * b5 - white * 0.0168980;
-                        output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.04;
-                        b6 = white * 0.115926;
-                    }
+                    const osc1 = state.audioCtx.createOscillator();
+                    const osc2 = state.audioCtx.createOscillator();
+                    const filter = state.audioCtx.createBiquadFilter();
 
-                    const whiteNoise = audioCtx.createBufferSource();
-                    whiteNoise.buffer = noiseBuffer;
-                    whiteNoise.loop = true;
+                    osc1.type = 'sawtooth';
+                    osc1.frequency.value = 55;
+                    osc2.type = 'triangle';
+                    osc2.frequency.value = 82.41;
 
-                    const filter = audioCtx.createBiquadFilter();
-                    filter.type = 'bandpass';
-                    filter.frequency.value = 260;
-                    filter.Q.value = 3.5;
+                    filter.type = 'lowpass';
+                    filter.frequency.value = 240;
 
-                    windGainNode = audioCtx.createGain();
-                    windGainNode.gain.value = 0.01;
+                    osc1.connect(filter);
+                    osc2.connect(filter);
+                    filter.connect(state.masterGain);
 
-                    whiteNoise.connect(filter);
-                    filter.connect(windGainNode);
-                    windGainNode.connect(audioCtx.destination);
-                    whiteNoise.start(0);
-                } catch (err) {
-                    console.warn('Web Audio API unavailable:', err);
+                    osc1.start();
+                    osc2.start();
+                } catch (e) {
+                    console.warn('Web Audio API unavailable:', e);
                 }
             }
 
             function playThunderSound() {
-                if (!state.audioEnabled || !audioCtx) return;
+                if (!state.audioEnabled || !state.audioCtx) return;
                 try {
-                    const now = audioCtx.currentTime;
-                    const osc = audioCtx.createOscillator();
-                    const gain = audioCtx.createGain();
+                    const now = state.audioCtx.currentTime;
+                    const osc = state.audioCtx.createOscillator();
+                    const gain = state.audioCtx.createGain();
                     osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(110, now);
-                    osc.frequency.exponentialRampToValueAtTime(28, now + 1.4);
+                    osc.frequency.setValueAtTime(120, now);
+                    osc.frequency.exponentialRampToValueAtTime(28, now + 0.85);
 
-                    gain.gain.setValueAtTime(0.28, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                    gain.gain.setValueAtTime(0.4, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
 
                     osc.connect(gain);
-                    gain.connect(audioCtx.destination);
+                    gain.connect(state.masterGain);
                     osc.start(now);
-                    osc.stop(now + 1.55);
-                } catch (e) {
-                    // Ignore audio context state errors
-                }
+                    osc.stop(now + 0.92);
+                } catch (e) {}
             }
 
-            function buildWorldEntities() {
+            function initSceneEntities() {
                 const w = state.width;
                 const h = state.height;
 
-                // 1. Twinkling night stars
                 state.stars = [];
-                const starCount = Math.floor((w * h) / 11000);
-                for (let i = 0; i < starCount; i++) {
+                for (let i = 0; i < 110; i++) {
                     state.stars.push({
                         x: Math.random() * w,
-                        y: Math.random() * (h * 0.68),
-                        r: Math.random() * 1.7 + 0.4,
+                        y: Math.random() * (h * 0.65),
+                        r: Math.random() * 1.6 + 0.4,
                         alpha: Math.random() * 0.7 + 0.2,
-                        speed: Math.random() * 2.2 + 0.6,
+                        twinkleSpeed: Math.random() * 0.04 + 0.01,
                         phase: Math.random() * Math.PI * 2
                     });
                 }
 
-                // 2. Layered drifting graveyard fog banks
-                state.fogBanks = [];
-                for (let i = 0; i < 7; i++) {
-                    state.fogBanks.push({
-                        x: Math.random() * w,
-                        y: h * (0.62 + (i / 7) * 0.34),
-                        width: w * (0.55 + Math.random() * 0.45),
-                        height: h * (0.09 + Math.random() * 0.08),
-                        vx: (i % 2 === 0 ? 1 : -1) * (0.18 + Math.random() * 0.25),
-                        hue: i % 2 === 0 ? 275 : 22
+                state.fogBands = [];
+                for (let i = 0; i < 4; i++) {
+                    state.fogBands.push({
+                        y: h * (0.58 + i * 0.1),
+                        amplitude: 16 + i * 7,
+                        speed: (0.004 + i * 0.002) * (i % 2 === 0 ? 1 : -1),
+                        offset: Math.random() * 100,
+                        alpha: 0.11 + i * 0.03
                     });
                 }
 
-                // 3. Silhouette gravestones along the foreground ridge
-                state.gravestones = [];
-                const graveCount = Math.max(5, Math.floor(w / 190));
-                for (let i = 0; i < graveCount; i++) {
-                    const gx = (w / graveCount) * i + 45 + Math.random() * 65;
-                    state.gravestones.push({
-                        x: gx,
-                        y: h * 0.84 + Math.random() * (h * 0.05),
-                        w: 26 + Math.random() * 18,
-                        h: 42 + Math.random() * 28,
-                        tilt: (Math.random() - 0.5) * 0.24,
-                        type: i % 3 // 0: rounded arch, 1: cross, 2: notched slab
-                    });
-                }
-
-                // 4. Interactive Carved Jack-o'-Lanterns along the foreground
                 state.pumpkins = [];
-                const pumpkinCount = Math.max(5, Math.min(11, Math.floor(w / 165)));
+                const pumpkinCount = Math.max(5, Math.min(9, Math.floor(w / 190)));
                 for (let i = 0; i < pumpkinCount; i++) {
-                    const px = (w / (pumpkinCount + 0.5)) * (i + 0.6) + (Math.random() - 0.5) * 35;
-                    const py = h * 0.89 + (Math.random() - 0.5) * 24;
+                    const px = (w / (pumpkinCount + 1)) * (i + 1) + (Math.random() - 0.5) * 45;
+                    const py = h - 34 - Math.random() * 24;
                     state.pumpkins.push({
                         x: px,
                         y: py,
-                        radiusX: 28 + Math.random() * 16,
-                        radiusY: 22 + Math.random() * 13,
-                        excitation: 0.15,
-                        flickerOffset: Math.random() * 100,
-                        grinStyle: i % 2
+                        radius: 25 + Math.random() * 13,
+                        glow: 0.25,
+                        excitement: 0,
+                        seed: Math.random() * 100
                     });
                 }
 
-                // 5. Glowing Monster Eyes peeking from dark bushes
-                state.eyes = [];
-                for (let i = 0; i < 6; i++) {
-                    state.eyes.push({
-                        x: Math.random() * (w * 0.9) + w * 0.05,
-                        y: h * (0.76 + Math.random() * 0.16),
-                        blinkTimer: Math.random() * 200,
-                        alertness: 0,
-                        color: i % 2 === 0 ? '#ef4444' : '#facc15'
-                    });
-                }
-
-                syncSwarmCounts();
+                syncDynamicSwarm();
             }
 
-            function syncSwarmCounts() {
+            function syncDynamicSwarm() {
                 const w = state.width;
                 const h = state.height;
-                const targetBats = Math.round(22 * state.densityScale);
-                const targetGhosts = Math.round(9 * state.densityScale);
+                const targetBats = Math.round(28 * state.densityScale);
+                const targetGhosts = Math.round(7 * state.densityScale);
 
                 while (state.bats.length < targetBats) {
                     state.bats.push({
                         x: Math.random() * w,
-                        y: Math.random() * (h * 0.65),
-                        vx: (Math.random() - 0.5) * 3.2,
-                        vy: (Math.random() - 0.5) * 1.4,
-                        size: 11 + Math.random() * 9,
+                        y: Math.random() * (h * 0.62),
+                        vx: (Math.random() - 0.5) * 2.6,
+                        vy: (Math.random() - 0.5) * 1.2,
+                        size: 9 + Math.random() * 9,
                         wingPhase: Math.random() * Math.PI * 2,
-                        wingSpeed: 0.22 + Math.random() * 0.12,
-                        scared: 0
+                        wingSpeed: 0.22 + Math.random() * 0.14,
+                        scaredTimer: 0
                     });
                 }
-                if (state.bats.length > targetBats) {
-                    state.bats.length = targetBats;
-                }
+                if (state.bats.length > targetBats) state.bats.length = targetBats;
 
                 while (state.ghosts.length < targetGhosts) {
+                    const gx = Math.random() * w;
+                    const gy = h * (0.2 + Math.random() * 0.55);
+                    const trail = [];
+                    for (let i = 0; i < 12; i++) trail.push({ x: gx, y: gy });
                     state.ghosts.push({
-                        x: Math.random() * w,
-                        y: Math.random() * (h * 0.75),
+                        x: gx,
+                        y: gy,
                         vx: (Math.random() - 0.5) * 1.5,
-                        vy: (Math.random() - 0.5) * 1.0,
-                        size: 26 + Math.random() * 18,
-                        hue: Math.random() > 0.45 ? 175 : 275, // Spectral cyan-green or eerie violet
+                        vy: (Math.random() - 0.5) * 1.1,
+                        size: 22 + Math.random() * 14,
+                        hue: 170 + Math.random() * 110,
                         phase: Math.random() * Math.PI * 2,
-                        trail: []
+                        trail
                     });
                 }
-                if (state.ghosts.length > targetGhosts) {
-                    state.ghosts.length = targetGhosts;
-                }
+                if (state.ghosts.length > targetGhosts) state.ghosts.length = targetGhosts;
             }
 
-            function spawnParticle(x, y, r, g, b, isEmber = false) {
-                if (state.particles.length > 260) {
-                    state.particles.shift();
-                }
-                const angle = Math.random() * Math.PI * 2;
-                const speed = isEmber ? (1.2 + Math.random() * 3.4) : (0.6 + Math.random() * 2.4);
+            function spawnMotionParticle(x, y, vx, vy, type = 'ember') {
+                if (state.particles.length > 260) return;
+                const isEmber = type === 'ember';
                 state.particles.push({
-                    x,
-                    y,
-                    vx: Math.cos(angle) * speed * 0.65,
-                    vy: -Math.abs(Math.sin(angle) * speed) - (isEmber ? 1.4 : 0.7),
-                    size: isEmber ? (2 + Math.random() * 3.5) : (3 + Math.random() * 6),
+                    x: x + (Math.random() - 0.5) * 18,
+                    y: y + (Math.random() - 0.5) * 18,
+                    vx: vx * 0.18 + (Math.random() - 0.5) * 2.2,
+                    vy: vy * 0.18 - Math.random() * 2.4 - 0.5,
+                    r: isEmber ? Math.random() * 3.5 + 1.5 : Math.random() * 6 + 3,
                     life: 1.0,
-                    decay: 0.014 + Math.random() * 0.02,
-                    r: isEmber ? 255 : r,
-                    g: isEmber ? (110 + Math.floor(Math.random() * 110)) : g,
-                    b: isEmber ? 20 : b,
-                    isEmber
+                    decay: 0.016 + Math.random() * 0.02,
+                    color: isEmber
+                        ? (Math.random() < 0.6 ? '#f97316' : '#facc15')
+                        : (Math.random() < 0.5 ? '#a855f7' : '#2dd4bf')
                 });
             }
 
-            function triggerLightning(originX) {
-                const startX = typeof originX === 'number'
-                    ? originX
-                    : state.width * (0.2 + Math.random() * 0.6);
-                state.lightningFlash = 1.0;
-
+            function triggerLightning() {
+                state.lightningFlash = 0.85;
+                const startX = state.width * (0.2 + Math.random() * 0.6);
                 const segments = [];
-                let currX = startX;
-                let currY = 0;
-                const maxSteps = 14;
-                for (let i = 0; i < maxSteps; i++) {
-                    const nextX = currX + (Math.random() - 0.5) * 95;
-                    const nextY = currY + (state.height * 0.72) / maxSteps;
-                    segments.push({ x1: currX, y1: currY, x2: nextX, y2: nextY });
-                    currX = nextX;
-                    currY = nextY;
+                let cx = startX;
+                let cy = 0;
+                while (cy < state.height * 0.68) {
+                    const nx = cx + (Math.random() - 0.5) * 65;
+                    const ny = cy + 22 + Math.random() * 32;
+                    segments.push({ x1: cx, y1: cy, x2: nx, y2: ny });
+                    cx = nx;
+                    cy = ny;
                 }
                 state.lightningBolt = { segments, alpha: 1.0 };
 
-                // Scatter nearby bats & excite pumpkins on thunder
-                state.bats.forEach(bat => {
-                    bat.scared = 1.0;
+                for (const bat of state.bats) {
+                    bat.scaredTimer = 50;
                     bat.vx = (Math.random() - 0.5) * 9;
-                    bat.vy = -2 - Math.random() * 4;
-                });
-                state.pumpkins.forEach(p => {
-                    p.excitation = Math.min(1.5, p.excitation + 0.85);
-                });
-
-                playThunderSound();
-            }
-
-            function updateStatusUI(mode, message) {
-                const dot = document.getElementById('statusDot');
-                const dotSolid = document.getElementById('statusDotSolid');
-                const label = document.getElementById('statusLabel');
-                const badge = document.getElementById('statusBadge');
-                const btnIcon = document.getElementById('cameraBtnIcon');
-                const btnText = document.getElementById('cameraBtnText');
-
-                if (mode === 'active') {
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping';
-                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 -ml-4';
-                    badge.className = 'hud-glass px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border border-emerald-500/40';
-                    label.className = 'text-emerald-200';
-                    label.textContent = message || 'RGB Camera Motion Active';
-                    btnIcon.className = 'ph-fill ph-video-camera-slash text-lg';
-                    btnText.textContent = 'Stop RGB Camera (Use Mouse)';
-                } else if (mode === 'starting') {
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping';
-                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 -ml-4';
-                    badge.className = 'hud-glass px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border border-amber-500/40';
-                    label.className = 'text-amber-200';
-                    label.textContent = message || 'Requesting RGB Camera...';
-                } else {
-                    dot.className = 'w-2.5 h-2.5 rounded-full bg-orange-400 opacity-75';
-                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-orange-400 -ml-4';
-                    badge.className = 'hud-glass px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border border-orange-500/30';
-                    label.className = 'text-orange-200';
-                    label.textContent = message || 'Cursor / Touch Fallback Active';
-                    btnIcon.className = 'ph-fill ph-video-camera text-lg';
-                    btnText.textContent = 'Start RGB Camera Motion';
+                    bat.vy = -Math.random() * 5 - 1.5;
                 }
+                playThunderSound();
             }
 
             async function toggleCamera() {
                 if (state.cameraStarting) return;
-
                 if (state.cameraActive) {
-                    if (state.stream) {
-                        state.stream.getTracks().forEach(track => track.stop());
-                        state.stream = null;
-                    }
-                    video.srcObject = null;
-                    state.cameraActive = false;
-                    state.prevFrameData = null;
-                    updateStatusUI('fallback', 'Camera Off — Cursor Fallback');
+                    stopCamera();
                     return;
                 }
-
                 if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    updateStatusUI('fallback', 'Webcam API Unavailable — Cursor Mode');
+                    updateStatusUI('fallback', 'Webcam API Unsupported — Mouse/Touch Active');
                     return;
                 }
 
@@ -544,733 +460,517 @@
 
                 try {
                     const stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            width: { ideal: 320 },
-                            height: { ideal: 240 },
-                            facingMode: 'user'
-                        },
+                        video: { width: { ideal: 320 }, height: { ideal: 240 }, facingMode: 'user' },
                         audio: false
                     });
                     state.stream = stream;
                     video.srcObject = stream;
                     await video.play();
+
                     state.cameraActive = true;
-                    state.prevFrameData = null;
-                    updateStatusUI('active', 'RGB Camera Motion Active');
-                } catch (err) {
-                    console.warn('Webcam access declined or unavailable, using mouse/touch fallback:', err);
-                    state.cameraActive = false;
-                    updateStatusUI('fallback', 'Mouse / Touch Motion Active');
-                } finally {
                     state.cameraStarting = false;
+                    state.prevFrameData = null;
+
+                    updateStatusUI('active', 'RGB Camera Active');
+                    const btn = document.getElementById('cameraToggleBtn');
+                    btn.className = 'w-full py-2.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white shadow-lg shadow-rose-950/50 transition-all';
+                    document.getElementById('cameraBtnIcon').className = 'ph-fill ph-video-camera-slash text-lg';
+                    document.getElementById('cameraBtnText').textContent = 'Stop RGB Camera';
+                } catch (err) {
+                    state.cameraActive = false;
+                    state.cameraStarting = false;
+                    updateStatusUI('fallback', 'Mouse / Touch Fallback Active');
+                }
+            }
+
+            function stopCamera() {
+                if (state.stream) {
+                    state.stream.getTracks().forEach(track => track.stop());
+                    state.stream = null;
+                }
+                video.srcObject = null;
+                state.cameraActive = false;
+                state.prevFrameData = null;
+                updateStatusUI('fallback', 'Mouse / Touch Fallback Active');
+                const btn = document.getElementById('cameraToggleBtn');
+                btn.className = 'w-full py-2.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg shadow-orange-950/50 transition-all';
+                document.getElementById('cameraBtnIcon').className = 'ph-fill ph-video-camera text-lg';
+                document.getElementById('cameraBtnText').textContent = 'Start RGB Camera Motion';
+            }
+
+            function toggleCameraMirror() {
+                state.mirrorCamera = !state.mirrorCamera;
+                state.prevFrameData = null;
+
+                const flipStatusBadge = document.getElementById('flipStatusBadge');
+                const flipQuickLabel = document.getElementById('flipQuickLabel');
+                const radarHeaderLabel = document.getElementById('radarHeaderLabel');
+
+                if (state.mirrorCamera) {
+                    flipStatusBadge.textContent = 'Mirrored (Press F1)';
+                    flipStatusBadge.className = 'px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono text-[11px]';
+                    flipQuickLabel.textContent = 'L/R: Mirrored';
+                    radarHeaderLabel.textContent = 'RGB Δ-MOTION RADAR (80×60 • MIRROR)';
+                } else {
+                    flipStatusBadge.textContent = 'Inverted L/R (Press F1)';
+                    flipStatusBadge.className = 'px-2 py-0.5 rounded bg-purple-500/25 text-purple-300 font-mono text-[11px]';
+                    flipQuickLabel.textContent = 'L/R: Inverted';
+                    radarHeaderLabel.textContent = 'RGB Δ-MOTION RADAR (80×60 • INVERTED)';
+                }
+            }
+
+            function updateStatusUI(mode, message) {
+                const dot = document.getElementById('statusDot');
+                const dotSolid = document.getElementById('statusDotSolid');
+                const label = document.getElementById('statusLabel');
+                label.textContent = message;
+                if (mode === 'active') {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping';
+                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-emerald-400 -ml-4';
+                    label.className = 'text-emerald-200';
+                } else if (mode === 'starting') {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping';
+                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-amber-400 -ml-4';
+                    label.className = 'text-amber-200';
+                } else {
+                    dot.className = 'w-2.5 h-2.5 rounded-full bg-orange-400 animate-ping';
+                    dotSolid.className = 'w-2.5 h-2.5 rounded-full bg-orange-400 -ml-4';
+                    label.className = 'text-orange-200';
                 }
             }
 
             function processRgbMotionFrame() {
                 state.motionPoints = [];
-
-                // Fade persistent RGB trail buffer smoothly
                 trailCtx.fillStyle = 'rgba(7, 3, 13, 0.18)';
                 trailCtx.fillRect(0, 0, GRID_W, GRID_H);
 
                 if (state.cameraActive && video.readyState >= 2) {
-                    // Draw mirrored video frame onto 80x60 processing canvas
                     procCtx.save();
-                    procCtx.scale(-1, 1);
-                    procCtx.drawImage(video, -GRID_W, 0, GRID_W, GRID_H);
+                    if (state.mirrorCamera) {
+                        procCtx.scale(-1, 1);
+                        procCtx.drawImage(video, -GRID_W, 0, GRID_W, GRID_H);
+                    } else {
+                        procCtx.drawImage(video, 0, 0, GRID_W, GRID_H);
+                    }
                     procCtx.restore();
 
                     const frame = procCtx.getImageData(0, 0, GRID_W, GRID_H);
                     const data = frame.data;
+                    const diffThreshold = Math.max(18, 145 - state.sensitivity * 1.28);
 
-                    // Threshold derived from sensitivity slider (15..95 -> 130..28)
-                    const diffThreshold = Math.max(24, 155 - state.sensitivity * 1.3);
+                    let sumX = 0;
+                    let sumY = 0;
+                    let totalWeight = 0;
+                    let activePixels = 0;
+
+                    const trailImg = trailCtx.getImageData(0, 0, GRID_W, GRID_H);
+                    const trailData = trailImg.data;
 
                     if (state.prevFrameData) {
                         const prev = state.prevFrameData;
-                        const trailImg = trailCtx.getImageData(0, 0, GRID_W, GRID_H);
-                        const trailData = trailImg.data;
-
-                        let sumX = 0;
-                        let sumY = 0;
-                        let totalWeight = 0;
-                        let activeCells = 0;
-
                         for (let y = 0; y < GRID_H; y++) {
                             for (let x = 0; x < GRID_W; x++) {
                                 const idx = (y * GRID_W + x) * 4;
-                                const r = data[idx];
-                                const g = data[idx + 1];
-                                const b = data[idx + 2];
-
-                                const dr = Math.abs(r - prev[idx]);
-                                const dg = Math.abs(g - prev[idx + 1]);
-                                const db = Math.abs(b - prev[idx + 2]);
-                                const rgbDiff = dr + dg + db;
+                                const dR = Math.abs(data[idx] - prev[idx]);
+                                const dG = Math.abs(data[idx + 1] - prev[idx + 1]);
+                                const dB = Math.abs(data[idx + 2] - prev[idx + 2]);
+                                const rgbDiff = dR + dG + dB;
 
                                 if (rgbDiff > diffThreshold) {
-                                    const intensity = Math.min(1.0, (rgbDiff - diffThreshold) / 220);
-                                    activeCells++;
+                                    const weight = Math.min(1, (rgbDiff - diffThreshold) / 200);
+                                    sumX += x * weight;
+                                    sumY += y * weight;
+                                    totalWeight += weight;
+                                    activePixels++;
 
-                                    // Boost spooky Halloween hues in the chromatic motion trail
-                                    trailData[idx] = Math.min(255, r + 95);
-                                    trailData[idx + 1] = Math.min(255, Math.floor(g * 0.65) + 35);
-                                    trailData[idx + 2] = Math.min(255, b + 115);
-                                    trailData[idx + 3] = Math.min(255, Math.floor(intensity * 245));
+                                    trailData[idx] = Math.min(255, trailData[idx] + dR * 1.5 + 80);
+                                    trailData[idx + 1] = Math.min(255, trailData[idx + 1] + dG * 0.9 + 20);
+                                    trailData[idx + 2] = Math.min(255, trailData[idx + 2] + dB * 1.6 + 110);
+                                    trailData[idx + 3] = Math.min(255, trailData[idx + 3] + Math.floor(weight * 220));
 
-                                    const screenX = (x / GRID_W) * state.width;
-                                    const screenY = (y / GRID_H) * state.height;
-
-                                    sumX += screenX * intensity;
-                                    sumY += screenY * intensity;
-                                    totalWeight += intensity;
-
-                                    // Sample hotspot points for entity interactions & particle emission
-                                    if ((x + y) % 3 === 0) {
+                                    if ((x + y) % 5 === 0 && weight > 0.35) {
                                         state.motionPoints.push({
-                                            x: screenX,
-                                            y: screenY,
-                                            intensity,
-                                            r: Math.min(255, r + 60),
-                                            g: Math.min(255, g + 20),
-                                            b: Math.min(255, b + 80)
+                                            x: (x / GRID_W) * state.width,
+                                            y: (y / GRID_H) * state.height,
+                                            weight
                                         });
                                     }
                                 }
                             }
                         }
-
-                        trailCtx.putImageData(trailImg, 0, 0);
-
-                        const motionPercent = Math.min(100, Math.round((activeCells / (GRID_W * GRID_H * 0.22)) * 100));
-                        document.getElementById('motionMeterText').textContent = `Motion: ${motionPercent}%`;
-
-                        if (totalWeight > 1.2) {
-                            const targetX = sumX / totalWeight;
-                            const targetY = sumY / totalWeight;
-                            state.centroid.x += (targetX - state.centroid.x) * 0.28;
-                            state.centroid.y += (targetY - state.centroid.y) * 0.28;
-                            state.centroid.active = true;
-                            state.centroid.energy = Math.min(1.0, totalWeight / 35);
-
-                            // Sudden huge full-frame movement triggers a rare lightning scare
-                            if (motionPercent > 82 && state.lightningFlash <= 0.05 && Math.random() < 0.08) {
-                                triggerLightning(state.centroid.x);
-                            }
-                        } else {
-                            state.centroid.active = false;
-                            state.centroid.energy *= 0.9;
-                        }
                     }
 
+                    trailCtx.putImageData(trailImg, 0, 0);
                     state.prevFrameData = new Uint8ClampedArray(data);
+
+                    const normalizedActivity = Math.min(1, activePixels / (GRID_W * GRID_H * 0.18));
+                    document.getElementById('motionMeterText').textContent = `Motion: ${Math.round(normalizedActivity * 100)}%`;
+
+                    if (totalWeight > 2.2) {
+                        const targetX = (sumX / totalWeight / GRID_W) * state.width;
+                        const targetY = (sumY / totalWeight / GRID_H) * state.height;
+
+                        state.hotspot.vx = (targetX - state.hotspot.x) * 0.35;
+                        state.hotspot.vy = (targetY - state.hotspot.y) * 0.35;
+                        state.hotspot.x += state.hotspot.vx;
+                        state.hotspot.y += state.hotspot.vy;
+                        state.hotspot.intensity = Math.min(1, normalizedActivity * 1.6);
+                        state.hotspot.active = true;
+
+                        for (let i = 0; i < state.motionPoints.length; i++) {
+                            if (Math.random() < 0.32) {
+                                const pt = state.motionPoints[i];
+                                spawnMotionParticle(pt.x, pt.y, state.hotspot.vx, state.hotspot.vy, Math.random() < 0.7 ? 'ember' : 'ectoplasm');
+                            }
+                        }
+                    } else {
+                        state.hotspot.intensity *= 0.9;
+                        if (state.hotspot.intensity < 0.05) state.hotspot.active = false;
+                    }
+
+                    radarCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
+                    radarCtx.globalAlpha = 0.45;
+                    radarCtx.drawImage(procCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
+                    radarCtx.globalAlpha = 0.95;
+                    radarCtx.drawImage(trailCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
+                    radarCtx.globalAlpha = 1;
                 } else {
-                    // Fallback: Use Mouse / Touch Pointer Motion
-                    const dx = state.pointer.x - state.pointer.prevX;
-                    const dy = state.pointer.y - state.pointer.prevY;
-                    const dist = Math.hypot(dx, dy);
-                    state.pointer.prevX = state.pointer.x;
-                    state.pointer.prevY = state.pointer.y;
+                    const elapsed = performance.now() - state.pointer.lastMoveTime;
+                    if (elapsed < 350) {
+                        state.hotspot.vx = (state.pointer.x - state.hotspot.x) * 0.32;
+                        state.hotspot.vy = (state.pointer.y - state.hotspot.y) * 0.32;
+                        state.hotspot.x += state.hotspot.vx;
+                        state.hotspot.y += state.hotspot.vy;
+                        state.hotspot.intensity = Math.min(1, Math.max(0.25, state.pointer.speed / 28));
+                        state.hotspot.active = true;
 
-                    if (dist > 1.2 || state.pointer.activeTimer > 0) {
-                        const intensity = Math.min(1.0, dist / 28 + 0.35);
-                        state.motionPoints.push({
-                            x: state.pointer.x,
-                            y: state.pointer.y,
-                            intensity,
-                            r: 255,
-                            g: 135,
-                            b: 45
-                        });
-
-                        // Paint pointer motion onto the offscreen RGB trail buffer
-                        const gx = (state.pointer.x / state.width) * GRID_W;
-                        const gy = (state.pointer.y / state.height) * GRID_H;
-                        const grad = trailCtx.createRadialGradient(gx, gy, 0.5, gx, gy, 5.5);
-                        grad.addColorStop(0, 'rgba(255, 130, 40, 0.85)');
-                        grad.addColorStop(0.5, 'rgba(168, 85, 247, 0.45)');
-                        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                        const gx = Math.floor((state.hotspot.x / state.width) * GRID_W);
+                        const gy = Math.floor((state.hotspot.y / state.height) * GRID_H);
+                        const grad = trailCtx.createRadialGradient(gx, gy, 1, gx, gy, 7);
+                        grad.addColorStop(0, 'rgba(249, 115, 22, 0.9)');
+                        grad.addColorStop(0.5, 'rgba(168, 85, 247, 0.55)');
+                        grad.addColorStop(1, 'rgba(45, 212, 191, 0)');
                         trailCtx.fillStyle = grad;
                         trailCtx.beginPath();
-                        trailCtx.arc(gx, gy, 5.5, 0, Math.PI * 2);
+                        trailCtx.arc(gx, gy, 7, 0, Math.PI * 2);
                         trailCtx.fill();
 
-                        state.centroid.x += (state.pointer.x - state.centroid.x) * 0.32;
-                        state.centroid.y += (state.pointer.y - state.centroid.y) * 0.32;
-                        state.centroid.active = true;
-                        state.centroid.energy = intensity;
-                        if (state.pointer.activeTimer > 0) state.pointer.activeTimer--;
-
-                        const pct = Math.min(100, Math.round(intensity * 75));
-                        document.getElementById('motionMeterText').textContent = `Cursor: ${pct}%`;
-                    } else {
-                        state.centroid.active = false;
-                        state.centroid.energy *= 0.9;
-                        document.getElementById('motionMeterText').textContent = 'Cursor: 0%';
-                    }
-                }
-
-                // Render HUD Radar Preview when HUD is visible
-                if (state.hudVisible) {
-                    radarCtx.fillStyle = '#07030d';
-                    radarCtx.fillRect(0, 0, radarCanvas.width, radarCanvas.height);
-                    if (state.cameraActive && video.readyState >= 2) {
-                        radarCtx.save();
-                        radarCtx.globalAlpha = 0.28;
-                        radarCtx.drawImage(procCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
-                        radarCtx.restore();
-                    }
-                    radarCtx.drawImage(trailCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
-
-                    if (state.centroid.active) {
-                        const rx = (state.centroid.x / state.width) * radarCanvas.width;
-                        const ry = (state.centroid.y / state.height) * radarCanvas.height;
-                        radarCtx.strokeStyle = '#34d399';
-                        radarCtx.lineWidth = 1.5;
-                        radarCtx.beginPath();
-                        radarCtx.arc(rx, ry, 7, 0, Math.PI * 2);
-                        radarCtx.stroke();
-                    }
-                }
-
-                // Emit spooky particles at the strongest motion points
-                if (state.motionPoints.length > 0) {
-                    const spawnBudget = Math.min(6, Math.ceil(state.motionPoints.length / 8));
-                    for (let i = 0; i < spawnBudget; i++) {
-                        const pt = state.motionPoints[Math.floor(Math.random() * state.motionPoints.length)];
-                        if (Math.random() < 0.75) {
-                            spawnParticle(pt.x, pt.y, pt.r, pt.g, pt.b, Math.random() < 0.45);
+                        if (Math.random() < 0.65) {
+                            spawnMotionParticle(state.hotspot.x, state.hotspot.y, state.hotspot.vx, state.hotspot.vy, Math.random() < 0.7 ? 'ember' : 'ectoplasm');
                         }
+                    } else {
+                        state.hotspot.intensity *= 0.92;
+                        if (state.hotspot.intensity < 0.04) state.hotspot.active = false;
                     }
-                }
 
-                // Modulate eerie wind audio volume based on motion energy
-                if (state.audioEnabled && windGainNode && audioCtx) {
-                    const targetGain = 0.04 + state.centroid.energy * 0.18;
-                    windGainNode.gain.setTargetAtTime(targetGain, audioCtx.currentTime, 0.15);
+                    document.getElementById('motionMeterText').textContent = `Pointer: ${Math.round(state.hotspot.intensity * 100)}%`;
+                    radarCtx.fillStyle = '#090412';
+                    radarCtx.fillRect(0, 0, radarCanvas.width, radarCanvas.height);
+                    radarCtx.drawImage(trailCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
                 }
             }
 
-            function drawSkyAndMoon(w, h) {
-                // Twilight-to-midnight vertical sky gradient
+            function drawNightSkyAndMoon(w, h) {
                 const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
-                skyGrad.addColorStop(0, '#05020a');
-                skyGrad.addColorStop(0.45, '#130726');
-                skyGrad.addColorStop(0.78, '#271033');
-                skyGrad.addColorStop(1, '#09040e');
+                skyGrad.addColorStop(0, '#07030f');
+                skyGrad.addColorStop(0.45, '#160929');
+                skyGrad.addColorStop(0.78, '#28103d');
+                skyGrad.addColorStop(1, '#12071c');
                 ctx.fillStyle = skyGrad;
                 ctx.fillRect(0, 0, w, h);
 
-                // Twinkling stars
-                for (let i = 0; i < state.stars.length; i++) {
-                    const s = state.stars[i];
-                    const twinkle = 0.35 + 0.65 * Math.sin(state.time * s.speed + s.phase);
-                    ctx.fillStyle = `rgba(255, 245, 235, ${s.alpha * twinkle})`;
+                for (const s of state.stars) {
+                    const tw = Math.sin(state.time * 60 * s.twinkleSpeed + s.phase) * 0.3 + 0.7;
+                    ctx.fillStyle = `rgba(254, 243, 199, ${s.alpha * tw})`;
                     ctx.beginPath();
                     ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
                     ctx.fill();
                 }
 
-                // Giant Harvest Blood Moon (shifts subtly with motion centroid)
-                const moonX = w * 0.76 + (state.centroid.x - w * 0.5) * -0.025;
-                const moonY = h * 0.22 + (state.centroid.y - h * 0.5) * -0.02;
-                const moonRadius = Math.min(w, h) * 0.11;
+                const moonX = w * 0.78;
+                const moonY = h * 0.22;
+                const moonRadius = Math.min(w, h) * 0.095;
+                const motionPulse = state.hotspot.active ? state.hotspot.intensity * 26 : 0;
 
-                // Outer eerie aura
-                const moonGlow = ctx.createRadialGradient(moonX, moonY, moonRadius * 0.4, moonX, moonY, moonRadius * 3.2);
-                moonGlow.addColorStop(0, 'rgba(251, 146, 60, 0.42)');
-                moonGlow.addColorStop(0.45, 'rgba(194, 65, 12, 0.16)');
-                moonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                ctx.fillStyle = moonGlow;
+                const haloGrad = ctx.createRadialGradient(moonX, moonY, moonRadius * 0.5, moonX, moonY, moonRadius * 3.1 + motionPulse);
+                haloGrad.addColorStop(0, 'rgba(251, 146, 60, 0.45)');
+                haloGrad.addColorStop(0.45, 'rgba(234, 88, 12, 0.18)');
+                haloGrad.addColorStop(1, 'rgba(168, 85, 247, 0)');
+                ctx.fillStyle = haloGrad;
                 ctx.beginPath();
-                ctx.arc(moonX, moonY, moonRadius * 3.2, 0, Math.PI * 2);
+                ctx.arc(moonX, moonY, moonRadius * 3.1 + motionPulse, 0, Math.PI * 2);
                 ctx.fill();
 
-                // Moon disc
-                const discGrad = ctx.createRadialGradient(
-                    moonX - moonRadius * 0.25,
-                    moonY - moonRadius * 0.25,
-                    moonRadius * 0.1,
-                    moonX,
-                    moonY,
-                    moonRadius
-                );
-                discGrad.addColorStop(0, '#fff7ed');
-                discGrad.addColorStop(0.55, '#fdba74');
-                discGrad.addColorStop(1, '#ea580c');
-                ctx.fillStyle = discGrad;
+                const moonGrad = ctx.createRadialGradient(moonX - moonRadius * 0.2, moonY - moonRadius * 0.2, moonRadius * 0.1, moonX, moonY, moonRadius);
+                moonGrad.addColorStop(0, '#fff7ed');
+                moonGrad.addColorStop(0.65, '#fed7aa');
+                moonGrad.addColorStop(1, '#f97316');
+                ctx.fillStyle = moonGrad;
                 ctx.beginPath();
                 ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
                 ctx.fill();
-
-                // Subtle moon craters
-                ctx.fillStyle = 'rgba(154, 52, 18, 0.16)';
-                ctx.beginPath();
-                ctx.arc(moonX - moonRadius * 0.3, moonY + moonRadius * 0.15, moonRadius * 0.22, 0, Math.PI * 2);
-                ctx.arc(moonX + moonRadius * 0.28, moonY - moonRadius * 0.2, moonRadius * 0.16, 0, Math.PI * 2);
-                ctx.arc(moonX + moonRadius * 0.1, moonY + moonRadius * 0.4, moonRadius * 0.12, 0, Math.PI * 2);
-                ctx.fill();
             }
 
-            function drawHauntedLandscape(w, h) {
-                // Distant hill behind the Haunted Mansion
-                ctx.fillStyle = '#0d0618';
-                ctx.beginPath();
-                ctx.moveTo(0, h * 0.78);
-                ctx.quadraticCurveTo(w * 0.26, h * 0.56, w * 0.58, h * 0.74);
-                ctx.quadraticCurveTo(w * 0.82, h * 0.65, w, h * 0.77);
-                ctx.lineTo(w, h);
-                ctx.lineTo(0, h);
-                ctx.closePath();
-                ctx.fill();
-
-                // Gothic Haunted Mansion Silhouette on the left-center hill
-                const mx = w * 0.25;
-                const my = h * 0.64;
-                const scale = Math.min(1.15, Math.max(0.65, w / 1300));
-
+            function drawRgbMotionSilhouette(w, h) {
+                if (state.rgbTrailOpacity <= 0.01) return;
                 ctx.save();
-                ctx.translate(mx, my);
-                ctx.scale(scale, scale);
-
-                ctx.fillStyle = '#07030e';
-                // Main hall & towers
-                ctx.fillRect(-75, -70, 150, 85);
-                ctx.fillRect(-105, -50, 35, 65);
-                ctx.fillRect(70, -50, 35, 65);
-                ctx.fillRect(-32, -125, 64, 140);
-
-                // Steep Gothic Spire Roofs
-                ctx.beginPath();
-                ctx.moveTo(-42, -125);
-                ctx.lineTo(0, -195);
-                ctx.lineTo(42, -125);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(-112, -50);
-                ctx.lineTo(-87, -105);
-                ctx.lineTo(-62, -50);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.beginPath();
-                ctx.moveTo(62, -50);
-                ctx.lineTo(87, -105);
-                ctx.lineTo(112, -50);
-                ctx.closePath();
-                ctx.fill();
-
-                // Glowing Haunted Windows (flicker with motion energy)
-                const winGlow = 0.65 + 0.35 * Math.sin(state.time * 4) + state.centroid.energy * 0.3;
-                ctx.fillStyle = `rgba(251, 146, 60, ${Math.min(1, winGlow)})`;
-                ctx.shadowColor = '#f97316';
-                ctx.shadowBlur = 14;
-
-                // Spire arched window
-                ctx.beginPath();
-                ctx.arc(0, -100, 9, Math.PI, 0);
-                ctx.lineTo(9, -82);
-                ctx.lineTo(-9, -82);
-                ctx.closePath();
-                ctx.fill();
-
-                // Lower windows
-                ctx.fillRect(-56, -45, 14, 22);
-                ctx.fillRect(42, -45, 14, 22);
-                ctx.fillRect(-93, -32, 12, 18);
-                ctx.fillRect(81, -32, 12, 18);
-                ctx.shadowBlur = 0;
+                ctx.globalCompositeOperation = 'screen';
+                ctx.globalAlpha = state.rgbTrailOpacity;
+                ctx.filter = 'blur(10px)';
+                ctx.drawImage(trailCanvas, 0, 0, w, h);
+                ctx.filter = 'none';
                 ctx.restore();
-
-                // Twisted Gnarled Trees on left and right edges
-                drawDeadTree(w * 0.08, h * 0.82, -78 * scale, -0.18, 5);
-                drawDeadTree(w * 0.91, h * 0.83, -84 * scale, 0.2, 5);
             }
 
-            function drawDeadTree(x, y, len, angle, depth) {
-                if (depth <= 0) return;
-                const sway = Math.sin(state.time * 1.4 + depth) * (0.015 + state.centroid.energy * 0.03);
-                const endX = x + Math.sin(angle + sway) * Math.abs(len);
-                const endY = y - Math.cos(angle + sway) * Math.abs(len);
-
-                ctx.strokeStyle = '#06020b';
-                ctx.lineWidth = Math.max(1.5, depth * 2.4);
-                ctx.lineCap = 'round';
+            function drawHillsAndGraveyard(w, h) {
+                ctx.fillStyle = '#11071f';
                 ctx.beginPath();
-                ctx.moveTo(x, y);
-                ctx.lineTo(endX, endY);
-                ctx.stroke();
-
-                drawDeadTree(endX, endY, len * 0.72, angle - 0.42, depth - 1);
-                drawDeadTree(endX, endY, len * 0.68, angle + 0.38, depth - 1);
-            }
-
-            function drawRgbTrailAndFog(w, h) {
-                // Blend live RGB motion trail buffer onto the scene
-                if (state.rgbTrailOpacity > 0.01) {
-                    ctx.save();
-                    ctx.globalCompositeOperation = 'screen';
-                    ctx.globalAlpha = state.rgbTrailOpacity;
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.drawImage(trailCanvas, 0, 0, w, h);
-                    ctx.restore();
+                ctx.moveTo(0, h);
+                for (let x = 0; x <= w; x += 40) {
+                    const y = h * 0.72 + Math.sin(x * 0.003 + 1.2) * 38;
+                    ctx.lineTo(x, y);
                 }
+                ctx.lineTo(w, h);
+                ctx.closePath();
+                ctx.fill();
 
-                // Drifting eerie fog banks
-                for (let i = 0; i < state.fogBanks.length; i++) {
-                    const fog = state.fogBanks[i];
-                    fog.x += fog.vx * (1 + state.centroid.energy * 1.5);
-                    if (fog.x - fog.width > w) fog.x = -fog.width * 0.8;
-                    if (fog.x + fog.width < 0) fog.x = w + fog.width * 0.8;
-
-                    const grad = ctx.createRadialGradient(fog.x, fog.y, 10, fog.x, fog.y, fog.width * 0.6);
-                    grad.addColorStop(0, `hsla(${fog.hue}, 70%, 45%, 0.13)`);
-                    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                for (const fog of state.fogBands) {
+                    ctx.save();
+                    const grad = ctx.createLinearGradient(0, fog.y - 45, 0, fog.y + 65);
+                    grad.addColorStop(0, 'rgba(168, 85, 247, 0)');
+                    grad.addColorStop(0.5, `rgba(139, 92, 246, ${fog.alpha})`);
+                    grad.addColorStop(1, 'rgba(15, 7, 28, 0)');
                     ctx.fillStyle = grad;
                     ctx.beginPath();
-                    ctx.ellipse(fog.x, fog.y, fog.width * 0.6, fog.height, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                // Foreground Cemetery Ground Ridge
-                ctx.fillStyle = '#050209';
-                ctx.beginPath();
-                ctx.moveTo(0, h * 0.82);
-                ctx.quadraticCurveTo(w * 0.3, h * 0.77, w * 0.62, h * 0.83);
-                ctx.quadraticCurveTo(w * 0.85, h * 0.87, w, h * 0.81);
-                ctx.lineTo(w, h);
-                ctx.lineTo(0, h);
-                ctx.closePath();
-                ctx.fill();
-
-                // Gravestones
-                for (let i = 0; i < state.gravestones.length; i++) {
-                    const g = state.gravestones[i];
-                    ctx.save();
-                    ctx.translate(g.x, g.y);
-                    ctx.rotate(g.tilt);
-                    ctx.fillStyle = '#120b1d';
-                    ctx.strokeStyle = 'rgba(251, 146, 60, 0.18)';
-                    ctx.lineWidth = 1;
-
-                    ctx.beginPath();
-                    ctx.moveTo(-g.w / 2, 0);
-                    ctx.lineTo(-g.w / 2, -g.h * 0.65);
-                    ctx.arc(0, -g.h * 0.65, g.w / 2, Math.PI, 0);
-                    ctx.lineTo(g.w / 2, 0);
+                    ctx.moveTo(0, h);
+                    for (let x = 0; x <= w; x += 35) {
+                        const waveY = fog.y + Math.sin(x * 0.008 + state.time * 60 * fog.speed + fog.offset) * fog.amplitude;
+                        ctx.lineTo(x, waveY);
+                    }
+                    ctx.lineTo(w, h);
                     ctx.closePath();
                     ctx.fill();
-                    ctx.stroke();
                     ctx.restore();
                 }
 
-                // Peeking Monster Eyes in the dark brush
-                for (let i = 0; i < state.eyes.length; i++) {
-                    const eye = state.eyes[i];
-                    const distToMotion = state.centroid.active
-                        ? Math.hypot(eye.x - state.centroid.x, eye.y - state.centroid.y)
-                        : 9999;
-
-                    if (distToMotion < 240) {
-                        eye.alertness = Math.min(1, eye.alertness + 0.08);
-                    } else {
-                        eye.alertness = Math.max(0.15, eye.alertness - 0.02);
-                    }
-
-                    const blink = Math.sin(state.time * 2.5 + eye.blinkTimer) > -0.85;
-                    if (blink) {
-                        ctx.save();
-                        ctx.fillStyle = eye.color;
-                        ctx.globalAlpha = eye.alertness * 0.85;
-                        ctx.shadowColor = eye.color;
-                        ctx.shadowBlur = 10;
-                        ctx.beginPath();
-                        ctx.ellipse(eye.x - 6, eye.y, 3.2, 1.8 * eye.alertness, -0.15, 0, Math.PI * 2);
-                        ctx.ellipse(eye.x + 6, eye.y, 3.2, 1.8 * eye.alertness, 0.15, 0, Math.PI * 2);
-                        ctx.fill();
-                        ctx.restore();
-                    }
+                ctx.fillStyle = '#05020a';
+                ctx.beginPath();
+                ctx.moveTo(0, h);
+                for (let x = 0; x <= w; x += 50) {
+                    const y = h - 42 + Math.sin(x * 0.008) * 14;
+                    ctx.lineTo(x, y);
                 }
+                ctx.lineTo(w, h);
+                ctx.closePath();
+                ctx.fill();
             }
 
             function updateAndDrawPumpkins() {
-                for (let i = 0; i < state.pumpkins.length; i++) {
-                    const p = state.pumpkins[i];
-
-                    // Check proximity to RGB motion hotspots
-                    for (let j = 0; j < state.motionPoints.length; j++) {
-                        const mp = state.motionPoints[j];
-                        const d = Math.hypot(mp.x - p.x, mp.y - p.y);
-                        if (d < 160) {
-                            p.excitation = Math.min(1.6, p.excitation + 0.09 * mp.intensity);
-                            if (Math.random() < 0.15) {
-                                spawnParticle(p.x + (Math.random() - 0.5) * 20, p.y - p.radiusY * 0.6, 255, 160, 20, true);
-                            }
+                for (const p of state.pumpkins) {
+                    if (state.hotspot.active) {
+                        const dist = Math.hypot(state.hotspot.x - p.x, state.hotspot.y - p.y);
+                        if (dist < 220) {
+                            const boost = ((220 - dist) / 220) * state.hotspot.intensity;
+                            p.excitement = Math.min(1.5, p.excitement + boost * 0.25);
                         }
                     }
-                    p.excitation = Math.max(0.18, p.excitation * 0.96);
+                    p.excitement *= 0.94;
+                    const r = p.radius;
+                    const flicker = 0.75 + Math.sin(state.time * 18 + p.seed) * 0.15 + p.excitement * 0.6;
 
                     ctx.save();
                     ctx.translate(p.x, p.y);
 
-                    // Outer candle aura when excited by motion
-                    const glowRadius = p.radiusX * (1.5 + p.excitation * 1.4);
-                    const aura = ctx.createRadialGradient(0, 0, p.radiusX * 0.2, 0, 0, glowRadius);
-                    aura.addColorStop(0, `rgba(255, 165, 30, ${0.25 + p.excitation * 0.35})`);
-                    aura.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                    ctx.fillStyle = aura;
+                    const auraRadius = r * (2.1 + p.excitement * 1.4);
+                    const auraGrad = ctx.createRadialGradient(0, 0, r * 0.2, 0, 0, auraRadius);
+                    auraGrad.addColorStop(0, `rgba(251, 146, 60, ${0.42 * flicker})`);
+                    auraGrad.addColorStop(1, 'rgba(234, 88, 12, 0)');
+                    ctx.fillStyle = auraGrad;
                     ctx.beginPath();
-                    ctx.arc(0, 0, glowRadius, 0, Math.PI * 2);
+                    ctx.arc(0, 0, auraRadius, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Stem
-                    ctx.fillStyle = '#1f2912';
+                    ctx.fillStyle = '#9a3412';
                     ctx.beginPath();
-                    ctx.moveTo(-4, -p.radiusY * 0.9);
-                    ctx.quadraticCurveTo(-8, -p.radiusY * 1.35, 5, -p.radiusY * 1.3);
-                    ctx.lineTo(6, -p.radiusY * 0.88);
+                    ctx.ellipse(0, 0, r * 1.12, r * 0.86, 0, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    const eyeGlow = p.excitement > 0.2 ? '#fef08a' : '#fbbf24';
+                    ctx.fillStyle = eyeGlow;
+                    ctx.beginPath();
+                    ctx.moveTo(-r * 0.48, -r * 0.12);
+                    ctx.lineTo(-r * 0.26, -r * 0.42);
+                    ctx.lineTo(-r * 0.12, -r * 0.12);
                     ctx.closePath();
                     ctx.fill();
 
-                    // Pumpkin ribbed body
-                    const bodyGrad = ctx.createRadialGradient(0, -p.radiusY * 0.2, 4, 0, 0, p.radiusX);
-                    bodyGrad.addColorStop(0, '#ea580c');
-                    bodyGrad.addColorStop(0.7, '#9a3412');
-                    bodyGrad.addColorStop(1, '#431407');
-                    ctx.fillStyle = bodyGrad;
                     ctx.beginPath();
-                    ctx.ellipse(0, 0, p.radiusX, p.radiusY, 0, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    // Carved Glowing Eyes & Jagged Grin
-                    const flicker = 0.78 + 0.22 * Math.sin(state.time * 14 + p.flickerOffset);
-                    ctx.fillStyle = p.excitation > 0.7 ? '#fef08a' : `rgba(253, 186, 116, ${flicker})`;
-                    ctx.shadowColor = '#f97316';
-                    ctx.shadowBlur = 10 + p.excitation * 16;
-
-                    // Left & Right Triangle Eyes
-                    ctx.beginPath();
-                    ctx.moveTo(-p.radiusX * 0.48, -p.radiusY * 0.12);
-                    ctx.lineTo(-p.radiusX * 0.28, -p.radiusY * 0.45);
-                    ctx.lineTo(-p.radiusX * 0.12, -p.radiusY * 0.12);
-                    ctx.closePath();
-
-                    ctx.moveTo(p.radiusX * 0.12, -p.radiusY * 0.12);
-                    ctx.lineTo(p.radiusX * 0.28, -p.radiusY * 0.45);
-                    ctx.lineTo(p.radiusX * 0.48, -p.radiusY * 0.12);
+                    ctx.moveTo(r * 0.48, -r * 0.12);
+                    ctx.lineTo(r * 0.26, -r * 0.42);
+                    ctx.lineTo(r * 0.12, -r * 0.12);
                     ctx.closePath();
                     ctx.fill();
 
-                    // Carved Mouth
                     ctx.beginPath();
-                    ctx.moveTo(-p.radiusX * 0.55, p.radiusY * 0.18);
-                    ctx.lineTo(-p.radiusX * 0.25, p.radiusY * 0.38);
-                    ctx.lineTo(0, p.radiusY * 0.22);
-                    ctx.lineTo(p.radiusX * 0.25, p.radiusY * 0.38);
-                    ctx.lineTo(p.radiusX * 0.55, p.radiusY * 0.18);
-                    ctx.lineTo(p.radiusX * 0.32, p.radiusY * 0.56);
-                    ctx.lineTo(-p.radiusX * 0.32, p.radiusY * 0.56);
-                    ctx.closePath();
+                    ctx.arc(0, r * 0.08, r * 0.56, 0.15 * Math.PI, 0.85 * Math.PI);
                     ctx.fill();
 
-                    ctx.restore();
-                }
-            }
-
-            function updateAndDrawBats(w, h) {
-                for (let i = 0; i < state.bats.length; i++) {
-                    const b = state.bats[i];
-                    b.wingPhase += b.wingSpeed * (1 + b.scared * 1.4);
-
-                    // Scatter away from nearby RGB motion hotspots
-                    for (let j = 0; j < state.motionPoints.length; j += 2) {
-                        const mp = state.motionPoints[j];
-                        const dx = b.x - mp.x;
-                        const dy = b.y - mp.y;
-                        const dist = Math.hypot(dx, dy);
-                        if (dist < 135 && dist > 1) {
-                            const force = ((135 - dist) / 135) * 1.4;
-                            b.vx += (dx / dist) * force;
-                            b.vy += (dy / dist) * force;
-                            b.scared = 1.0;
-                        }
-                    }
-
-                    b.scared = Math.max(0, b.scared - 0.02);
-
-                    // Limit speed & gently steer back to sky band
-                    const maxSpd = 3.2 + b.scared * 5.0;
-                    const spd = Math.hypot(b.vx, b.vy);
-                    if (spd > maxSpd) {
-                        b.vx = (b.vx / spd) * maxSpd;
-                        b.vy = (b.vy / spd) * maxSpd;
-                    }
-                    if (b.y > h * 0.72) b.vy -= 0.12;
-                    if (b.y < 30) b.vy += 0.12;
-
-                    b.x += b.vx;
-                    b.y += b.vy;
-
-                    if (b.x < -40) b.x = w + 40;
-                    if (b.x > w + 40) b.x = -40;
-
-                    // Draw Bat Silhouette
-                    const flap = Math.sin(b.wingPhase) * b.size * 0.75;
-                    ctx.save();
-                    ctx.translate(b.x, b.y);
-                    ctx.rotate(b.vx * 0.05);
-
-                    ctx.fillStyle = '#090412';
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.quadraticCurveTo(-b.size * 0.6, -flap - b.size * 0.3, -b.size * 1.35, -flap * 0.5);
-                    ctx.quadraticCurveTo(-b.size * 0.7, b.size * 0.25, 0, b.size * 0.25);
-                    ctx.quadraticCurveTo(b.size * 0.7, b.size * 0.25, b.size * 1.35, -flap * 0.5);
-                    ctx.quadraticCurveTo(b.size * 0.6, -flap - b.size * 0.3, 0, 0);
-                    ctx.fill();
-
-                    // Glowing red eyes when startled by RGB motion
-                    if (b.scared > 0.15) {
-                        ctx.fillStyle = `rgba(239, 68, 68, ${b.scared})`;
-                        ctx.beginPath();
-                        ctx.arc(-2.2, -1, 1.4, 0, Math.PI * 2);
-                        ctx.arc(2.2, -1, 1.4, 0, Math.PI * 2);
-                        ctx.fill();
-                    }
                     ctx.restore();
                 }
             }
 
             function updateAndDrawGhosts(w, h) {
-                for (let i = 0; i < state.ghosts.length; i++) {
-                    const g = state.ghosts[i];
-                    g.phase += 0.04;
-
-                    if (state.centroid.active) {
-                        const dx = state.centroid.x - g.x;
-                        const dy = state.centroid.y - g.y;
-                        const dist = Math.max(25, Math.hypot(dx, dy));
-                        const nx = dx / dist;
-                        const ny = dy / dist;
+                for (const g of state.ghosts) {
+                    g.phase += 0.05;
+                    if (state.hotspot.active) {
+                        const dx = state.hotspot.x - g.x;
+                        const dy = state.hotspot.y - g.y;
+                        const dist = Math.max(1, Math.hypot(dx, dy));
+                        const force = Math.min(1, 280 / dist) * state.hotspot.intensity;
 
                         if (state.ghostMode === 'attract') {
-                            g.vx += nx * 0.14;
-                            g.vy += ny * 0.14;
+                            g.vx += (dx / dist) * force * 0.38;
+                            g.vy += (dy / dist) * force * 0.38;
                         } else if (state.ghostMode === 'repel') {
-                            if (dist < 280) {
-                                g.vx -= nx * 0.26;
-                                g.vy -= ny * 0.26;
-                            }
+                            g.vx -= (dx / dist) * force * 0.55;
+                            g.vy -= (dy / dist) * force * 0.55;
                         } else {
-                            // Vortex Swirl around user's RGB motion centroid
-                            g.vx += (-ny * 0.18) + nx * 0.05;
-                            g.vy += (nx * 0.18) + ny * 0.05;
+                            const tx = -dy / dist;
+                            const ty = dx / dist;
+                            g.vx += (tx * 0.45 + (dx / dist) * 0.14) * force;
+                            g.vy += (ty * 0.45 + (dy / dist) * 0.14) * force;
                         }
-                    } else {
-                        g.vx += Math.cos(state.time + g.phase) * 0.02;
-                        g.vy += Math.sin(state.time * 0.8 + g.phase) * 0.02;
                     }
 
-                    g.vx *= 0.965;
-                    g.vy *= 0.965;
+                    g.vx *= 0.96;
+                    g.vy *= 0.96;
                     g.x += g.vx;
                     g.y += g.vy;
 
-                    if (g.x < -50) g.x = w + 50;
-                    if (g.x > w + 50) g.x = -50;
-                    if (g.y < 40) g.vy += 0.15;
-                    if (g.y > h * 0.82) g.vy -= 0.15;
+                    if (g.x < -60) g.x = w + 60;
+                    if (g.x > w + 60) g.x = -60;
+                    if (g.y < 40) g.vy += 0.2;
+                    if (g.y > h - 90) g.vy -= 0.2;
 
                     g.trail.unshift({ x: g.x, y: g.y });
                     if (g.trail.length > 12) g.trail.pop();
 
                     ctx.save();
-                    // Draw ectoplasm tail
-                    for (let t = g.trail.length - 1; t >= 1; t--) {
-                        const pt = g.trail[t];
-                        const ratio = 1 - t / g.trail.length;
-                        ctx.fillStyle = `hsla(${g.hue}, 85%, 70%, ${ratio * 0.18})`;
+                    for (let i = g.trail.length - 1; i >= 0; i--) {
+                        const pt = g.trail[i];
+                        const ratio = 1 - i / g.trail.length;
+                        ctx.fillStyle = `hsla(${g.hue}, 85%, 72%, ${ratio * 0.22})`;
                         ctx.beginPath();
-                        ctx.arc(pt.x, pt.y + t * 2, g.size * ratio * 0.65, 0, Math.PI * 2);
+                        ctx.arc(pt.x, pt.y, g.size * ratio * 0.85, 0, Math.PI * 2);
                         ctx.fill();
                     }
 
-                    // Ghost Head & Shroud
-                    ctx.translate(g.x, g.y + Math.sin(g.phase) * 5);
-                    ctx.rotate(g.vx * 0.06);
-
-                    const shroudGrad = ctx.createRadialGradient(0, -g.size * 0.2, 2, 0, 0, g.size * 1.25);
-                    shroudGrad.addColorStop(0, `hsla(${g.hue}, 90%, 88%, 0.78)`);
-                    shroudGrad.addColorStop(0.6, `hsla(${g.hue}, 85%, 65%, 0.35)`);
-                    shroudGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-
-                    ctx.fillStyle = shroudGrad;
+                    ctx.translate(g.x, g.y);
+                    ctx.fillStyle = `hsla(${g.hue}, 90%, 88%, 0.78)`;
                     ctx.beginPath();
                     ctx.arc(0, 0, g.size * 0.65, Math.PI, 0);
-                    ctx.lineTo(g.size * 0.65, g.size * 0.75);
-                    ctx.quadraticCurveTo(g.size * 0.3, g.size * 0.45, 0, g.size * 0.75);
-                    ctx.quadraticCurveTo(-g.size * 0.3, g.size * 0.45, -g.size * 0.65, g.size * 0.75);
+                    ctx.lineTo(g.size * 0.65, g.size * 0.6);
+                    ctx.lineTo(-g.size * 0.65, g.size * 0.6);
                     ctx.closePath();
                     ctx.fill();
 
-                    // Hollow spooky eyes & mouth
-                    ctx.fillStyle = '#090412';
+                    ctx.fillStyle = '#090414';
                     ctx.beginPath();
-                    ctx.ellipse(-g.size * 0.2, -g.size * 0.08, 3.2, 4.5, 0, 0, Math.PI * 2);
-                    ctx.ellipse(g.size * 0.2, -g.size * 0.08, 3.2, 4.5, 0, 0, Math.PI * 2);
-                    ctx.ellipse(0, g.size * 0.16, 3.8, 5.2, 0, 0, Math.PI * 2);
+                    ctx.arc(-g.size * 0.22, -g.size * 0.08, g.size * 0.11, 0, Math.PI * 2);
+                    ctx.arc(g.size * 0.22, -g.size * 0.08, g.size * 0.11, 0, Math.PI * 2);
                     ctx.fill();
-
                     ctx.restore();
                 }
             }
 
-            function updateAndDrawParticlesAndLightning(w, h) {
-                // Rising Embers & Spectral Wisps
-                ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-                for (let i = state.particles.length - 1; i >= 0; i--) {
-                    const pt = state.particles[i];
-                    pt.x += pt.vx;
-                    pt.y += pt.vy;
-                    pt.life -= pt.decay;
+            function updateAndDrawBats(w, h) {
+                for (const b of state.bats) {
+                    if (state.hotspot.active) {
+                        const dx = b.x - state.hotspot.x;
+                        const dy = b.y - state.hotspot.y;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < 170 && dist > 1) {
+                            const push = ((170 - dist) / 170) * state.hotspot.intensity;
+                            b.vx += (dx / dist) * push * 2.4;
+                            b.vy += (dy / dist) * push * 2.4;
+                            b.scaredTimer = 30;
+                        }
+                    }
 
-                    if (pt.life <= 0) {
+                    if (b.scaredTimer > 0) b.scaredTimer--;
+                    const maxSpeed = b.scaredTimer > 0 ? 7.5 : 3.2;
+                    const speed = Math.hypot(b.vx, b.vy);
+                    if (speed > maxSpeed) {
+                        b.vx = (b.vx / speed) * maxSpeed;
+                        b.vy = (b.vy / speed) * maxSpeed;
+                    }
+
+                    b.x += b.vx;
+                    b.y += b.vy;
+                    b.wingPhase += b.wingSpeed * (b.scaredTimer > 0 ? 1.8 : 1);
+
+                    if (b.x < -30) b.x = w + 30;
+                    if (b.x > w + 30) b.x = -30;
+                    if (b.y < 20) b.vy += 0.15;
+                    if (b.y > h * 0.72) b.vy -= 0.2;
+
+                    const flap = Math.sin(b.wingPhase) * b.size * 0.85;
+                    ctx.save();
+                    ctx.translate(b.x, b.y);
+                    ctx.rotate(Math.atan2(b.vy, b.vx) * 0.25);
+                    ctx.fillStyle = '#090412';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, b.size * 0.28, 0, Math.PI * 2);
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(-b.size * 0.8, -flap, -b.size * 1.45, flap * 0.35);
+                    ctx.quadraticCurveTo(-b.size * 0.7, b.size * 0.3, 0, b.size * 0.15);
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(b.size * 0.8, -flap, b.size * 1.45, flap * 0.35);
+                    ctx.quadraticCurveTo(b.size * 0.7, b.size * 0.3, 0, b.size * 0.15);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
+
+            function updateAndDrawParticles() {
+                ctx.save();
+                ctx.globalCompositeOperation = 'screen';
+                for (let i = state.particles.length - 1; i >= 0; i--) {
+                    const p = state.particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= p.decay;
+                    if (p.life <= 0) {
                         state.particles.splice(i, 1);
                         continue;
                     }
-
-                    ctx.fillStyle = `rgba(${pt.r}, ${pt.g}, ${pt.b}, ${pt.life * 0.85})`;
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
                     ctx.beginPath();
-                    ctx.arc(pt.x, pt.y, pt.size * pt.life, 0, Math.PI * 2);
+                    ctx.arc(p.x, p.y, p.r * p.life, 0, Math.PI * 2);
                     ctx.fill();
                 }
                 ctx.restore();
+            }
 
-                // Lightning Bolt & Screen Flash
-                if (state.lightningBolt && state.lightningBolt.alpha > 0.02) {
+            function drawLightningOverlay(w, h) {
+                if (state.lightningBolt && state.lightningBolt.alpha > 0) {
                     ctx.save();
                     ctx.strokeStyle = `rgba(243, 232, 255, ${state.lightningBolt.alpha})`;
-                    ctx.shadowColor = '#c084fc';
-                    ctx.shadowBlur = 22;
-                    ctx.lineWidth = 3.2;
+                    ctx.lineWidth = 3;
                     ctx.beginPath();
-                    for (let i = 0; i < state.lightningBolt.segments.length; i++) {
-                        const seg = state.lightningBolt.segments[i];
+                    for (const seg of state.lightningBolt.segments) {
                         ctx.moveTo(seg.x1, seg.y1);
                         ctx.lineTo(seg.x2, seg.y2);
                     }
                     ctx.stroke();
                     ctx.restore();
-                    state.lightningBolt.alpha *= 0.86;
+                    state.lightningBolt.alpha -= 0.06;
                 }
-
-                if (state.lightningFlash > 0.01) {
-                    ctx.fillStyle = `rgba(216, 180, 254, ${state.lightningFlash * 0.38})`;
+                if (state.lightningFlash > 0) {
+                    ctx.fillStyle = `rgba(250, 245, 255, ${state.lightningFlash * 0.35})`;
                     ctx.fillRect(0, 0, w, h);
-                    state.lightningFlash *= 0.84;
+                    state.lightningFlash = Math.max(0, state.lightningFlash - 0.05);
                 }
             }
 
@@ -1280,98 +980,94 @@
                 const h = state.height;
 
                 processRgbMotionFrame();
-                drawSkyAndMoon(w, h);
-                drawHauntedLandscape(w, h);
-                drawRgbTrailAndFog(w, h);
+                drawNightSkyAndMoon(w, h);
+                drawRgbMotionSilhouette(w, h);
+                drawHillsAndGraveyard(w, h);
+                updateAndDrawPumpkins();
                 updateAndDrawGhosts(w, h);
                 updateAndDrawBats(w, h);
-                updateAndDrawPumpkins();
-                updateAndDrawParticlesAndLightning(w, h);
+                updateAndDrawParticles();
+                drawLightningOverlay(w, h);
 
                 requestAnimationFrame(animate);
             }
 
-            function resizeScene() {
+            function handleResize() {
                 state.width = window.innerWidth;
                 state.height = window.innerHeight;
                 canvas.width = state.width;
                 canvas.height = state.height;
-                buildWorldEntities();
+                initSceneEntities();
             }
 
-            window.addEventListener('resize', resizeScene);
+            window.addEventListener('resize', handleResize);
 
-            // Mouse & Touch fallback listeners
-            window.addEventListener('mousemove', (e) => {
-                state.pointer.x = e.clientX;
-                state.pointer.y = e.clientY;
-                state.pointer.activeTimer = 8;
-            });
+            function handlePointerMove(clientX, clientY) {
+                const dx = clientX - state.pointer.x;
+                const dy = clientY - state.pointer.y;
+                state.pointer.speed = Math.hypot(dx, dy);
+                state.pointer.prevX = state.pointer.x;
+                state.pointer.prevY = state.pointer.y;
+                state.pointer.x = clientX;
+                state.pointer.y = clientY;
+                state.pointer.lastMoveTime = performance.now();
+            }
 
+            window.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
             window.addEventListener('touchmove', (e) => {
-                if (e.touches && e.touches.length > 0) {
-                    state.pointer.x = e.touches[0].clientX;
-                    state.pointer.y = e.touches[0].clientY;
-                    state.pointer.activeTimer = 12;
+                if (e.touches.length > 0) {
+                    handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
                 }
             }, { passive: true });
-
-            window.addEventListener('touchstart', (e) => {
-                if (e.touches && e.touches.length > 0) {
-                    state.pointer.x = e.touches[0].clientX;
-                    state.pointer.y = e.touches[0].clientY;
-                    state.pointer.prevX = state.pointer.x;
-                    state.pointer.prevY = state.pointer.y;
-                    state.pointer.activeTimer = 15;
-                }
-            }, { passive: true });
-
-            // HUD Toggle Buttons & Discreet Screen Toggle (H key or Double-Click)
-            const hudPanel = document.getElementById('hudPanel');
-            const topLeftBar = document.getElementById('topLeftBar');
-            const topRightBar = document.getElementById('topRightBar');
 
             function toggleHud() {
                 state.hudVisible = !state.hudVisible;
+                const panel = document.getElementById('hudPanel');
+                const topLeftBar = document.getElementById('topLeftBar');
+                const topRightBar = document.getElementById('topRightBar');
+                const toggleText = document.getElementById('toggleHudText');
+
                 if (state.hudVisible) {
-                    hudPanel.classList.remove('opacity-0', '-translate-x-8', 'pointer-events-none');
+                    panel.classList.remove('opacity-0', '-translate-x-8', 'pointer-events-none');
                     topLeftBar.classList.remove('opacity-0', 'pointer-events-none');
                     topRightBar.classList.remove('opacity-0', 'pointer-events-none');
+                    toggleText.textContent = 'Hide Controls';
                 } else {
-                    hudPanel.classList.add('opacity-0', '-translate-x-8', 'pointer-events-none');
+                    panel.classList.add('opacity-0', '-translate-x-8', 'pointer-events-none');
                     topLeftBar.classList.add('opacity-0', 'pointer-events-none');
                     topRightBar.classList.add('opacity-0', 'pointer-events-none');
+                    toggleText.textContent = 'Controls';
                 }
             }
 
-            // Double-clicking anywhere on the background canvas toggles the hidden UI
             canvas.addEventListener('dblclick', toggleHud);
-
             document.getElementById('toggleHudBtn').addEventListener('click', toggleHud);
             document.getElementById('closeHudBtn').addEventListener('click', toggleHud);
             document.getElementById('cameraToggleBtn').addEventListener('click', toggleCamera);
+            document.getElementById('flipCameraBtn').addEventListener('click', toggleCameraMirror);
+            document.getElementById('flipCameraQuickBtn').addEventListener('click', toggleCameraMirror);
             document.getElementById('lightningBtn').addEventListener('click', () => triggerLightning());
 
-            // Audio Toggle
             document.getElementById('audioToggleBtn').addEventListener('click', () => {
                 initAudio();
                 state.audioEnabled = !state.audioEnabled;
+                if (state.audioCtx && state.audioCtx.state === 'suspended') {
+                    state.audioCtx.resume();
+                }
+                if (state.masterGain) {
+                    state.masterGain.gain.value = state.audioEnabled ? 0.18 : 0;
+                }
                 const icon = document.getElementById('audioIcon');
                 const label = document.getElementById('audioLabel');
                 if (state.audioEnabled) {
-                    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
                     icon.className = 'ph-fill ph-speaker-high text-orange-400 text-lg';
                     label.textContent = 'Sound On';
                 } else {
-                    if (windGainNode && audioCtx) {
-                        windGainNode.gain.setTargetAtTime(0.0001, audioCtx.currentTime, 0.1);
-                    }
                     icon.className = 'ph-fill ph-speaker-slash text-slate-400 text-lg';
                     label.textContent = 'Sound Off';
                 }
             });
 
-            // Sliders
             document.getElementById('sensitivitySlider').addEventListener('input', (e) => {
                 state.sensitivity = Number(e.target.value);
                 document.getElementById('sensitivityVal').textContent = `${state.sensitivity}%`;
@@ -1387,24 +1083,31 @@
                 const val = Number(e.target.value);
                 state.densityScale = val / 100;
                 document.getElementById('entityDensityVal').textContent = `${val}%`;
-                syncSwarmCounts();
+                syncDynamicSwarm();
             });
 
-            // Ghost Behavior Mode Selector
-            const modeBtns = document.querySelectorAll('.ghost-mode-btn');
-            modeBtns.forEach(btn => {
+            document.querySelectorAll('.ghost-mode-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    state.ghostMode = btn.getAttribute('data-mode');
-                    modeBtns.forEach(b => {
-                        b.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all';
+                    state.ghostMode = btn.dataset.mode;
+                    document.querySelectorAll('.ghost-mode-btn').forEach(b => {
+                        if (b.dataset.mode === state.ghostMode) {
+                            b.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all';
+                        } else {
+                            b.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all';
+                        }
                     });
-                    btn.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all';
                 });
             });
 
-            // Keyboard Shortcuts (H for HUD, Space for Thunder Scare)
+            // Keyboard Shortcuts:
+            // - F1 exclusively inverts Left/Right on the camera (F11 is untouched for Fullscreen)
+            // - H toggles the hidden HUD
+            // - Space triggers Thunder Scare
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'h' || e.key === 'H') {
+                if (e.key === 'F1') {
+                    e.preventDefault();
+                    toggleCameraMirror();
+                } else if (e.key === 'h' || e.key === 'H') {
                     toggleHud();
                 } else if (e.code === 'Space') {
                     e.preventDefault();
@@ -1412,9 +1115,8 @@
                 }
             });
 
-            // Initialize Scene, Start Animation Loop & Automatically Activate RGB Camera
-            resizeScene();
-            animate();
+            handleResize();
+            requestAnimationFrame(animate);
             toggleCamera();
         }
 
