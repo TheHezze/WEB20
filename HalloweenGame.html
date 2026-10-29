@@ -111,6 +111,10 @@
 
     <!-- Top-Right Quick Action Buttons (Starts completely hidden) -->
     <div id="topRightBar" class="fixed top-4 right-4 z-30 flex items-center gap-2.5 opacity-0 pointer-events-none transition-all duration-300">
+        <button id="invertColorsQuickBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-amber-300 hover:text-white hover:border-amber-400/60 transition-all" title="Cycle Dark Floor / Bright Projection Color Mode (Shortcut: F10)">
+            <i class="ph-fill ph-sun-horizon text-amber-400 text-lg"></i>
+            <span id="invertQuickLabel" class="hidden sm:inline">Floor Mode: Standard</span>
+        </button>
         <button id="flipCameraQuickBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-orange-300 hover:text-white hover:border-orange-400/60 transition-all" title="Inverse Camera Left/Right (Shortcut: F1)">
             <i class="ph-bold ph-arrows-left-right text-orange-400 text-lg"></i>
             <span id="flipQuickLabel" class="hidden sm:inline">L/R: Mirrored</span>
@@ -198,17 +202,44 @@
 
             <div>
                 <div class="flex justify-between mb-1">
-                    <label for="entityDensitySlider" class="text-slate-300 font-medium">Spooky Swarm Density</label>
+                    <label for="entityDensitySlider" class="text-slate-300 font-medium">Bat & Swarm Density</label>
                     <span id="entityDensityVal" class="text-orange-400 font-mono-code">100%</span>
                 </div>
-                <input id="entityDensitySlider" type="range" min="40" max="180" value="100" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                <input id="entityDensitySlider" type="range" min="40" max="200" value="100" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+
+            <!-- Dedicated Ghost Count Slider -->
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="ghostCountSlider" class="text-slate-300 font-medium flex items-center gap-1.5">
+                        <span>Specter / Ghost Count</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-slate-300 font-mono-code">[ / ]</span>
+                    </label>
+                    <span id="ghostCountVal" class="text-orange-400 font-mono-code">18 Ghosts</span>
+                </div>
+                <input id="ghostCountSlider" type="range" min="2" max="65" value="18" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+
+            <!-- Dedicated Ghost Activity / Chase Speed Slider -->
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="ghostActivitySlider" class="text-slate-300 font-medium flex items-center gap-1.5">
+                        <span>Ghost Activity & Chase Speed</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-slate-300 font-mono-code">F8 / F9</span>
+                    </label>
+                    <span id="ghostActivityVal" class="text-orange-400 font-mono-code">140%</span>
+                </div>
+                <input id="ghostActivitySlider" type="range" min="25" max="300" step="5" value="140" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
             </div>
 
             <!-- Ghost Behavior Mode -->
             <div>
                 <label class="block text-slate-300 font-medium mb-1.5">Specter Motion Response</label>
-                <div class="grid grid-cols-3 gap-1.5" id="ghostModeGroup">
-                    <button data-mode="swirl" class="ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all">
+                <div class="grid grid-cols-2 gap-1.5" id="ghostModeGroup">
+                    <button data-mode="split_chase" class="ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all">
+                        Split & Chase
+                    </button>
+                    <button data-mode="swirl" class="ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all">
                         Vortex Swirl
                     </button>
                     <button data-mode="attract" class="ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all">
@@ -219,14 +250,47 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Dark Floor Projection & Color Inversion Controls -->
+            <div class="pt-3 border-t border-orange-500/20 space-y-3">
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="text-amber-300 font-semibold flex items-center gap-1.5">
+                            <i class="ph-fill ph-sun-horizon text-amber-400 text-sm"></i>
+                            <span>Dark Floor Projection Mode</span>
+                        </label>
+                        <kbd class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono-code text-[10px]">Press F10</kbd>
+                    </div>
+                    <div class="grid grid-cols-3 gap-1.5" id="colorModeGroup">
+                        <button data-colormode="normal" class="color-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all text-[11px]">
+                            Standard Dark
+                        </button>
+                        <button data-colormode="floor_bright" class="color-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all text-[11px]" title="Inverts dark backgrounds to bright white/amber while preserving true Halloween hues">
+                            Bright Floor
+                        </button>
+                        <button data-colormode="xray_invert" class="color-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all text-[11px]" title="Full negative spectral X-Ray color inversion">
+                            X-Ray Invert
+                        </button>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="flex justify-between mb-1">
+                        <label for="lumenBoostSlider" class="text-slate-300 font-medium">Projector Lumen / Contrast Boost</label>
+                        <span id="lumenBoostVal" class="text-amber-400 font-mono-code">100%</span>
+                    </div>
+                    <input id="lumenBoostSlider" type="range" min="100" max="200" step="5" value="100" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+                </div>
+            </div>
         </div>
 
         <!-- Footer Legend -->
         <div class="mt-5 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-1.5 text-[11px] text-slate-400">
             <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F1</kbd> Flip L/R</span>
             <span><kbd class="px-1.5 py-0.5 bg-sky-500/20 rounded text-sky-300">F2</kbd> Projectors</span>
+            <span><kbd class="px-1.5 py-0.5 bg-amber-500/20 rounded text-amber-300">F10</kbd> Invert/Bright</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F8/F9</kbd> Activity</span>
             <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">H</kbd> UI</span>
-            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Space</kbd> Scare</span>
         </div>
     </aside>
 
@@ -368,7 +432,12 @@
             <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-white/10">
                 <button id="toggleCalibGridBtn" class="flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-sky-500/40 bg-sky-500/15 hover:bg-sky-500/25 text-sky-200 transition-all flex items-center justify-center gap-2">
                     <i class="ph-bold ph-grid-four text-base text-sky-400"></i>
-                    <span id="calibGridBtnText">Alignment Grid Overlay: OFF (F7)</span>
+                    <span id="calibGridBtnText">Alignment Grid: OFF (F7)</span>
+                </button>
+
+                <button id="modalCycleColorModeBtn" class="py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 transition-all flex items-center justify-center gap-2" title="Cycle Dark Floor Bright Invert Mode (F10)">
+                    <i class="ph-fill ph-sun-horizon text-base text-amber-400"></i>
+                    <span id="modalColorModeText">Floor Mode: Standard (F10)</span>
                 </button>
 
                 <button id="toggleFlipVBtn" class="py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center justify-center gap-2">
@@ -400,7 +469,7 @@
                 <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F3</kbd> Split (1/2/3/4)</div>
                 <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F4</kbd> Unit (1..4)</div>
                 <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F6</kbd> Rotate 90°</div>
-                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F7</kbd> Align Grid</div>
+                <div><kbd class="px-1.5 py-0.5 bg-amber-500/25 rounded text-amber-300">F10</kbd> Floor Invert</div>
             </div>
         </div>
     </section>
@@ -492,14 +561,18 @@
                 sensitivity: 65,
                 rgbTrailOpacity: 0.45,
                 densityScale: 1.0,
-                ghostMode: 'swirl',
+                ghostCount: 18,
+                ghostActivity: 1.4, // 1.0 = 100%, up to 3.0 = 300% chase speed & aggression
+                ghostMode: 'split_chase',
+                colorMode: 'normal', // 'normal' | 'floor_bright' (Invert + 180deg Hue) | 'xray_invert' (Full Invert)
+                lumenBoost: 100,     // 100% to 200% brightness & contrast boost for dark floors
                 hudVisible: false,
                 projectorModalVisible: false,
                 audioEnabled: false,
                 audioCtx: null,
                 masterGain: null,
 
-                // Hotspot in VIRTUAL world coordinates
+                // Primary global hotspot in VIRTUAL world coordinates
                 hotspot: {
                     x: window.innerWidth * 0.5,
                     y: window.innerHeight * 0.45,
@@ -508,6 +581,8 @@
                     intensity: 0,
                     active: false
                 },
+                // Up to 4 spatial motion clusters for multi-target Split & Chase
+                motionClusters: [],
                 motionPoints: [],
 
                 // Pointer in local slice coordinates [0..viewW, 0..viewH]
@@ -517,7 +592,8 @@
                     prevX: window.innerWidth * 0.5,
                     prevY: window.innerHeight * 0.45,
                     speed: 0,
-                    lastMoveTime: 0
+                    lastMoveTime: 0,
+                    recentSplitAnchors: []
                 },
 
                 stars: [],
@@ -575,6 +651,11 @@
                         if (typeof parsed.offsetPct === 'number') state.projector.offsetPct = parsed.offsetPct;
                         if (typeof parsed.flipV === 'boolean') state.projector.flipV = parsed.flipV;
                         if (typeof parsed.mirrorCamera === 'boolean') state.mirrorCamera = parsed.mirrorCamera;
+                        if (typeof parsed.ghostCount === 'number') state.ghostCount = Math.max(2, Math.min(65, parsed.ghostCount));
+                        if (typeof parsed.ghostActivity === 'number') state.ghostActivity = Math.max(0.25, Math.min(3.0, parsed.ghostActivity));
+                        if (typeof parsed.ghostMode === 'string') state.ghostMode = parsed.ghostMode;
+                        if (['normal', 'floor_bright', 'xray_invert'].includes(parsed.colorMode)) state.colorMode = parsed.colorMode;
+                        if (typeof parsed.lumenBoost === 'number') state.lumenBoost = Math.max(100, Math.min(200, parsed.lumenBoost));
                     }
                 } catch (e) {}
 
@@ -600,6 +681,14 @@
                     const off = parseFloat(params.get('offset'));
                     if (!isNaN(off)) state.projector.offsetPct = Math.max(-15, Math.min(15, off));
                 }
+                if (params.has('colormode')) {
+                    const cm = params.get('colormode');
+                    if (['normal', 'floor_bright', 'xray_invert'].includes(cm)) state.colorMode = cm;
+                }
+                if (params.has('lumen')) {
+                    const lb = parseInt(params.get('lumen'), 10);
+                    if (!isNaN(lb)) state.lumenBoost = Math.max(100, Math.min(200, lb));
+                }
 
                 if (state.projector.unit > state.projector.total) {
                     state.projector.unit = state.projector.total;
@@ -615,9 +704,91 @@
                         fineAngle: state.projector.fineAngle,
                         offsetPct: state.projector.offsetPct,
                         flipV: state.projector.flipV,
-                        mirrorCamera: state.mirrorCamera
+                        mirrorCamera: state.mirrorCamera,
+                        ghostCount: state.ghostCount,
+                        ghostActivity: state.ghostActivity,
+                        ghostMode: state.ghostMode,
+                        colorMode: state.colorMode,
+                        lumenBoost: state.lumenBoost
                     }));
                 } catch (e) {}
+            }
+
+            // Apply high-brightness color inversion and lumen boost directly to the projection canvas
+            function applyCanvasColorFilter() {
+                const boostRatio = state.lumenBoost / 100;
+                const filters = [];
+
+                if (state.colorMode === 'floor_bright') {
+                    // Inverts dark night sky & ground into glowing high-lumen white/amber while rotating hue 180deg
+                    // so pumpkins stay orange, ghosts stay vivid, and dark floors are brightly illuminated
+                    filters.push('invert(1)', 'hue-rotate(180deg)');
+                    filters.push(`brightness(${(boostRatio * 1.12).toFixed(2)})`);
+                    filters.push(`contrast(${(1.08 + (boostRatio - 1) * 0.35).toFixed(2)})`);
+                    filters.push('saturate(1.35)');
+                } else if (state.colorMode === 'xray_invert') {
+                    // Full negative spectral X-Ray inversion for maximum high-contrast floor silhouettes
+                    filters.push('invert(1)');
+                    filters.push(`brightness(${(boostRatio * 1.1).toFixed(2)})`);
+                    filters.push(`contrast(${(1.12 + (boostRatio - 1) * 0.4).toFixed(2)})`);
+                } else if (state.lumenBoost > 100) {
+                    filters.push(`brightness(${boostRatio.toFixed(2)})`);
+                    filters.push(`contrast(${(1 + (boostRatio - 1) * 0.3).toFixed(2)})`);
+                    filters.push(`saturate(${(1 + (boostRatio - 1) * 0.25).toFixed(2)})`);
+                }
+
+                canvas.style.filter = filters.length > 0 ? filters.join(' ') : 'none';
+            }
+
+            function getColorModeLabel(mode) {
+                if (mode === 'floor_bright') return 'Bright Floor (Inverted)';
+                if (mode === 'xray_invert') return 'X-Ray Negative';
+                return 'Standard Dark';
+            }
+
+            function updateColorModeUI() {
+                applyCanvasColorFilter();
+
+                const shortLabel = state.colorMode === 'floor_bright'
+                    ? 'Floor: Bright Invert'
+                    : (state.colorMode === 'xray_invert' ? 'Floor: X-Ray' : 'Floor: Standard');
+
+                const quickLabelEl = document.getElementById('invertQuickLabel');
+                if (quickLabelEl) quickLabelEl.textContent = shortLabel;
+
+                const modalTextEl = document.getElementById('modalColorModeText');
+                if (modalTextEl) modalTextEl.textContent = `${shortLabel} (F10)`;
+
+                document.querySelectorAll('.color-mode-btn').forEach(btn => {
+                    if (btn.dataset.colormode === state.colorMode) {
+                        btn.className = 'color-mode-btn py-1.5 px-2 rounded-lg font-medium border border-amber-400 bg-amber-500/25 text-amber-100 shadow transition-all text-[11px]';
+                    } else {
+                        btn.className = 'color-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all text-[11px]';
+                    }
+                });
+
+                document.getElementById('lumenBoostSlider').value = state.lumenBoost;
+                document.getElementById('lumenBoostVal').textContent = `${state.lumenBoost}%`;
+            }
+
+            function setColorMode(newMode, showNotification = true) {
+                state.colorMode = newMode;
+                updateColorModeUI();
+                updateProjectorUI();
+                saveProjectorConfig();
+                if (showNotification) {
+                    showToast(
+                        `Projection Color Mode: ${getColorModeLabel(newMode)}`,
+                        `Lumen Boost: ${state.lumenBoost}% • Press F10 to cycle floor modes`,
+                        'ph-fill ph-sun-horizon'
+                    );
+                }
+            }
+
+            function cycleColorMode() {
+                const order = ['normal', 'floor_bright', 'xray_invert'];
+                const nextIdx = (order.indexOf(state.colorMode) + 1) % order.length;
+                setColorMode(order[nextIdx], true);
             }
 
             // Recalculate effective slice dimensions and virtual panoramic world dimensions
@@ -789,7 +960,7 @@
                 const vh = state.virtualH;
                 const scaleWithProjectors = state.densityScale * Math.sqrt(state.projector.total);
                 const targetBats = Math.round(28 * scaleWithProjectors);
-                const targetGhosts = Math.round(7 * scaleWithProjectors);
+                const targetGhosts = Math.round(state.ghostCount * Math.sqrt(state.projector.total));
 
                 while (state.bats.length < targetBats) {
                     state.bats.push({
@@ -806,18 +977,21 @@
                 if (state.bats.length > targetBats) state.bats.length = targetBats;
 
                 while (state.ghosts.length < targetGhosts) {
-                    const gx = Math.random() * vw;
-                    const gy = vh * (0.2 + Math.random() * 0.55);
+                    const sliceX = getSliceWorldOffsetX();
+                    const gx = sliceX + Math.random() * state.viewW;
+                    const gy = vh * (0.18 + Math.random() * 0.58);
                     const trail = [];
-                    for (let i = 0; i < 12; i++) trail.push({ x: gx, y: gy });
+                    for (let i = 0; i < 14; i++) trail.push({ x: gx, y: gy });
                     state.ghosts.push({
                         x: gx,
                         y: gy,
-                        vx: (Math.random() - 0.5) * 1.5,
-                        vy: (Math.random() - 0.5) * 1.1,
-                        size: 22 + Math.random() * 14,
-                        hue: 170 + Math.random() * 110,
+                        vx: (Math.random() - 0.5) * 2.2,
+                        vy: (Math.random() - 0.5) * 1.6,
+                        size: 20 + Math.random() * 15,
+                        hue: 165 + Math.random() * 130,
                         phase: Math.random() * Math.PI * 2,
+                        excitement: 0,
+                        assignedCluster: state.ghosts.length % 4,
                         trail
                     });
                 }
@@ -943,8 +1117,8 @@
                 syncMirrorUI();
                 saveProjectorConfig();
                 showToast(
-                    'Camera Left/Right Orientation',
-                    state.mirrorCamera ? 'Mirrored Mode (Default)' : 'Inverted Left/Right Mode',
+                    `Camera Left/Right: ${state.mirrorCamera ? 'Mirrored' : 'Inverted'}`,
+                    'Press F1 anytime to flip camera horizontal axis',
                     'ph-bold ph-arrows-left-right'
                 );
             }
@@ -969,13 +1143,21 @@
                 }
             }
 
-            // Process webcam RGB motion and map directly into the active projector's virtual slice
+            // Process webcam RGB motion and extract both global hotspot and up to 4 regional motion clusters
             function processRgbMotionFrame() {
                 state.motionPoints = [];
                 trailCtx.fillStyle = 'rgba(7, 3, 13, 0.18)';
                 trailCtx.fillRect(0, 0, GRID_W, GRID_H);
 
                 const sliceOffsetX = getSliceWorldOffsetX();
+
+                // 4 spatial quadrant accumulators (Left-Top, Right-Top, Left-Bottom, Right-Bottom)
+                // plus 4 horizontal column bands so side-by-side people split cleanly
+                const NUM_ZONES = 4;
+                const zones = [];
+                for (let z = 0; z < NUM_ZONES; z++) {
+                    zones.push({ sumX: 0, sumY: 0, weight: 0, pixels: 0 });
+                }
 
                 if (state.cameraActive && video.readyState >= 2) {
                     procCtx.save();
@@ -1016,6 +1198,13 @@
                                     totalWeight += weight;
                                     activePixels++;
 
+                                    // Assign pixel to one of 4 horizontal/spatial zones across the camera view
+                                    const zoneIdx = Math.min(NUM_ZONES - 1, Math.floor((x / GRID_W) * NUM_ZONES));
+                                    zones[zoneIdx].sumX += x * weight;
+                                    zones[zoneIdx].sumY += y * weight;
+                                    zones[zoneIdx].weight += weight;
+                                    zones[zoneIdx].pixels++;
+
                                     trailData[idx] = Math.min(255, trailData[idx] + dR * 1.5 + 80);
                                     trailData[idx + 1] = Math.min(255, trailData[idx + 1] + dG * 0.9 + 20);
                                     trailData[idx + 2] = Math.min(255, trailData[idx + 2] + dB * 1.6 + 110);
@@ -1036,8 +1225,47 @@
                     trailCtx.putImageData(trailImg, 0, 0);
                     state.prevFrameData = new Uint8ClampedArray(data);
 
+                    // Extract active spatial clusters from the zones
+                    const detectedClusters = [];
+                    for (let z = 0; z < NUM_ZONES; z++) {
+                        const zn = zones[z];
+                        if (zn.weight > 1.15) {
+                            const cxGrid = zn.sumX / zn.weight;
+                            const cyGrid = zn.sumY / zn.weight;
+                            const worldX = sliceOffsetX + (cxGrid / GRID_W) * state.viewW;
+                            const worldY = (cyGrid / GRID_H) * state.viewH;
+                            const clusterIntensity = Math.min(1, zn.pixels / ((GRID_W * GRID_H / NUM_ZONES) * 0.16));
+
+                            // Merge if very close to the previous cluster
+                            if (detectedClusters.length > 0) {
+                                const prevC = detectedClusters[detectedClusters.length - 1];
+                                if (Math.hypot(worldX - prevC.x, worldY - prevC.y) < state.viewW * 0.14) {
+                                    const combinedW = prevC.weight + zn.weight;
+                                    prevC.x = (prevC.x * prevC.weight + worldX * zn.weight) / combinedW;
+                                    prevC.y = (prevC.y * prevC.weight + worldY * zn.weight) / combinedW;
+                                    prevC.gridX = (prevC.gridX * prevC.weight + cxGrid * zn.weight) / combinedW;
+                                    prevC.gridY = (prevC.gridY * prevC.weight + cyGrid * zn.weight) / combinedW;
+                                    prevC.weight = combinedW;
+                                    prevC.intensity = Math.min(1, Math.max(prevC.intensity, clusterIntensity));
+                                    continue;
+                                }
+                            }
+
+                            detectedClusters.push({
+                                x: worldX,
+                                y: worldY,
+                                gridX: cxGrid,
+                                gridY: cyGrid,
+                                weight: zn.weight,
+                                intensity: Math.max(0.25, clusterIntensity)
+                            });
+                        }
+                    }
+                    state.motionClusters = detectedClusters;
+
                     const normalizedActivity = Math.min(1, activePixels / (GRID_W * GRID_H * 0.18));
-                    document.getElementById('motionMeterText').textContent = `Motion: ${Math.round(normalizedActivity * 100)}%`;
+                    const clusterCountText = detectedClusters.length > 1 ? ` • ${detectedClusters.length} Targets` : '';
+                    document.getElementById('motionMeterText').textContent = `Motion: ${Math.round(normalizedActivity * 100)}%${clusterCountText}`;
 
                     if (totalWeight > 2.2) {
                         const targetX = sliceOffsetX + (sumX / totalWeight / GRID_W) * state.viewW;
@@ -1051,9 +1279,9 @@
                         state.hotspot.active = true;
 
                         for (let i = 0; i < state.motionPoints.length; i++) {
-                            if (Math.random() < 0.32) {
+                            if (Math.random() < 0.32 * state.ghostActivity) {
                                 const pt = state.motionPoints[i];
-                                spawnMotionParticle(pt.x, pt.y, state.hotspot.vx, state.hotspot.vy, Math.random() < 0.7 ? 'ember' : 'ectoplasm');
+                                spawnMotionParticle(pt.x, pt.y, state.hotspot.vx, state.hotspot.vy, Math.random() < 0.65 ? 'ember' : 'ectoplasm');
                             }
                         }
                     } else {
@@ -1067,9 +1295,25 @@
                     radarCtx.globalAlpha = 0.95;
                     radarCtx.drawImage(trailCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
                     radarCtx.globalAlpha = 1;
+
+                    // Draw live cluster target reticles on the RGB radar preview
+                    for (let c = 0; c < detectedClusters.length; c++) {
+                        const cl = detectedClusters[c];
+                        const rx = (cl.gridX / GRID_W) * radarCanvas.width;
+                        const ry = (cl.gridY / GRID_H) * radarCanvas.height;
+                        radarCtx.strokeStyle = c === 0 ? '#f97316' : '#38bdf8';
+                        radarCtx.lineWidth = 1.5;
+                        radarCtx.beginPath();
+                        radarCtx.arc(rx, ry, 7 + cl.intensity * 5, 0, Math.PI * 2);
+                        radarCtx.stroke();
+                    }
                 } else {
-                    const elapsed = performance.now() - state.pointer.lastMoveTime;
-                    if (elapsed < 350) {
+                    const now = performance.now();
+                    const elapsed = now - state.pointer.lastMoveTime;
+                    // Prune expired pointer split anchors (used when sweeping mouse across screen to test multi-target split)
+                    state.pointer.recentSplitAnchors = state.pointer.recentSplitAnchors.filter(a => now - a.time < 950);
+
+                    if (elapsed < 400) {
                         const targetWorldX = sliceOffsetX + state.pointer.x;
                         const targetWorldY = state.pointer.y;
 
@@ -1077,8 +1321,27 @@
                         state.hotspot.vy = (targetWorldY - state.hotspot.y) * 0.32;
                         state.hotspot.x += state.hotspot.vx;
                         state.hotspot.y += state.hotspot.vy;
-                        state.hotspot.intensity = Math.min(1, Math.max(0.25, state.pointer.speed / 28));
+                        state.hotspot.intensity = Math.min(1, Math.max(0.3, state.pointer.speed / 26));
                         state.hotspot.active = true;
+
+                        state.motionClusters = state.pointer.recentSplitAnchors.map(a => ({
+                            x: sliceOffsetX + a.x,
+                            y: a.y,
+                            gridX: (a.x / state.viewW) * GRID_W,
+                            gridY: (a.y / state.viewH) * GRID_H,
+                            weight: 10,
+                            intensity: state.hotspot.intensity
+                        }));
+                        if (state.motionClusters.length === 0) {
+                            state.motionClusters.push({
+                                x: targetWorldX,
+                                y: targetWorldY,
+                                gridX: (state.pointer.x / state.viewW) * GRID_W,
+                                gridY: (state.pointer.y / state.viewH) * GRID_H,
+                                weight: 12,
+                                intensity: state.hotspot.intensity
+                            });
+                        }
 
                         const gx = Math.floor((state.pointer.x / state.viewW) * GRID_W);
                         const gy = Math.floor((state.pointer.y / state.viewH) * GRID_H);
@@ -1091,18 +1354,34 @@
                         trailCtx.arc(gx, gy, 7, 0, Math.PI * 2);
                         trailCtx.fill();
 
-                        if (Math.random() < 0.65) {
-                            spawnMotionParticle(state.hotspot.x, state.hotspot.y, state.hotspot.vx, state.hotspot.vy, Math.random() < 0.7 ? 'ember' : 'ectoplasm');
+                        if (Math.random() < 0.65 * state.ghostActivity) {
+                            spawnMotionParticle(state.hotspot.x, state.hotspot.y, state.hotspot.vx, state.hotspot.vy, Math.random() < 0.65 ? 'ember' : 'ectoplasm');
                         }
                     } else {
                         state.hotspot.intensity *= 0.92;
-                        if (state.hotspot.intensity < 0.04) state.hotspot.active = false;
+                        if (state.hotspot.intensity < 0.04) {
+                            state.hotspot.active = false;
+                            state.motionClusters = [];
+                        }
                     }
 
-                    document.getElementById('motionMeterText').textContent = `Pointer: ${Math.round(state.hotspot.intensity * 100)}%`;
+                    const targetCount = state.motionClusters.length;
+                    document.getElementById('motionMeterText').textContent =
+                        `Pointer: ${Math.round(state.hotspot.intensity * 100)}%${targetCount > 1 ? ` • ${targetCount} Targets` : ''}`;
                     radarCtx.fillStyle = '#090412';
                     radarCtx.fillRect(0, 0, radarCanvas.width, radarCanvas.height);
                     radarCtx.drawImage(trailCanvas, 0, 0, radarCanvas.width, radarCanvas.height);
+
+                    for (let c = 0; c < state.motionClusters.length; c++) {
+                        const cl = state.motionClusters[c];
+                        const rx = (cl.gridX / GRID_W) * radarCanvas.width;
+                        const ry = (cl.gridY / GRID_H) * radarCanvas.height;
+                        radarCtx.strokeStyle = c === 0 ? '#f97316' : '#38bdf8';
+                        radarCtx.lineWidth = 1.5;
+                        radarCtx.beginPath();
+                        radarCtx.arc(rx, ry, 8, 0, Math.PI * 2);
+                        radarCtx.stroke();
+                    }
                 }
             }
 
@@ -1294,40 +1573,106 @@
             }
 
             function updateAndDrawGhosts(vw, vh, sliceX, viewW) {
-                for (const g of state.ghosts) {
-                    g.phase += 0.05;
-                    if (state.hotspot.active) {
-                        const dx = state.hotspot.x - g.x;
-                        const dy = state.hotspot.y - g.y;
-                        const dist = Math.max(1, Math.hypot(dx, dy));
-                        const force = Math.min(1, 280 / dist) * state.hotspot.intensity;
+                const activity = state.ghostActivity;
+                const clusters = state.motionClusters;
+                const hasClusters = clusters.length > 0 && state.hotspot.active;
 
-                        if (state.ghostMode === 'attract') {
-                            g.vx += (dx / dist) * force * 0.38;
-                            g.vy += (dy / dist) * force * 0.38;
+                for (let idx = 0; idx < state.ghosts.length; idx++) {
+                    const g = state.ghosts[idx];
+                    g.phase += 0.045 * activity;
+
+                    if (hasClusters || state.hotspot.active) {
+                        // Pick target: in Split & Chase mode with multiple motion clusters,
+                        // divide ghosts across active motion clusters so they split up and chase every moving person/hand!
+                        let targetX = state.hotspot.x;
+                        let targetY = state.hotspot.y;
+                        let targetIntensity = state.hotspot.intensity;
+
+                        if (state.ghostMode === 'split_chase' && clusters.length > 0) {
+                            // Combine load-balanced cluster assignment with proximity so ghosts split up naturally
+                            let chosenCluster = clusters[idx % clusters.length];
+                            let bestScore = Infinity;
+                            for (let c = 0; c < clusters.length; c++) {
+                                const cl = clusters[c];
+                                const d = Math.hypot(cl.x - g.x, cl.y - g.y);
+                                // Bias towards the ghost's designated squad index so all clusters get chased simultaneously
+                                const squadBonus = (idx % clusters.length === c) ? 0.55 : 1.0;
+                                const score = d * squadBonus;
+                                if (score < bestScore) {
+                                    bestScore = score;
+                                    chosenCluster = cl;
+                                }
+                            }
+                            targetX = chosenCluster.x;
+                            targetY = chosenCluster.y;
+                            targetIntensity = Math.max(0.35, chosenCluster.intensity);
+                        }
+
+                        const dx = targetX - g.x;
+                        const dy = targetY - g.y;
+                        const dist = Math.max(1, Math.hypot(dx, dy));
+                        const reachFactor = Math.min(1.3, 420 / dist) * targetIntensity * activity;
+
+                        if (state.ghostMode === 'split_chase') {
+                            // Aggressive direct pursuit with slight spectral weave so ghosts don't stack on 1 pixel
+                            const weaveAngle = Math.sin(g.phase * 1.7 + idx) * 0.38;
+                            const cosW = Math.cos(weaveAngle);
+                            const sinW = Math.sin(weaveAngle);
+                            const dirX = (dx / dist) * cosW - (dy / dist) * sinW;
+                            const dirY = (dx / dist) * sinW + (dy / dist) * cosW;
+
+                            g.vx += dirX * reachFactor * 0.62;
+                            g.vy += dirY * reachFactor * 0.62;
+                            g.excitement = Math.min(1.5, g.excitement + 0.08 * activity);
+
+                            // Emit ectoplasm sparks when ghosts are actively chasing at high activity
+                            if (dist < 180 && Math.random() < 0.06 * activity) {
+                                spawnMotionParticle(g.x, g.y, g.vx, g.vy, 'ectoplasm');
+                            }
+                        } else if (state.ghostMode === 'attract') {
+                            g.vx += (dx / dist) * reachFactor * 0.45;
+                            g.vy += (dy / dist) * reachFactor * 0.45;
+                            g.excitement = Math.min(1.2, g.excitement + 0.05 * activity);
                         } else if (state.ghostMode === 'repel') {
-                            g.vx -= (dx / dist) * force * 0.55;
-                            g.vy -= (dy / dist) * force * 0.55;
+                            g.vx -= (dx / dist) * reachFactor * 0.65;
+                            g.vy -= (dy / dist) * reachFactor * 0.65;
+                            g.excitement = Math.min(1.3, g.excitement + 0.06 * activity);
                         } else {
+                            // Vortex Swirl
                             const tx = -dy / dist;
                             const ty = dx / dist;
-                            g.vx += (tx * 0.45 + (dx / dist) * 0.14) * force;
-                            g.vy += (ty * 0.45 + (dy / dist) * 0.14) * force;
+                            g.vx += (tx * 0.48 + (dx / dist) * 0.18) * reachFactor;
+                            g.vy += (ty * 0.48 + (dy / dist) * 0.18) * reachFactor;
+                            g.excitement = Math.min(1.2, g.excitement + 0.05 * activity);
                         }
+                    } else {
+                        // Ambient wandering patrol scaled by Activity slider when no motion is present
+                        g.vx += Math.cos(g.phase * 0.7 + idx) * 0.06 * activity;
+                        g.vy += Math.sin(g.phase * 1.1 + idx) * 0.05 * activity;
+                        g.excitement *= 0.94;
                     }
 
-                    g.vx *= 0.96;
-                    g.vy *= 0.96;
-                    g.x += g.vx + Math.cos(g.phase) * 0.35;
-                    g.y += g.vy + Math.sin(g.phase) * 0.35;
+                    // Clamp max velocity based on Ghost Activity slider
+                    const maxGhostSpeed = (3.8 + g.excitement * 2.5) * activity;
+                    const curSpeed = Math.hypot(g.vx, g.vy);
+                    if (curSpeed > maxGhostSpeed) {
+                        g.vx = (g.vx / curSpeed) * maxGhostSpeed;
+                        g.vy = (g.vy / curSpeed) * maxGhostSpeed;
+                    }
+
+                    g.vx *= 0.955;
+                    g.vy *= 0.955;
+                    g.x += g.vx + Math.cos(g.phase) * 0.45 * activity;
+                    g.y += g.vy + Math.sin(g.phase) * 0.45 * activity;
 
                     if (g.x < -60) g.x = vw + 60;
                     if (g.x > vw + 60) g.x = -60;
-                    if (g.y < 40) g.vy += 0.2;
-                    if (g.y > vh - 90) g.vy -= 0.2;
+                    if (g.y < 36) g.vy += 0.28 * activity;
+                    if (g.y > vh - 85) g.vy -= 0.28 * activity;
 
                     g.trail.unshift({ x: g.x, y: g.y });
-                    if (g.trail.length > 12) g.trail.pop();
+                    const maxTrailLen = Math.min(18, Math.round(10 + activity * 3));
+                    while (g.trail.length > maxTrailLen) g.trail.pop();
 
                     if (g.x < sliceX - 100 || g.x > sliceX + viewW + 100) continue;
 
@@ -1335,25 +1680,32 @@
                     for (let i = g.trail.length - 1; i >= 0; i--) {
                         const pt = g.trail[i];
                         const ratio = 1 - i / g.trail.length;
-                        ctx.fillStyle = `hsla(${g.hue}, 85%, 72%, ${ratio * 0.22})`;
+                        const alpha = ratio * (0.2 + g.excitement * 0.12);
+                        ctx.fillStyle = `hsla(${g.hue}, 88%, 72%, ${alpha})`;
                         ctx.beginPath();
                         ctx.arc(pt.x, pt.y, g.size * ratio * 0.85, 0, Math.PI * 2);
                         ctx.fill();
                     }
 
                     ctx.translate(g.x, g.y);
-                    ctx.fillStyle = `hsla(${g.hue}, 90%, 88%, 0.78)`;
+                    // Tilt ghost slightly in the direction of chase velocity
+                    ctx.rotate(Math.max(-0.45, Math.min(0.45, g.vx * 0.045)));
+
+                    ctx.fillStyle = `hsla(${g.hue}, 92%, ${86 + Math.min(12, g.excitement * 8)}%, ${0.78 + Math.min(0.18, g.excitement * 0.12)})`;
                     ctx.beginPath();
                     ctx.arc(0, 0, g.size * 0.65, Math.PI, 0);
                     ctx.lineTo(g.size * 0.65, g.size * 0.6);
-                    ctx.lineTo(-g.size * 0.65, g.size * 0.6);
+                    // Wavy bottom hem
+                    ctx.quadraticCurveTo(g.size * 0.32, g.size * 0.42, 0, g.size * 0.62);
+                    ctx.quadraticCurveTo(-g.size * 0.32, g.size * 0.42, -g.size * 0.65, g.size * 0.6);
                     ctx.closePath();
                     ctx.fill();
 
-                    ctx.fillStyle = '#090414';
+                    // Eyes glow orange-yellow when actively chasing a target
+                    ctx.fillStyle = g.excitement > 0.35 ? '#fef08a' : '#090414';
                     ctx.beginPath();
-                    ctx.arc(-g.size * 0.22, -g.size * 0.08, g.size * 0.11, 0, Math.PI * 2);
-                    ctx.arc(g.size * 0.22, -g.size * 0.08, g.size * 0.11, 0, Math.PI * 2);
+                    ctx.arc(-g.size * 0.22, -g.size * 0.08, g.size * (0.11 + g.excitement * 0.03), 0, Math.PI * 2);
+                    ctx.arc(g.size * 0.22, -g.size * 0.08, g.size * (0.11 + g.excitement * 0.03), 0, Math.PI * 2);
                     ctx.fill();
                     ctx.restore();
                 }
@@ -1677,17 +2029,17 @@
                 const calibText = document.getElementById('calibGridBtnText');
                 if (state.projector.showCalibGrid) {
                     calibBtn.className = 'flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-emerald-400 bg-emerald-500/25 text-white transition-all flex items-center justify-center gap-2';
-                    calibText.textContent = 'Alignment Grid Overlay: ON (F7)';
+                    calibText.textContent = 'Alignment Grid: ON (F7)';
                 } else {
                     calibBtn.className = 'flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-sky-500/40 bg-sky-500/15 hover:bg-sky-500/25 text-sky-200 transition-all flex items-center justify-center gap-2';
-                    calibText.textContent = 'Alignment Grid Overlay: OFF (F7)';
+                    calibText.textContent = 'Alignment Grid: OFF (F7)';
                 }
 
                 const flipVBtnText = document.getElementById('flipVBtnText');
                 flipVBtnText.textContent = `Vertical Flip: ${state.projector.flipV ? 'ON' : 'OFF'}`;
 
                 // Launch URL Preview
-                const urlParams = `?total=${total}&unit=${unit}&rot=${rot}${state.projector.fineAngle ? `&tilt=${state.projector.fineAngle}` : ''}${state.projector.offsetPct ? `&offset=${state.projector.offsetPct}` : ''}`;
+                const urlParams = `?total=${total}&unit=${unit}&rot=${rot}${state.projector.fineAngle ? `&tilt=${state.projector.fineAngle}` : ''}${state.projector.offsetPct ? `&offset=${state.projector.offsetPct}` : ''}${state.colorMode !== 'normal' ? `&colormode=${state.colorMode}` : ''}${state.lumenBoost !== 100 ? `&lumen=${state.lumenBoost}` : ''}`;
                 document.getElementById('launchUrlPreview').textContent = urlParams;
             }
 
@@ -1761,7 +2113,22 @@
                 state.pointer.prevY = state.pointer.y;
                 state.pointer.x = mapped.x;
                 state.pointer.y = mapped.y;
-                state.pointer.lastMoveTime = performance.now();
+                const now = performance.now();
+                state.pointer.lastMoveTime = now;
+
+                // Record distinct spatial anchors when moving rapidly across the screen so mouse users can test multi-target Split & Chase
+                const anchors = state.pointer.recentSplitAnchors;
+                if (
+                    anchors.length === 0 ||
+                    Math.hypot(mapped.x - anchors[anchors.length - 1].x, mapped.y - anchors[anchors.length - 1].y) > state.viewW * 0.22
+                ) {
+                    anchors.push({ x: mapped.x, y: mapped.y, time: now });
+                    if (anchors.length > 3) anchors.shift();
+                } else {
+                    anchors[anchors.length - 1].x = mapped.x;
+                    anchors[anchors.length - 1].y = mapped.y;
+                    anchors[anchors.length - 1].time = now;
+                }
             }
 
             window.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY));
@@ -1798,7 +2165,22 @@
             document.getElementById('cameraToggleBtn').addEventListener('click', toggleCamera);
             document.getElementById('flipCameraBtn').addEventListener('click', toggleCameraMirror);
             document.getElementById('flipCameraQuickBtn').addEventListener('click', toggleCameraMirror);
+            document.getElementById('invertColorsQuickBtn').addEventListener('click', cycleColorMode);
+            document.getElementById('modalCycleColorModeBtn').addEventListener('click', cycleColorMode);
             document.getElementById('lightningBtn').addEventListener('click', () => triggerLightning());
+
+            document.querySelectorAll('.color-mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setColorMode(btn.dataset.colormode, true);
+                });
+            });
+
+            document.getElementById('lumenBoostSlider').addEventListener('input', (e) => {
+                state.lumenBoost = Number(e.target.value);
+                updateColorModeUI();
+                updateProjectorUI();
+                saveProjectorConfig();
+            });
 
             // Event Listeners for Multi-Projector Modal
             document.getElementById('openProjectorHudBtn').addEventListener('click', toggleProjectorModal);
@@ -1852,6 +2234,9 @@
                 state.projector.offsetPct = 0;
                 state.projector.flipV = false;
                 state.projector.showCalibGrid = false;
+                state.colorMode = 'normal';
+                state.lumenBoost = 100;
+                updateColorModeUI();
                 saveProjectorConfig();
                 initSceneEntities();
                 showToast('Projector Setup Reset', 'Restored to 1 Projector (1% – 100%) • 0°');
@@ -1910,16 +2295,63 @@
                 syncDynamicSwarm();
             });
 
+            function updateGhostControlsUI() {
+                document.getElementById('ghostCountSlider').value = state.ghostCount;
+                document.getElementById('ghostCountVal').textContent = `${state.ghostCount} Ghosts`;
+
+                const actPct = Math.round(state.ghostActivity * 100);
+                document.getElementById('ghostActivitySlider').value = actPct;
+                document.getElementById('ghostActivityVal').textContent = `${actPct}%`;
+
+                document.querySelectorAll('.ghost-mode-btn').forEach(b => {
+                    if (b.dataset.mode === state.ghostMode) {
+                        b.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all';
+                    } else {
+                        b.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all';
+                    }
+                });
+            }
+
+            function setGhostCount(newCount, showNotification = false) {
+                state.ghostCount = Math.max(2, Math.min(65, Math.round(newCount)));
+                updateGhostControlsUI();
+                syncDynamicSwarm();
+                saveProjectorConfig();
+                if (showNotification) {
+                    showToast(
+                        `Specter Swarm: ${state.ghostCount} Ghosts`,
+                        `Mode: ${state.ghostMode === 'split_chase' ? 'Split & Chase' : state.ghostMode} • Activity: ${Math.round(state.ghostActivity * 100)}%`,
+                        'ph-fill ph-ghost'
+                    );
+                }
+            }
+
+            function setGhostActivity(newActivityRatio, showNotification = false) {
+                state.ghostActivity = Math.max(0.25, Math.min(3.0, Number(newActivityRatio.toFixed(2))));
+                updateGhostControlsUI();
+                saveProjectorConfig();
+                if (showNotification) {
+                    showToast(
+                        `Ghost Activity & Chase Speed: ${Math.round(state.ghostActivity * 100)}%`,
+                        `${state.ghostCount} Ghosts active • Shortcut: F8 / F9`,
+                        'ph-fill ph-ghost'
+                    );
+                }
+            }
+
+            document.getElementById('ghostCountSlider').addEventListener('input', (e) => {
+                setGhostCount(Number(e.target.value), false);
+            });
+
+            document.getElementById('ghostActivitySlider').addEventListener('input', (e) => {
+                setGhostActivity(Number(e.target.value) / 100, false);
+            });
+
             document.querySelectorAll('.ghost-mode-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     state.ghostMode = btn.dataset.mode;
-                    document.querySelectorAll('.ghost-mode-btn').forEach(b => {
-                        if (b.dataset.mode === state.ghostMode) {
-                            b.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-orange-500/60 bg-orange-500/20 text-orange-200 transition-all';
-                        } else {
-                            b.className = 'ghost-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all';
-                        }
-                    });
+                    updateGhostControlsUI();
+                    saveProjectorConfig();
                 });
             });
 
@@ -1930,6 +2362,9 @@
             // - F4: Cycle Assigned Projector Unit (1 -> 2 -> ... -> total)
             // - F6: Cycle Rotation (0° -> 90° -> 180° -> 270°)
             // - F7: Toggle Alignment Calibration Grid Overlay
+            // - F8 / F9: Decrease / Increase Ghost Activity & Chase Speed
+            // - F10: Cycle Dark Floor Projection Color Inversion (Standard -> Bright Floor -> X-Ray Invert)
+            // - [ / ] or - / =: Decrease / Increase Ghost Count
             // - F11: Untouched so browser native Fullscreen works seamlessly
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'F1') {
@@ -1958,6 +2393,19 @@
                         `Alignment Grid: ${state.projector.showCalibGrid ? 'ON' : 'OFF'}`,
                         'Press F7 anytime to toggle calibration crosshair'
                     );
+                } else if (e.key === 'F8') {
+                    e.preventDefault();
+                    setGhostActivity(state.ghostActivity - 0.2, true);
+                } else if (e.key === 'F9') {
+                    e.preventDefault();
+                    setGhostActivity(state.ghostActivity + 0.2, true);
+                } else if (e.key === 'F10') {
+                    e.preventDefault();
+                    cycleColorMode();
+                } else if (e.key === '[' || e.key === '-') {
+                    setGhostCount(state.ghostCount - 3, true);
+                } else if (e.key === ']' || e.key === '=' || e.key === '+') {
+                    setGhostCount(state.ghostCount + 3, true);
                 } else if (e.key === 'Escape' && state.projectorModalVisible) {
                     toggleProjectorModal();
                 } else if (e.key === 'h' || e.key === 'H') {
@@ -1971,6 +2419,8 @@
             // Initialize saved projector config, build panoramic world, and start loop
             loadProjectorConfig();
             syncMirrorUI();
+            updateGhostControlsUI();
+            updateColorModeUI();
             initSceneEntities();
             requestAnimationFrame(animate);
             toggleCamera();
