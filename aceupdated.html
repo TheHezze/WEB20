@@ -3319,7 +3319,7 @@
             <div class="form-row-2">
               <div class="field-group">
                 <label for="admin-key">Admin Passcode<span class="req">*</span></label>
-                <input class="field-input" id="admin-key" name="adminKey" type="password" required placeholder="Enter ADMIN_KEY set in Apps Script">
+                <input class="field-input" id="admin-key" name="adminKey" type="password" required placeholder="ACE-ADMIN-2026">
               </div>
               <div class="field-group" style="justify-content:flex-end;">
                 <button class="button button-primary" type="submit" id="adminSubmitBtn">Publish Course Session</button>
@@ -4007,7 +4007,6 @@
       const DEPLOYMENT_STORAGE_KEY = 'ace_apps_script_url_override_v1';
       const LOCAL_SESSIONS_KEY = 'ace_driving_local_sessions_v1';
 
-      // Normalizes either a full Web App URL or a raw Deployment ID (AKfycb...)
       const normalizeAppsScriptUrl = raw => {
         const val = (raw || '').trim();
         if (!val || val === 'PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE') return '';
@@ -4029,7 +4028,6 @@
         }
       };
 
-      // Sends form data as URLSearchParams so Google Apps Script reads e.parameter without CORS preflight
       const postToAppsScript = async (url, formData) => {
         const body = new URLSearchParams();
         for (const [key, value] of formData.entries()) {
@@ -4183,7 +4181,7 @@
           try {
             const res = await fetch(activeUrl, { cache: 'no-store', redirect: 'follow' });
             const data = await res.json();
-            if (Array.isArray(data.sessions)) {
+            if (Array.isArray(data.sessions) && data.sessions.length > 0) {
               allSessions = data.sessions;
               renderSessionOptions();
               return;
@@ -4420,6 +4418,7 @@
 
       // Initialize dynamic sessions on page load
       fetchSessions();
+    })();
   </script>
 </body>
 
