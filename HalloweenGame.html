@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Haunted Horizon — Interactive RGB Motion Halloween Background</title>
+    <title>Haunted Horizon — Multi-Projector Interactive RGB Motion Halloween Scene</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
         * {
@@ -30,6 +30,9 @@
             font-family: 'Creepster', cursive;
             letter-spacing: 0.06em;
         }
+        .font-mono-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
         #sceneCanvas {
             display: block;
             width: 100vw;
@@ -37,22 +40,32 @@
             cursor: crosshair;
         }
         .hud-glass {
-            background: rgba(13, 8, 22, 0.82);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid rgba(249, 115, 22, 0.28);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.75), 0 0 25px rgba(249, 115, 22, 0.12);
+            background: rgba(13, 8, 22, 0.86);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 25px rgba(249, 115, 22, 0.14);
+        }
+        .hud-glass-cyan {
+            background: rgba(10, 14, 26, 0.9);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(56, 189, 248, 0.15);
         }
         input[type="range"] {
             accent-color: #f97316;
         }
-        #hudPanel::-webkit-scrollbar {
+        input[type="range"].cyan-slider {
+            accent-color: #38bdf8;
+        }
+        .custom-scroll::-webkit-scrollbar {
             width: 6px;
         }
-        #hudPanel::-webkit-scrollbar-track {
+        .custom-scroll::-webkit-scrollbar-track {
             background: rgba(15, 10, 25, 0.4);
         }
-        #hudPanel::-webkit-scrollbar-thumb {
+        .custom-scroll::-webkit-scrollbar-thumb {
             background: rgba(249, 115, 22, 0.4);
             border-radius: 9999px;
         }
@@ -66,11 +79,27 @@
     <!-- Hidden Video Element for Live Webcam RGB Stream -->
     <video id="webcamVideo" playsinline autoplay muted class="hidden"></video>
 
+    <!-- Auto-Hiding On-Screen Toast Banner for F-Key Actions -->
+    <div id="toastBanner" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 -translate-y-4 transition-all duration-300">
+        <div class="hud-glass-cyan px-5 py-3 rounded-2xl flex items-center gap-3 border border-sky-400/50">
+            <i id="toastIcon" class="ph-fill ph-projector-screen-chart text-2xl text-sky-400"></i>
+            <div>
+                <div id="toastTitle" class="text-xs uppercase tracking-wider font-semibold text-sky-300">Projector Slice Updated</div>
+                <div id="toastSub" class="text-sm font-bold text-white font-mono-code">Projector 1 of 4 (1% - 25%) • 0°</div>
+            </div>
+        </div>
+    </div>
+
     <!-- Top-Left Ambient Status & Quick Toggle Bar (Starts completely hidden) -->
-    <div id="topLeftBar" class="fixed top-4 left-4 z-30 flex items-center gap-2.5 opacity-0 pointer-events-none transition-all duration-300">
-        <button id="toggleHudBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium text-orange-300 hover:text-orange-200 hover:border-orange-400/60 transition-all shadow-lg" title="Toggle Control Panel (Shortcut: H or Double-Click)">
+    <div id="topLeftBar" class="fixed top-4 left-4 z-30 flex flex-wrap items-center gap-2.5 opacity-0 pointer-events-none transition-all duration-300">
+        <button id="toggleHudBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium text-orange-300 hover:text-orange-200 hover:border-orange-400/60 transition-all shadow-lg" title="Toggle Scene Control Panel (Shortcut: H or Double-Click)">
             <i class="ph-fill ph-sliders-horizontal text-lg text-orange-400"></i>
-            <span id="toggleHudText">Controls</span>
+            <span id="toggleHudText">Scene Controls</span>
+        </button>
+
+        <button id="openProjectorHudBtn" class="hud-glass-cyan px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium text-sky-300 hover:text-white hover:border-sky-400/60 transition-all shadow-lg" title="Toggle Multi-Projector Slicer & Rotation Setup (Shortcut: F2)">
+            <i class="ph-fill ph-projector-screen text-lg text-sky-400"></i>
+            <span id="projectorQuickBadge">Proj 1/1 (100%) • 0°</span>
         </button>
 
         <div id="statusBadge" class="hud-glass px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-medium border border-amber-500/30">
@@ -96,8 +125,8 @@
         </button>
     </div>
 
-    <!-- Main Toggleable HUD Control Panel (Starts completely hidden) -->
-    <aside id="hudPanel" class="fixed top-16 left-4 z-30 w-80 sm:w-96 max-h-[calc(100vh-5rem)] overflow-y-auto hud-glass rounded-2xl p-5 transition-all duration-300 opacity-0 -translate-x-8 pointer-events-none">
+    <!-- Main Toggleable HUD Control Panel (Starts completely hidden, toggled with H) -->
+    <aside id="hudPanel" class="fixed top-16 left-4 z-30 w-80 sm:w-96 max-h-[calc(100vh-5rem)] overflow-y-auto custom-scroll hud-glass rounded-2xl p-5 transition-all duration-300 opacity-0 -translate-x-8 pointer-events-none">
         <!-- Header -->
         <div class="flex items-center justify-between pb-3 mb-4 border-b border-orange-500/20">
             <div class="flex items-center gap-2.5">
@@ -112,6 +141,15 @@
             </button>
         </div>
 
+        <!-- Quick Open Projector Setup Button inside Scene HUD -->
+        <button id="openProjectorFromSceneBtn" class="w-full mb-4 py-2.5 px-3.5 rounded-xl font-semibold text-xs flex items-center justify-between border border-sky-400/40 bg-sky-950/50 hover:bg-sky-900/60 text-sky-200 transition-all shadow-md">
+            <span class="flex items-center gap-2">
+                <i class="ph-fill ph-projector-screen-chart text-sky-400 text-base"></i>
+                <span>Multi-Projector View & Rotation Setup</span>
+            </span>
+            <kbd class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono-code text-[11px]">Press F2</kbd>
+        </button>
+
         <!-- Camera Control, Left/Right Inversion & Live RGB Diff Radar -->
         <div class="space-y-2.5 mb-5">
             <button id="cameraToggleBtn" class="w-full py-2.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500 text-white shadow-lg shadow-orange-950/50 transition-all">
@@ -124,17 +162,17 @@
                     <i class="ph-bold ph-arrows-left-right text-orange-400 text-sm"></i>
                     <span>Camera Left / Right:</span>
                 </span>
-                <span id="flipStatusBadge" class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono text-[11px]">
+                <span id="flipStatusBadge" class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono-code text-[11px]">
                     Mirrored (Press F1)
                 </span>
             </button>
 
             <div class="relative rounded-xl overflow-hidden border border-orange-500/25 bg-black/70 aspect-[4/3]">
                 <canvas id="radarCanvas" width="160" height="120" class="w-full h-full object-cover"></canvas>
-                <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-orange-300 border border-orange-500/20" id="radarHeaderLabel">
+                <div class="absolute top-2 left-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono-code text-orange-300 border border-orange-500/20" id="radarHeaderLabel">
                     RGB Δ-MOTION RADAR (80×60 • MIRROR)
                 </div>
-                <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono text-emerald-300" id="motionMeterText">
+                <div class="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/70 text-[10px] font-mono-code text-emerald-300" id="motionMeterText">
                     Motion: 0%
                 </div>
             </div>
@@ -145,7 +183,7 @@
             <div>
                 <div class="flex justify-between mb-1">
                     <label for="sensitivitySlider" class="text-slate-300 font-medium">RGB Motion Sensitivity</label>
-                    <span id="sensitivityVal" class="text-orange-400 font-mono">65%</span>
+                    <span id="sensitivityVal" class="text-orange-400 font-mono-code">65%</span>
                 </div>
                 <input id="sensitivitySlider" type="range" min="15" max="95" value="65" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
             </div>
@@ -153,7 +191,7 @@
             <div>
                 <div class="flex justify-between mb-1">
                     <label for="rgbTrailSlider" class="text-slate-300 font-medium">Chromatic RGB Ghost Trail</label>
-                    <span id="rgbTrailVal" class="text-orange-400 font-mono">45%</span>
+                    <span id="rgbTrailVal" class="text-orange-400 font-mono-code">45%</span>
                 </div>
                 <input id="rgbTrailSlider" type="range" min="0" max="100" value="45" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
             </div>
@@ -161,7 +199,7 @@
             <div>
                 <div class="flex justify-between mb-1">
                     <label for="entityDensitySlider" class="text-slate-300 font-medium">Spooky Swarm Density</label>
-                    <span id="entityDensityVal" class="text-orange-400 font-mono">100%</span>
+                    <span id="entityDensityVal" class="text-orange-400 font-mono-code">100%</span>
                 </div>
                 <input id="entityDensitySlider" type="range" min="40" max="180" value="100" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
             </div>
@@ -184,25 +222,214 @@
         </div>
 
         <!-- Footer Legend -->
-        <div class="mt-5 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-1 text-[11px] text-slate-400">
+        <div class="mt-5 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-1.5 text-[11px] text-slate-400">
             <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F1</kbd> Flip L/R</span>
-            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F11</kbd> Fullscreen</span>
-            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">H</kbd> / <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Dbl-Click</kbd> UI</span>
-            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Space</kbd> Lightning</span>
+            <span><kbd class="px-1.5 py-0.5 bg-sky-500/20 rounded text-sky-300">F2</kbd> Projectors</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">H</kbd> UI</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">Space</kbd> Scare</span>
         </div>
     </aside>
 
+    <!-- Dedicated Multi-Projector View Selector & Rotation Calibration Modal (Toggled via F2) -->
+    <section id="projectorModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+        <div class="hud-glass-cyan w-full max-w-xl rounded-2xl p-6 max-h-[92vh] overflow-y-auto custom-scroll border border-sky-400/40">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 mb-5 border-b border-sky-500/25">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300">
+                        <i class="ph-fill ph-projector-screen-chart text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg font-bold text-white">Multi-Projector View & Rotation</h2>
+                            <span class="px-2 py-0.5 text-[10px] font-mono-code uppercase bg-sky-500/20 text-sky-300 rounded border border-sky-400/30">Shortcut: F2</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mt-0.5">Split panoramic horizon across 2, 3, or 4 projectors & calibrate orientation per PC</p>
+                    </div>
+                </div>
+                <button id="closeProjectorModalBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Close Projector Setup (F2 or Esc)">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Live Panoramic Viewport Slice Visualizer Bar -->
+            <div class="mb-5 p-3.5 rounded-xl bg-slate-950/80 border border-sky-500/25">
+                <div class="flex items-center justify-between text-xs mb-2">
+                    <span class="text-slate-300 font-medium flex items-center gap-1.5">
+                        <i class="ph-fill ph-panorama text-sky-400"></i>
+                        Active Panoramic Slice Preview
+                    </span>
+                    <span id="sliceRangeReadout" class="font-mono-code font-semibold text-sky-300">
+                        Projector 1 of 1 • 1% – 100% (Full Width)
+                    </span>
+                </div>
+                <!-- Visual Bar showing total panorama and highlighted slice -->
+                <div class="relative w-full h-9 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden">
+                    <!-- Grid ticks -->
+                    <div id="panoramaGridTicks" class="absolute inset-0 flex"></div>
+                    <!-- Active Slice Highlight -->
+                    <div id="panoramaActiveHighlight" class="absolute top-0 bottom-0 bg-gradient-to-r from-sky-500/45 via-orange-500/45 to-sky-500/45 border-x-2 border-sky-300 transition-all duration-200 flex items-center justify-center">
+                        <span id="panoramaActiveLabel" class="text-[11px] font-mono-code font-bold text-white drop-shadow px-1.5 py-0.5 rounded bg-black/60">
+                            1% - 100%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Total Projectors Count (1, 2, 3, 4) -->
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-sky-300 flex items-center gap-1.5">
+                        <span>1. Total Projectors in Array</span>
+                    </label>
+                    <span class="text-[11px] text-slate-400 font-mono-code">Cycle Key: <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F3</kbd></span>
+                </div>
+                <div class="grid grid-cols-4 gap-2" id="totalProjectorsGroup">
+                    <button data-total="1" class="total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-0.5">
+                        <span class="text-sm font-bold">1 Projector</span>
+                        <span class="text-[10px] opacity-75 font-mono-code">100% Each</span>
+                    </button>
+                    <button data-total="2" class="total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-0.5">
+                        <span class="text-sm font-bold">2 Projectors</span>
+                        <span class="text-[10px] opacity-75 font-mono-code">50% Each</span>
+                    </button>
+                    <button data-total="3" class="total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-0.5">
+                        <span class="text-sm font-bold">3 Projectors</span>
+                        <span class="text-[10px] opacity-75 font-mono-code">33.3% Each</span>
+                    </button>
+                    <button data-total="4" class="total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-0.5">
+                        <span class="text-sm font-bold">4 Projectors</span>
+                        <span class="text-[10px] opacity-75 font-mono-code">25% Each</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Which Projector Unit This PC Drives -->
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-sky-300">
+                        2. Assigned Projector Unit for This PC
+                    </label>
+                    <span class="text-[11px] text-slate-400 font-mono-code">Cycle Key: <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F4</kbd></span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="unitProjectorGroup">
+                    <!-- Populated/updated dynamically with exact percentages (e.g. 1-25%, 26-50%, etc.) -->
+                </div>
+            </div>
+
+            <!-- Step 3: Display Rotation & Orientation (0°, 90°, 180°, 270° + Fine Tilt & Flip) -->
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-sky-300">
+                        3. Projector Orientation & Rotation
+                    </label>
+                    <span class="text-[11px] text-slate-400 font-mono-code">Cycle 90° Key: <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F6</kbd></span>
+                </div>
+                <div class="grid grid-cols-4 gap-2 mb-3" id="rotationGroup">
+                    <button data-rot="0" class="rot-btn py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center">
+                        <span class="text-sm font-bold">0°</span>
+                        <span class="text-[10px] opacity-75">Landscape</span>
+                    </button>
+                    <button data-rot="90" class="rot-btn py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center">
+                        <span class="text-sm font-bold">90° CW</span>
+                        <span class="text-[10px] opacity-75">Portrait R</span>
+                    </button>
+                    <button data-rot="180" class="rot-btn py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center">
+                        <span class="text-sm font-bold">180°</span>
+                        <span class="text-[10px] opacity-75">Inverted Ceiling</span>
+                    </button>
+                    <button data-rot="270" class="rot-btn py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center">
+                        <span class="text-sm font-bold">270° CW</span>
+                        <span class="text-[10px] opacity-75">Portrait L</span>
+                    </button>
+                </div>
+
+                <!-- Fine Tilt & Edge Overlap Sliders -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 rounded-xl bg-slate-950/60 border border-white/10 text-xs">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label for="fineAngleSlider" class="text-slate-300 font-medium">Fine Horizon Tilt (-15° to +15°)</label>
+                            <span id="fineAngleVal" class="text-sky-400 font-mono-code">0.0°</span>
+                        </div>
+                        <input id="fineAngleSlider" type="range" min="-15" max="15" step="0.5" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer cyan-slider">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label for="sliceOffsetSlider" class="text-slate-300 font-medium">Horizontal Slice Shift / Overlap</label>
+                            <span id="sliceOffsetVal" class="text-sky-400 font-mono-code">0%</span>
+                        </div>
+                        <input id="sliceOffsetSlider" type="range" min="-15" max="15" step="0.5" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer cyan-slider">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Calibration Test Pattern & Vertical Flip -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-white/10">
+                <button id="toggleCalibGridBtn" class="flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-sky-500/40 bg-sky-500/15 hover:bg-sky-500/25 text-sky-200 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-grid-four text-base text-sky-400"></i>
+                    <span id="calibGridBtnText">Alignment Grid Overlay: OFF (F7)</span>
+                </button>
+
+                <button id="toggleFlipVBtn" class="py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-arrows-down-up text-base text-orange-400"></i>
+                    <span id="flipVBtnText">Vertical Flip: OFF</span>
+                </button>
+
+                <button id="resetProjectorBtn" class="py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-200 transition-all">
+                    Reset Default
+                </button>
+            </div>
+
+            <!-- Shareable Direct Launch URL for this Projector PC -->
+            <div class="p-3 rounded-xl bg-black/50 border border-white/10 flex items-center justify-between gap-2 text-xs">
+                <div class="truncate">
+                    <span class="text-slate-400 block text-[10px] uppercase tracking-wider">Bookmark / Launch URL Params for this PC:</span>
+                    <code id="launchUrlPreview" class="text-sky-300 font-mono-code text-[11px] truncate block mt-0.5">?total=1&unit=1&rot=0</code>
+                </div>
+                <button id="copyLaunchUrlBtn" class="shrink-0 px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/30 text-sky-200 font-medium transition-all flex items-center gap-1.5">
+                    <i class="ph-bold ph-copy"></i>
+                    <span id="copyUrlText">Copy URL</span>
+                </button>
+            </div>
+
+            <!-- F-Key Cheat Sheet Footer -->
+            <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-slate-400 font-mono-code">
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F1</kbd> Flip Cam L/R</div>
+                <div><kbd class="px-1.5 py-0.5 bg-sky-500/25 rounded text-sky-300">F2</kbd> Projector Menu</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F3</kbd> Split (1/2/3/4)</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F4</kbd> Unit (1..4)</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F6</kbd> Rotate 90°</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F7</kbd> Align Grid</div>
+            </div>
+        </div>
+    </section>
+
     <script>
         /**
-         * HAUNTED HORIZON — Interactive RGB Webcam Motion Halloween Scene
-         * Features:
-         * - Real-time getUserMedia RGB frame-differencing on an 80x60 grid
-         * - Instant Left/Right camera inversion via F1 (leaving F11 for Fullscreen)
-         * - Starts with camera ON and all screen UI hidden by default
-         * - Reactive bats, trailing ectoplasm ghosts, glowing Jack-o'-Lanterns,
-         *   spooky silhouette trees, fog layers, and mouse/touch fallback.
+         * HAUNTED HORIZON — Multi-Projector Interactive RGB Webcam Motion Halloween Scene
+         *
+         * New Multi-Projector & Rotation Capabilities:
+         * - Splits a continuous panoramic virtual world across 1, 2, 3, or 4 projectors:
+         *   - 4 Projectors: Unit 1 (1–25%), Unit 2 (26–50%), Unit 3 (51–75%), Unit 4 (76–100%)
+         *   - 3 Projectors: Unit 1 (1–33%), Unit 2 (34–67%), Unit 3 (68–100%)
+         *   - 2 Projectors: Unit 1 (1–50%), Unit 2 (51–100%)
+         *   - 1 Projector : Unit 1 (1–100%)
+         * - Deterministic seeded PRNG builds stars, spooky trees, hills, and Jack-o'-Lanterns across
+         *   the full virtual width so multiple PCs display a continuous horizon.
+         * - Full rotation support (0°, 90°, 180°, 270° + fine tilt & vertical flip) with automatic
+         *   aspect-ratio swap so 90°/270° fills the entire screen with zero black bars.
+         * - F-key quick controls:
+         *   F1: Camera Left/Right Mirror toggle
+         *   F2: Toggle Multi-Projector & Rotation Calibration Modal
+         *   F3: Cycle Total Projectors (1 -> 2 -> 3 -> 4)
+         *   F4: Cycle Active Projector Unit (Unit 1 -> Unit 2 -> ...)
+         *   F6: Cycle Display Rotation (0° -> 90° -> 180° -> 270°)
+         *   F7: Toggle Alignment Calibration Grid Overlay
          */
         function initHalloweenScene() {
+            const STORAGE_KEY = 'haunted_horizon_projector_cfg_v1';
+
             const canvas = document.getElementById('sceneCanvas');
             const ctx = canvas.getContext('2d');
             const video = document.getElementById('webcamVideo');
@@ -221,9 +448,41 @@
             trailCanvas.height = GRID_H;
             const trailCtx = trailCanvas.getContext('2d');
 
+            // Seeded deterministic PRNG (Mulberry32) so all PCs generate the exact same panoramic layout
+            function createSeededRandom(seed) {
+                let a = seed >>> 0;
+                return function() {
+                    let t = (a += 0x6D2B79F5);
+                    t = Math.imul(t ^ (t >>> 15), t | 1);
+                    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+                    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+                };
+            }
+
             const state = {
-                width: window.innerWidth,
-                height: window.innerHeight,
+                // Physical screen dimensions
+                screenW: window.innerWidth,
+                screenH: window.innerHeight,
+
+                // Effective unrotated slice viewport dimensions (swaps W/H when rotated 90° or 270°)
+                viewW: window.innerWidth,
+                viewH: window.innerHeight,
+
+                // Virtual panoramic world dimensions (virtualW = viewW * totalProjectors)
+                virtualW: window.innerWidth,
+                virtualH: window.innerHeight,
+
+                // Multi-Projector Configuration
+                projector: {
+                    total: 1,          // 1, 2, 3, or 4 projectors
+                    unit: 1,           // 1 .. total
+                    rotation: 0,       // 0, 90, 180, 270 degrees
+                    fineAngle: 0,      // -15 to +15 degrees
+                    offsetPct: 0,      // -15% to +15% horizontal shift
+                    flipV: false,      // Vertical flip
+                    showCalibGrid: false
+                },
+
                 time: 0,
                 cameraActive: false,
                 cameraStarting: false,
@@ -235,10 +494,12 @@
                 densityScale: 1.0,
                 ghostMode: 'swirl',
                 hudVisible: false,
+                projectorModalVisible: false,
                 audioEnabled: false,
                 audioCtx: null,
                 masterGain: null,
 
+                // Hotspot in VIRTUAL world coordinates
                 hotspot: {
                     x: window.innerWidth * 0.5,
                     y: window.innerHeight * 0.45,
@@ -249,6 +510,7 @@
                 },
                 motionPoints: [],
 
+                // Pointer in local slice coordinates [0..viewW, 0..viewH]
                 pointer: {
                     x: window.innerWidth * 0.5,
                     y: window.innerHeight * 0.45,
@@ -259,6 +521,7 @@
                 },
 
                 stars: [],
+                trees: [],
                 fogBands: [],
                 bats: [],
                 ghosts: [],
@@ -267,6 +530,139 @@
                 lightningFlash: 0,
                 lightningBolt: null
             };
+
+            let toastTimer = null;
+
+            function showToast(title, subtitle, iconClass = 'ph-fill ph-projector-screen-chart') {
+                const banner = document.getElementById('toastBanner');
+                document.getElementById('toastTitle').textContent = title;
+                document.getElementById('toastSub').textContent = subtitle;
+                document.getElementById('toastIcon').className = `${iconClass} text-2xl text-sky-400`;
+
+                banner.classList.remove('opacity-0', '-translate-y-4');
+                if (toastTimer) clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    banner.classList.add('opacity-0', '-translate-y-4');
+                }, 2600);
+            }
+
+            // Compute human-friendly percentage label for a given unit & total (e.g., 1-25%, 26-50%, 51-75%, 76-100%)
+            function getSlicePercentageLabel(unitIndex1Based, totalUnits, offsetPct = 0) {
+                if (totalUnits <= 1) {
+                    return { startPct: 1, endPct: 100, text: '1% – 100%' };
+                }
+                const rawStart = ((unitIndex1Based - 1) / totalUnits) * 100 + offsetPct;
+                const rawEnd = (unitIndex1Based / totalUnits) * 100 + offsetPct;
+                const startPct = unitIndex1Based === 1 && offsetPct === 0 ? 1 : Math.round(rawStart) + (offsetPct === 0 ? 1 : 0);
+                const endPct = Math.round(rawEnd);
+                return {
+                    startPct,
+                    endPct,
+                    text: `${startPct}% – ${endPct}%`
+                };
+            }
+
+            // Load saved configuration from localStorage & URL query params
+            function loadProjectorConfig() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if ([1, 2, 3, 4].includes(Number(parsed.total))) state.projector.total = Number(parsed.total);
+                        if (Number(parsed.unit) >= 1 && Number(parsed.unit) <= 4) state.projector.unit = Number(parsed.unit);
+                        if ([0, 90, 180, 270].includes(Number(parsed.rotation))) state.projector.rotation = Number(parsed.rotation);
+                        if (typeof parsed.fineAngle === 'number') state.projector.fineAngle = parsed.fineAngle;
+                        if (typeof parsed.offsetPct === 'number') state.projector.offsetPct = parsed.offsetPct;
+                        if (typeof parsed.flipV === 'boolean') state.projector.flipV = parsed.flipV;
+                        if (typeof parsed.mirrorCamera === 'boolean') state.mirrorCamera = parsed.mirrorCamera;
+                    }
+                } catch (e) {}
+
+                // URL parameters override localStorage so users can create desktop shortcuts per projector PC
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('total')) {
+                    const t = parseInt(params.get('total'), 10);
+                    if ([1, 2, 3, 4].includes(t)) state.projector.total = t;
+                }
+                if (params.has('unit')) {
+                    const u = parseInt(params.get('unit'), 10);
+                    if (u >= 1 && u <= 4) state.projector.unit = u;
+                }
+                if (params.has('rot')) {
+                    const r = parseInt(params.get('rot'), 10);
+                    if ([0, 90, 180, 270].includes(r)) state.projector.rotation = r;
+                }
+                if (params.has('tilt')) {
+                    const tilt = parseFloat(params.get('tilt'));
+                    if (!isNaN(tilt)) state.projector.fineAngle = Math.max(-15, Math.min(15, tilt));
+                }
+                if (params.has('offset')) {
+                    const off = parseFloat(params.get('offset'));
+                    if (!isNaN(off)) state.projector.offsetPct = Math.max(-15, Math.min(15, off));
+                }
+
+                if (state.projector.unit > state.projector.total) {
+                    state.projector.unit = state.projector.total;
+                }
+            }
+
+            function saveProjectorConfig() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                        total: state.projector.total,
+                        unit: state.projector.unit,
+                        rotation: state.projector.rotation,
+                        fineAngle: state.projector.fineAngle,
+                        offsetPct: state.projector.offsetPct,
+                        flipV: state.projector.flipV,
+                        mirrorCamera: state.mirrorCamera
+                    }));
+                } catch (e) {}
+            }
+
+            // Recalculate effective slice dimensions and virtual panoramic world dimensions
+            function updateViewportMetrics() {
+                state.screenW = window.innerWidth;
+                state.screenH = window.innerHeight;
+                canvas.width = state.screenW;
+                canvas.height = state.screenH;
+
+                const isQuarterTurn = state.projector.rotation === 90 || state.projector.rotation === 270;
+                state.viewW = isQuarterTurn ? state.screenH : state.screenW;
+                state.viewH = isQuarterTurn ? state.screenW : state.screenH;
+
+                state.virtualW = state.viewW * state.projector.total;
+                state.virtualH = state.viewH;
+            }
+
+            // Compute the horizontal world X offset for the currently active projector slice
+            function getSliceWorldOffsetX() {
+                const baseSliceIndex = state.projector.unit - 1;
+                const shiftFraction = state.projector.offsetPct / 100;
+                const rawX = (baseSliceIndex + shiftFraction * state.projector.total) * state.viewW;
+                return Math.max(0, Math.min(Math.max(0, state.virtualW - state.viewW), rawX));
+            }
+
+            // Map screen clientX/Y (mouse/touch) into local unrotated slice coordinates [0..viewW, 0..viewH]
+            function mapScreenToSliceCoords(clientX, clientY) {
+                const cx = state.screenW * 0.5;
+                const cy = state.screenH * 0.5;
+                const dx = clientX - cx;
+                const dy = clientY - cy;
+
+                const totalRad = -((state.projector.rotation + state.projector.fineAngle) * Math.PI) / 180;
+                const cosA = Math.cos(totalRad);
+                const sinA = Math.sin(totalRad);
+
+                let rx = dx * cosA - dy * sinA;
+                let ry = dx * sinA + dy * cosA;
+                if (state.projector.flipV) ry = -ry;
+
+                return {
+                    x: Math.max(0, Math.min(state.viewW, rx + state.viewW * 0.5)),
+                    y: Math.max(0, Math.min(state.viewH, ry + state.viewH * 0.5))
+                };
+            }
 
             function initAudio() {
                 if (state.audioCtx) return;
@@ -320,61 +716,85 @@
                 } catch (e) {}
             }
 
+            // Build deterministic panoramic world across virtualW so multiple projectors align seamlessly
             function initSceneEntities() {
-                const w = state.width;
-                const h = state.height;
+                updateViewportMetrics();
+                const vw = state.virtualW;
+                const vh = state.virtualH;
+                const totalProj = state.projector.total;
 
+                const rand = createSeededRandom(20261031 + totalProj * 97);
+
+                // Stars across full panoramic sky
                 state.stars = [];
-                for (let i = 0; i < 110; i++) {
+                const starCount = 110 * totalProj;
+                for (let i = 0; i < starCount; i++) {
                     state.stars.push({
-                        x: Math.random() * w,
-                        y: Math.random() * (h * 0.65),
-                        r: Math.random() * 1.6 + 0.4,
-                        alpha: Math.random() * 0.7 + 0.2,
-                        twinkleSpeed: Math.random() * 0.04 + 0.01,
-                        phase: Math.random() * Math.PI * 2
+                        x: rand() * vw,
+                        y: rand() * (vh * 0.65),
+                        r: rand() * 1.6 + 0.4,
+                        alpha: rand() * 0.7 + 0.2,
+                        twinkleSpeed: rand() * 0.04 + 0.01,
+                        phase: rand() * Math.PI * 2
                     });
                 }
 
+                // Spooky dead trees along the panoramic horizon
+                state.trees = [];
+                const treeCount = Math.max(3, 3 * totalProj);
+                for (let i = 0; i < treeCount; i++) {
+                    state.trees.push({
+                        x: (vw / (treeCount + 1)) * (i + 1) + (rand() - 0.5) * 90,
+                        baseY: vh * 0.75 + (rand() - 0.5) * 18,
+                        height: 110 + rand() * 85,
+                        lean: (rand() - 0.5) * 0.25,
+                        seed: rand() * 100
+                    });
+                }
+
+                // Fog bands
                 state.fogBands = [];
                 for (let i = 0; i < 4; i++) {
                     state.fogBands.push({
-                        y: h * (0.58 + i * 0.1),
+                        y: vh * (0.58 + i * 0.1),
                         amplitude: 16 + i * 7,
                         speed: (0.004 + i * 0.002) * (i % 2 === 0 ? 1 : -1),
-                        offset: Math.random() * 100,
+                        offset: rand() * 100,
                         alpha: 0.11 + i * 0.03
                     });
                 }
 
+                // Pumpkins spanning the entire panoramic foreground
                 state.pumpkins = [];
-                const pumpkinCount = Math.max(5, Math.min(9, Math.floor(w / 190)));
+                const pumpkinCount = Math.max(5, Math.min(9 * totalProj, Math.floor(vw / 185)));
                 for (let i = 0; i < pumpkinCount; i++) {
-                    const px = (w / (pumpkinCount + 1)) * (i + 1) + (Math.random() - 0.5) * 45;
-                    const py = h - 34 - Math.random() * 24;
+                    const px = (vw / (pumpkinCount + 1)) * (i + 1) + (rand() - 0.5) * 45;
+                    const py = vh - 34 - rand() * 24;
                     state.pumpkins.push({
                         x: px,
                         y: py,
-                        radius: 25 + Math.random() * 13,
+                        radius: 25 + rand() * 13,
                         glow: 0.25,
                         excitement: 0,
-                        seed: Math.random() * 100
+                        seed: rand() * 100
                     });
                 }
 
                 syncDynamicSwarm();
+                updateProjectorUI();
             }
 
             function syncDynamicSwarm() {
-                const w = state.width;
-                const h = state.height;
-                const targetBats = Math.round(28 * state.densityScale);
-                const targetGhosts = Math.round(7 * state.densityScale);
+                const vw = state.virtualW;
+                const vh = state.virtualH;
+                const scaleWithProjectors = state.densityScale * Math.sqrt(state.projector.total);
+                const targetBats = Math.round(28 * scaleWithProjectors);
+                const targetGhosts = Math.round(7 * scaleWithProjectors);
 
                 while (state.bats.length < targetBats) {
                     state.bats.push({
-                        x: Math.random() * w,
-                        y: Math.random() * (h * 0.62),
+                        x: Math.random() * vw,
+                        y: Math.random() * (vh * 0.62),
                         vx: (Math.random() - 0.5) * 2.6,
                         vy: (Math.random() - 0.5) * 1.2,
                         size: 9 + Math.random() * 9,
@@ -386,8 +806,8 @@
                 if (state.bats.length > targetBats) state.bats.length = targetBats;
 
                 while (state.ghosts.length < targetGhosts) {
-                    const gx = Math.random() * w;
-                    const gy = h * (0.2 + Math.random() * 0.55);
+                    const gx = Math.random() * vw;
+                    const gy = vh * (0.2 + Math.random() * 0.55);
                     const trail = [];
                     for (let i = 0; i < 12; i++) trail.push({ x: gx, y: gy });
                     state.ghosts.push({
@@ -405,7 +825,7 @@
             }
 
             function spawnMotionParticle(x, y, vx, vy, type = 'ember') {
-                if (state.particles.length > 260) return;
+                if (state.particles.length > 320) return;
                 const isEmber = type === 'ember';
                 state.particles.push({
                     x: x + (Math.random() - 0.5) * 18,
@@ -423,11 +843,12 @@
 
             function triggerLightning() {
                 state.lightningFlash = 0.85;
-                const startX = state.width * (0.2 + Math.random() * 0.6);
+                const sliceOffsetX = getSliceWorldOffsetX();
+                const startX = sliceOffsetX + state.viewW * (0.2 + Math.random() * 0.6);
                 const segments = [];
                 let cx = startX;
                 let cy = 0;
-                while (cy < state.height * 0.68) {
+                while (cy < state.virtualH * 0.68) {
                     const nx = cx + (Math.random() - 0.5) * 65;
                     const ny = cy + 22 + Math.random() * 32;
                     segments.push({ x1: cx, y1: cy, x2: nx, y2: ny });
@@ -498,25 +919,34 @@
                 document.getElementById('cameraBtnText').textContent = 'Start RGB Camera Motion';
             }
 
-            function toggleCameraMirror() {
-                state.mirrorCamera = !state.mirrorCamera;
-                state.prevFrameData = null;
-
+            function syncMirrorUI() {
                 const flipStatusBadge = document.getElementById('flipStatusBadge');
                 const flipQuickLabel = document.getElementById('flipQuickLabel');
                 const radarHeaderLabel = document.getElementById('radarHeaderLabel');
 
                 if (state.mirrorCamera) {
                     flipStatusBadge.textContent = 'Mirrored (Press F1)';
-                    flipStatusBadge.className = 'px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono text-[11px]';
+                    flipStatusBadge.className = 'px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono-code text-[11px]';
                     flipQuickLabel.textContent = 'L/R: Mirrored';
                     radarHeaderLabel.textContent = 'RGB Δ-MOTION RADAR (80×60 • MIRROR)';
                 } else {
                     flipStatusBadge.textContent = 'Inverted L/R (Press F1)';
-                    flipStatusBadge.className = 'px-2 py-0.5 rounded bg-purple-500/25 text-purple-300 font-mono text-[11px]';
+                    flipStatusBadge.className = 'px-2 py-0.5 rounded bg-purple-500/25 text-purple-300 font-mono-code text-[11px]';
                     flipQuickLabel.textContent = 'L/R: Inverted';
                     radarHeaderLabel.textContent = 'RGB Δ-MOTION RADAR (80×60 • INVERTED)';
                 }
+            }
+
+            function toggleCameraMirror() {
+                state.mirrorCamera = !state.mirrorCamera;
+                state.prevFrameData = null;
+                syncMirrorUI();
+                saveProjectorConfig();
+                showToast(
+                    'Camera Left/Right Orientation',
+                    state.mirrorCamera ? 'Mirrored Mode (Default)' : 'Inverted Left/Right Mode',
+                    'ph-bold ph-arrows-left-right'
+                );
             }
 
             function updateStatusUI(mode, message) {
@@ -539,10 +969,13 @@
                 }
             }
 
+            // Process webcam RGB motion and map directly into the active projector's virtual slice
             function processRgbMotionFrame() {
                 state.motionPoints = [];
                 trailCtx.fillStyle = 'rgba(7, 3, 13, 0.18)';
                 trailCtx.fillRect(0, 0, GRID_W, GRID_H);
+
+                const sliceOffsetX = getSliceWorldOffsetX();
 
                 if (state.cameraActive && video.readyState >= 2) {
                     procCtx.save();
@@ -590,8 +1023,8 @@
 
                                     if ((x + y) % 5 === 0 && weight > 0.35) {
                                         state.motionPoints.push({
-                                            x: (x / GRID_W) * state.width,
-                                            y: (y / GRID_H) * state.height,
+                                            x: sliceOffsetX + (x / GRID_W) * state.viewW,
+                                            y: (y / GRID_H) * state.viewH,
                                             weight
                                         });
                                     }
@@ -607,8 +1040,8 @@
                     document.getElementById('motionMeterText').textContent = `Motion: ${Math.round(normalizedActivity * 100)}%`;
 
                     if (totalWeight > 2.2) {
-                        const targetX = (sumX / totalWeight / GRID_W) * state.width;
-                        const targetY = (sumY / totalWeight / GRID_H) * state.height;
+                        const targetX = sliceOffsetX + (sumX / totalWeight / GRID_W) * state.viewW;
+                        const targetY = (sumY / totalWeight / GRID_H) * state.viewH;
 
                         state.hotspot.vx = (targetX - state.hotspot.x) * 0.35;
                         state.hotspot.vy = (targetY - state.hotspot.y) * 0.35;
@@ -637,15 +1070,18 @@
                 } else {
                     const elapsed = performance.now() - state.pointer.lastMoveTime;
                     if (elapsed < 350) {
-                        state.hotspot.vx = (state.pointer.x - state.hotspot.x) * 0.32;
-                        state.hotspot.vy = (state.pointer.y - state.hotspot.y) * 0.32;
+                        const targetWorldX = sliceOffsetX + state.pointer.x;
+                        const targetWorldY = state.pointer.y;
+
+                        state.hotspot.vx = (targetWorldX - state.hotspot.x) * 0.32;
+                        state.hotspot.vy = (targetWorldY - state.hotspot.y) * 0.32;
                         state.hotspot.x += state.hotspot.vx;
                         state.hotspot.y += state.hotspot.vy;
                         state.hotspot.intensity = Math.min(1, Math.max(0.25, state.pointer.speed / 28));
                         state.hotspot.active = true;
 
-                        const gx = Math.floor((state.hotspot.x / state.width) * GRID_W);
-                        const gy = Math.floor((state.hotspot.y / state.height) * GRID_H);
+                        const gx = Math.floor((state.pointer.x / state.viewW) * GRID_W);
+                        const gy = Math.floor((state.pointer.y / state.viewH) * GRID_H);
                         const grad = trailCtx.createRadialGradient(gx, gy, 1, gx, gy, 7);
                         grad.addColorStop(0, 'rgba(249, 115, 22, 0.9)');
                         grad.addColorStop(0.5, 'rgba(168, 85, 247, 0.55)');
@@ -670,16 +1106,17 @@
                 }
             }
 
-            function drawNightSkyAndMoon(w, h) {
-                const skyGrad = ctx.createLinearGradient(0, 0, 0, h);
+            function drawNightSkyAndMoon(vw, vh, sliceX, viewW) {
+                const skyGrad = ctx.createLinearGradient(0, 0, 0, vh);
                 skyGrad.addColorStop(0, '#07030f');
                 skyGrad.addColorStop(0.45, '#160929');
                 skyGrad.addColorStop(0.78, '#28103d');
                 skyGrad.addColorStop(1, '#12071c');
                 ctx.fillStyle = skyGrad;
-                ctx.fillRect(0, 0, w, h);
+                ctx.fillRect(sliceX - 2, 0, viewW + 4, vh);
 
                 for (const s of state.stars) {
+                    if (s.x < sliceX - 10 || s.x > sliceX + viewW + 10) continue;
                     const tw = Math.sin(state.time * 60 * s.twinkleSpeed + s.phase) * 0.3 + 0.7;
                     ctx.fillStyle = `rgba(254, 243, 199, ${s.alpha * tw})`;
                     ctx.beginPath();
@@ -687,52 +1124,86 @@
                     ctx.fill();
                 }
 
-                const moonX = w * 0.78;
-                const moonY = h * 0.22;
-                const moonRadius = Math.min(w, h) * 0.095;
+                // Harvest Moon positioned in the panoramic sky
+                const moonX = vw * 0.72;
+                const moonY = vh * 0.22;
+                const moonRadius = Math.min(state.viewW, vh) * 0.095;
                 const motionPulse = state.hotspot.active ? state.hotspot.intensity * 26 : 0;
 
-                const haloGrad = ctx.createRadialGradient(moonX, moonY, moonRadius * 0.5, moonX, moonY, moonRadius * 3.1 + motionPulse);
-                haloGrad.addColorStop(0, 'rgba(251, 146, 60, 0.45)');
-                haloGrad.addColorStop(0.45, 'rgba(234, 88, 12, 0.18)');
-                haloGrad.addColorStop(1, 'rgba(168, 85, 247, 0)');
-                ctx.fillStyle = haloGrad;
-                ctx.beginPath();
-                ctx.arc(moonX, moonY, moonRadius * 3.1 + motionPulse, 0, Math.PI * 2);
-                ctx.fill();
+                if (moonX + moonRadius * 3.5 >= sliceX && moonX - moonRadius * 3.5 <= sliceX + viewW) {
+                    const haloGrad = ctx.createRadialGradient(moonX, moonY, moonRadius * 0.5, moonX, moonY, moonRadius * 3.1 + motionPulse);
+                    haloGrad.addColorStop(0, 'rgba(251, 146, 60, 0.45)');
+                    haloGrad.addColorStop(0.45, 'rgba(234, 88, 12, 0.18)');
+                    haloGrad.addColorStop(1, 'rgba(168, 85, 247, 0)');
+                    ctx.fillStyle = haloGrad;
+                    ctx.beginPath();
+                    ctx.arc(moonX, moonY, moonRadius * 3.1 + motionPulse, 0, Math.PI * 2);
+                    ctx.fill();
 
-                const moonGrad = ctx.createRadialGradient(moonX - moonRadius * 0.2, moonY - moonRadius * 0.2, moonRadius * 0.1, moonX, moonY, moonRadius);
-                moonGrad.addColorStop(0, '#fff7ed');
-                moonGrad.addColorStop(0.65, '#fed7aa');
-                moonGrad.addColorStop(1, '#f97316');
-                ctx.fillStyle = moonGrad;
-                ctx.beginPath();
-                ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
-                ctx.fill();
+                    const moonGrad = ctx.createRadialGradient(moonX - moonRadius * 0.2, moonY - moonRadius * 0.2, moonRadius * 0.1, moonX, moonY, moonRadius);
+                    moonGrad.addColorStop(0, '#fff7ed');
+                    moonGrad.addColorStop(0.65, '#fed7aa');
+                    moonGrad.addColorStop(1, '#f97316');
+                    ctx.fillStyle = moonGrad;
+                    ctx.beginPath();
+                    ctx.arc(moonX, moonY, moonRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
 
-            function drawRgbMotionSilhouette(w, h) {
+            function drawRgbMotionSilhouette(sliceX, viewW, viewH) {
                 if (state.rgbTrailOpacity <= 0.01) return;
                 ctx.save();
                 ctx.globalCompositeOperation = 'screen';
                 ctx.globalAlpha = state.rgbTrailOpacity;
                 ctx.filter = 'blur(10px)';
-                ctx.drawImage(trailCanvas, 0, 0, w, h);
+                ctx.drawImage(trailCanvas, sliceX, 0, viewW, viewH);
                 ctx.filter = 'none';
                 ctx.restore();
             }
 
-            function drawHillsAndGraveyard(w, h) {
+            function drawSpookyTrees(sliceX, viewW) {
+                ctx.save();
+                ctx.strokeStyle = '#0b0414';
+                ctx.lineCap = 'round';
+                for (const t of state.trees) {
+                    if (t.x < sliceX - 180 || t.x > sliceX + viewW + 180) continue;
+                    const sway = Math.sin(state.time * 1.4 + t.seed) * 0.04;
+                    drawBranch(t.x, t.baseY, t.height, -Math.PI / 2 + t.lean + sway, 10, 4);
+                }
+                ctx.restore();
+            }
+
+            function drawBranch(x, y, len, angle, width, depth) {
+                if (depth <= 0 || len < 8) return;
+                const nx = x + Math.cos(angle) * len;
+                const ny = y + Math.sin(angle) * len;
+                ctx.lineWidth = width;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(nx, ny);
+                ctx.stroke();
+
+                drawBranch(nx, ny, len * 0.68, angle - 0.42, width * 0.65, depth - 1);
+                drawBranch(nx, ny, len * 0.64, angle + 0.48, width * 0.65, depth - 1);
+            }
+
+            function drawHillsAndGraveyard(vw, vh, sliceX, viewW) {
+                const startX = Math.max(0, Math.floor((sliceX - 80) / 40) * 40);
+                const endX = Math.min(vw, Math.ceil((sliceX + viewW + 80) / 40) * 40);
+
                 ctx.fillStyle = '#11071f';
                 ctx.beginPath();
-                ctx.moveTo(0, h);
-                for (let x = 0; x <= w; x += 40) {
-                    const y = h * 0.72 + Math.sin(x * 0.003 + 1.2) * 38;
+                ctx.moveTo(startX, vh);
+                for (let x = startX; x <= endX; x += 40) {
+                    const y = vh * 0.72 + Math.sin(x * 0.003 + 1.2) * 38 + Math.cos(x * 0.0013) * 18;
                     ctx.lineTo(x, y);
                 }
-                ctx.lineTo(w, h);
+                ctx.lineTo(endX, vh);
                 ctx.closePath();
                 ctx.fill();
+
+                drawSpookyTrees(sliceX, viewW);
 
                 for (const fog of state.fogBands) {
                     ctx.save();
@@ -742,12 +1213,12 @@
                     grad.addColorStop(1, 'rgba(15, 7, 28, 0)');
                     ctx.fillStyle = grad;
                     ctx.beginPath();
-                    ctx.moveTo(0, h);
-                    for (let x = 0; x <= w; x += 35) {
+                    ctx.moveTo(startX, vh);
+                    for (let x = startX; x <= endX; x += 35) {
                         const waveY = fog.y + Math.sin(x * 0.008 + state.time * 60 * fog.speed + fog.offset) * fog.amplitude;
                         ctx.lineTo(x, waveY);
                     }
-                    ctx.lineTo(w, h);
+                    ctx.lineTo(endX, vh);
                     ctx.closePath();
                     ctx.fill();
                     ctx.restore();
@@ -755,17 +1226,17 @@
 
                 ctx.fillStyle = '#05020a';
                 ctx.beginPath();
-                ctx.moveTo(0, h);
-                for (let x = 0; x <= w; x += 50) {
-                    const y = h - 42 + Math.sin(x * 0.008) * 14;
+                ctx.moveTo(startX, vh);
+                for (let x = startX; x <= endX; x += 40) {
+                    const y = vh - 42 + Math.sin(x * 0.008) * 14;
                     ctx.lineTo(x, y);
                 }
-                ctx.lineTo(w, h);
+                ctx.lineTo(endX, vh);
                 ctx.closePath();
                 ctx.fill();
             }
 
-            function updateAndDrawPumpkins() {
+            function updateAndDrawPumpkins(sliceX, viewW) {
                 for (const p of state.pumpkins) {
                     if (state.hotspot.active) {
                         const dist = Math.hypot(state.hotspot.x - p.x, state.hotspot.y - p.y);
@@ -775,6 +1246,9 @@
                         }
                     }
                     p.excitement *= 0.94;
+
+                    if (p.x < sliceX - 120 || p.x > sliceX + viewW + 120) continue;
+
                     const r = p.radius;
                     const flicker = 0.75 + Math.sin(state.time * 18 + p.seed) * 0.15 + p.excitement * 0.6;
 
@@ -819,7 +1293,7 @@
                 }
             }
 
-            function updateAndDrawGhosts(w, h) {
+            function updateAndDrawGhosts(vw, vh, sliceX, viewW) {
                 for (const g of state.ghosts) {
                     g.phase += 0.05;
                     if (state.hotspot.active) {
@@ -844,16 +1318,18 @@
 
                     g.vx *= 0.96;
                     g.vy *= 0.96;
-                    g.x += g.vx;
-                    g.y += g.vy;
+                    g.x += g.vx + Math.cos(g.phase) * 0.35;
+                    g.y += g.vy + Math.sin(g.phase) * 0.35;
 
-                    if (g.x < -60) g.x = w + 60;
-                    if (g.x > w + 60) g.x = -60;
+                    if (g.x < -60) g.x = vw + 60;
+                    if (g.x > vw + 60) g.x = -60;
                     if (g.y < 40) g.vy += 0.2;
-                    if (g.y > h - 90) g.vy -= 0.2;
+                    if (g.y > vh - 90) g.vy -= 0.2;
 
                     g.trail.unshift({ x: g.x, y: g.y });
                     if (g.trail.length > 12) g.trail.pop();
+
+                    if (g.x < sliceX - 100 || g.x > sliceX + viewW + 100) continue;
 
                     ctx.save();
                     for (let i = g.trail.length - 1; i >= 0; i--) {
@@ -883,7 +1359,7 @@
                 }
             }
 
-            function updateAndDrawBats(w, h) {
+            function updateAndDrawBats(vw, vh, sliceX, viewW) {
                 for (const b of state.bats) {
                     if (state.hotspot.active) {
                         const dx = b.x - state.hotspot.x;
@@ -909,10 +1385,12 @@
                     b.y += b.vy;
                     b.wingPhase += b.wingSpeed * (b.scaredTimer > 0 ? 1.8 : 1);
 
-                    if (b.x < -30) b.x = w + 30;
-                    if (b.x > w + 30) b.x = -30;
+                    if (b.x < -30) b.x = vw + 30;
+                    if (b.x > vw + 30) b.x = -30;
                     if (b.y < 20) b.vy += 0.15;
-                    if (b.y > h * 0.72) b.vy -= 0.2;
+                    if (b.y > vh * 0.72) b.vy -= 0.2;
+
+                    if (b.x < sliceX - 60 || b.x > sliceX + viewW + 60) continue;
 
                     const flap = Math.sin(b.wingPhase) * b.size * 0.85;
                     ctx.save();
@@ -932,7 +1410,7 @@
                 }
             }
 
-            function updateAndDrawParticles() {
+            function updateAndDrawParticles(sliceX, viewW) {
                 ctx.save();
                 ctx.globalCompositeOperation = 'screen';
                 for (let i = state.particles.length - 1; i >= 0; i--) {
@@ -944,6 +1422,7 @@
                         state.particles.splice(i, 1);
                         continue;
                     }
+                    if (p.x < sliceX - 30 || p.x > sliceX + viewW + 30) continue;
                     ctx.globalAlpha = p.life;
                     ctx.fillStyle = p.color;
                     ctx.beginPath();
@@ -953,7 +1432,7 @@
                 ctx.restore();
             }
 
-            function drawLightningOverlay(w, h) {
+            function drawLightningOverlay(sliceX, viewW, viewH) {
                 if (state.lightningBolt && state.lightningBolt.alpha > 0) {
                     ctx.save();
                     ctx.strokeStyle = `rgba(243, 232, 255, ${state.lightningBolt.alpha})`;
@@ -969,47 +1448,319 @@
                 }
                 if (state.lightningFlash > 0) {
                     ctx.fillStyle = `rgba(250, 245, 255, ${state.lightningFlash * 0.35})`;
-                    ctx.fillRect(0, 0, w, h);
+                    ctx.fillRect(sliceX, 0, viewW, viewH);
                     state.lightningFlash = Math.max(0, state.lightningFlash - 0.05);
                 }
             }
 
+            // Alignment test grid overlay (F7) rendered inside the rotated slice coordinate space
+            function drawProjectorAlignmentGrid(viewW, viewH) {
+                if (!state.projector.showCalibGrid) return;
+
+                ctx.save();
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.38)';
+                ctx.lineWidth = 1;
+
+                const cols = 8;
+                const rows = 6;
+                for (let i = 1; i < cols; i++) {
+                    const x = (viewW / cols) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, viewH);
+                    ctx.stroke();
+                }
+                for (let j = 1; j < rows; j++) {
+                    const y = (viewH / rows) * j;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(viewW, y);
+                    ctx.stroke();
+                }
+
+                // Outer border & edge-stitch markers
+                ctx.strokeStyle = 'rgba(249, 115, 22, 0.85)';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, viewW - 4, viewH - 4);
+
+                // Center crosshair
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(viewW * 0.5, viewH * 0.5, 48, 0, Math.PI * 2);
+                ctx.moveTo(viewW * 0.5 - 70, viewH * 0.5);
+                ctx.lineTo(viewW * 0.5 + 70, viewH * 0.5);
+                ctx.moveTo(viewW * 0.5, viewH * 0.5 - 70);
+                ctx.lineTo(viewW * 0.5, viewH * 0.5 + 70);
+                ctx.stroke();
+
+                // Large central projector watermark readout
+                const pctInfo = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
+                const totalDeg = state.projector.rotation + state.projector.fineAngle;
+
+                ctx.fillStyle = 'rgba(10, 14, 26, 0.82)';
+                ctx.fillRect(viewW * 0.5 - 230, viewH * 0.5 - 56, 460, 112);
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+                ctx.strokeRect(viewW * 0.5 - 230, viewH * 0.5 - 56, 460, 112);
+
+                ctx.fillStyle = '#38bdf8';
+                ctx.font = 'bold 22px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`PROJECTOR ${state.projector.unit} OF ${state.projector.total}`, viewW * 0.5, viewH * 0.5 - 16);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 18px "JetBrains Mono", monospace';
+                ctx.fillText(`SLICE: ${pctInfo.text} • ROT: ${totalDeg}°`, viewW * 0.5, viewH * 0.5 + 16);
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px "Inter", sans-serif';
+                ctx.fillText('Press F7 to hide alignment grid • Press F2 for Projector Menu', viewW * 0.5, viewH * 0.5 + 42);
+
+                ctx.restore();
+            }
+
             function animate() {
                 state.time += 0.016;
-                const w = state.width;
-                const h = state.height;
+                const vw = state.virtualW;
+                const vh = state.virtualH;
+                const viewW = state.viewW;
+                const viewH = state.viewH;
+                const sliceX = getSliceWorldOffsetX();
 
                 processRgbMotionFrame();
-                drawNightSkyAndMoon(w, h);
-                drawRgbMotionSilhouette(w, h);
-                drawHillsAndGraveyard(w, h);
-                updateAndDrawPumpkins();
-                updateAndDrawGhosts(w, h);
-                updateAndDrawBats(w, h);
-                updateAndDrawParticles();
-                drawLightningOverlay(w, h);
+
+                // Clear physical screen
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.fillStyle = '#07030d';
+                ctx.fillRect(0, 0, state.screenW, state.screenH);
+
+                // Apply projector rotation & vertical flip around physical screen center
+                ctx.save();
+                ctx.translate(state.screenW * 0.5, state.screenH * 0.5);
+
+                const totalAngleRad = ((state.projector.rotation + state.projector.fineAngle) * Math.PI) / 180;
+                ctx.rotate(totalAngleRad);
+
+                // If fineAngle is non-zero, slightly scale up so corners never show black wedges
+                if (Math.abs(state.projector.fineAngle) > 0.01) {
+                    const rad = Math.abs(state.projector.fineAngle * Math.PI) / 180;
+                    const aspect = Math.max(viewW / viewH, viewH / viewW);
+                    const zoom = Math.cos(rad) + aspect * Math.sin(rad);
+                    ctx.scale(zoom, zoom);
+                }
+
+                if (state.projector.flipV) {
+                    ctx.scale(1, -1);
+                }
+
+                // Move origin to top-left of unrotated local slice viewport [0..viewW, 0..viewH]
+                ctx.translate(-viewW * 0.5, -viewH * 0.5);
+
+                // Clip to local slice viewport
+                ctx.beginPath();
+                ctx.rect(0, 0, viewW, viewH);
+                ctx.clip();
+
+                // Shift world coordinates by -sliceX so this projector renders its assigned slice of the panorama
+                ctx.save();
+                ctx.translate(-sliceX, 0);
+
+                drawNightSkyAndMoon(vw, vh, sliceX, viewW);
+                drawRgbMotionSilhouette(sliceX, viewW, viewH);
+                drawHillsAndGraveyard(vw, vh, sliceX, viewW);
+                updateAndDrawPumpkins(sliceX, viewW);
+                updateAndDrawGhosts(vw, vh, sliceX, viewW);
+                updateAndDrawBats(vw, vh, sliceX, viewW);
+                updateAndDrawParticles(sliceX, viewW);
+                drawLightningOverlay(sliceX, viewW, viewH);
+
+                ctx.restore();
+
+                // Draw optional alignment grid in slice coordinates
+                drawProjectorAlignmentGrid(viewW, viewH);
+
+                ctx.restore();
 
                 requestAnimationFrame(animate);
             }
 
+            // Update all Multi-Projector Modal buttons, visual bars, and badges
+            function updateProjectorUI() {
+                const total = state.projector.total;
+                const unit = state.projector.unit;
+                const rot = state.projector.rotation;
+                const offsetPct = state.projector.offsetPct;
+                const pctInfo = getSlicePercentageLabel(unit, total, offsetPct);
+
+                // Top bar quick badge
+                document.getElementById('projectorQuickBadge').textContent =
+                    `Proj ${unit}/${total} (${pctInfo.text}) • ${rot}°`;
+
+                // Readout header
+                document.getElementById('sliceRangeReadout').textContent =
+                    `Projector ${unit} of ${total} • ${pctInfo.text} • Rot ${rot}°`;
+
+                // Panorama visual preview ticks & highlight bar
+                const ticksContainer = document.getElementById('panoramaGridTicks');
+                ticksContainer.innerHTML = '';
+                for (let i = 1; i <= total; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'flex-1 border-r border-slate-700/80 last:border-r-0 flex items-center justify-center text-[10px] font-mono-code text-slate-500';
+                    const cellPct = getSlicePercentageLabel(i, total, 0);
+                    cell.textContent = `P${i} (${cellPct.text})`;
+                    ticksContainer.appendChild(cell);
+                }
+
+                const highlight = document.getElementById('panoramaActiveHighlight');
+                const widthPct = 100 / total;
+                const leftPct = Math.max(0, Math.min(100 - widthPct, ((unit - 1) / total) * 100 + offsetPct));
+                highlight.style.width = `${widthPct}%`;
+                highlight.style.left = `${leftPct}%`;
+                document.getElementById('panoramaActiveLabel').textContent = `P${unit}: ${pctInfo.text}`;
+
+                // Total Projectors buttons (1, 2, 3, 4)
+                document.querySelectorAll('.total-proj-btn').forEach(btn => {
+                    const t = Number(btn.dataset.total);
+                    if (t === total) {
+                        btn.className = 'total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border border-sky-400 bg-sky-500/25 text-white shadow-lg shadow-sky-950/50 transition-all flex flex-col items-center gap-0.5';
+                    } else {
+                        btn.className = 'total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all flex flex-col items-center gap-0.5';
+                    }
+                });
+
+                // Assigned Projector Unit buttons (1 .. 4) with exact percentage ranges (1-25%, 26-50%, etc.)
+                const unitContainer = document.getElementById('unitProjectorGroup');
+                unitContainer.innerHTML = '';
+                for (let i = 1; i <= 4; i++) {
+                    const enabled = i <= total;
+                    const isSelected = i === unit;
+                    const unitPct = getSlicePercentageLabel(i, total, 0);
+                    const btn = document.createElement('button');
+                    btn.disabled = !enabled;
+                    if (!enabled) {
+                        btn.className = 'py-2.5 px-3 rounded-xl text-xs font-semibold border border-white/5 bg-white/[0.02] text-slate-600 cursor-not-allowed flex flex-col items-center gap-0.5';
+                        btn.innerHTML = `<span class="text-sm font-bold">Projector ${i}</span><span class="text-[10px] font-mono-code">Disabled</span>`;
+                    } else if (isSelected) {
+                        btn.className = 'py-2.5 px-3 rounded-xl text-xs font-semibold border border-orange-400 bg-orange-500/25 text-white shadow-lg shadow-orange-950/50 transition-all flex flex-col items-center gap-0.5';
+                        btn.innerHTML = `<span class="text-sm font-bold">Projector ${i}</span><span class="text-[11px] text-orange-200 font-mono-code">${unitPct.text}</span>`;
+                    } else {
+                        btn.className = 'py-2.5 px-3 rounded-xl text-xs font-semibold border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all flex flex-col items-center gap-0.5';
+                        btn.innerHTML = `<span class="text-sm font-bold">Projector ${i}</span><span class="text-[11px] text-sky-300 font-mono-code">${unitPct.text}</span>`;
+                    }
+                    if (enabled) {
+                        btn.addEventListener('click', () => {
+                            setProjectorUnit(i, true);
+                        });
+                    }
+                    unitContainer.appendChild(btn);
+                }
+
+                // Rotation buttons (0, 90, 180, 270)
+                document.querySelectorAll('.rot-btn').forEach(btn => {
+                    const r = Number(btn.dataset.rot);
+                    if (r === rot) {
+                        btn.className = 'rot-btn py-2 px-3 rounded-xl text-xs font-semibold border border-sky-400 bg-sky-500/25 text-white shadow-lg transition-all flex flex-col items-center';
+                    } else {
+                        btn.className = 'rot-btn py-2 px-3 rounded-xl text-xs font-semibold border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all flex flex-col items-center';
+                    }
+                });
+
+                // Sliders
+                document.getElementById('fineAngleSlider').value = state.projector.fineAngle;
+                document.getElementById('fineAngleVal').textContent = `${state.projector.fineAngle > 0 ? '+' : ''}${state.projector.fineAngle.toFixed(1)}°`;
+
+                document.getElementById('sliceOffsetSlider').value = state.projector.offsetPct;
+                document.getElementById('sliceOffsetVal').textContent = `${state.projector.offsetPct > 0 ? '+' : ''}${state.projector.offsetPct}%`;
+
+                // Calibration Grid & Vertical Flip buttons
+                const calibBtn = document.getElementById('toggleCalibGridBtn');
+                const calibText = document.getElementById('calibGridBtnText');
+                if (state.projector.showCalibGrid) {
+                    calibBtn.className = 'flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-emerald-400 bg-emerald-500/25 text-white transition-all flex items-center justify-center gap-2';
+                    calibText.textContent = 'Alignment Grid Overlay: ON (F7)';
+                } else {
+                    calibBtn.className = 'flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-sky-500/40 bg-sky-500/15 hover:bg-sky-500/25 text-sky-200 transition-all flex items-center justify-center gap-2';
+                    calibText.textContent = 'Alignment Grid Overlay: OFF (F7)';
+                }
+
+                const flipVBtnText = document.getElementById('flipVBtnText');
+                flipVBtnText.textContent = `Vertical Flip: ${state.projector.flipV ? 'ON' : 'OFF'}`;
+
+                // Launch URL Preview
+                const urlParams = `?total=${total}&unit=${unit}&rot=${rot}${state.projector.fineAngle ? `&tilt=${state.projector.fineAngle}` : ''}${state.projector.offsetPct ? `&offset=${state.projector.offsetPct}` : ''}`;
+                document.getElementById('launchUrlPreview').textContent = urlParams;
+            }
+
+            function setTotalProjectors(totalCount, showNotification = true) {
+                state.projector.total = totalCount;
+                if (state.projector.unit > totalCount) {
+                    state.projector.unit = 1;
+                }
+                saveProjectorConfig();
+                initSceneEntities();
+                if (showNotification) {
+                    const pct = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
+                    showToast(
+                        `Split Mode: ${state.projector.total} Projector${state.projector.total > 1 ? 's' : ''}`,
+                        `Active: Projector ${state.projector.unit} (${pct.text}) • ${state.projector.rotation}°`
+                    );
+                }
+            }
+
+            function setProjectorUnit(unitIndex, showNotification = true) {
+                state.projector.unit = Math.max(1, Math.min(state.projector.total, unitIndex));
+                // Re-center hotspot inside the newly selected slice
+                state.hotspot.x = getSliceWorldOffsetX() + state.viewW * 0.5;
+                saveProjectorConfig();
+                updateProjectorUI();
+                if (showNotification) {
+                    const pct = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
+                    showToast(
+                        `Assigned Projector Unit ${state.projector.unit} of ${state.projector.total}`,
+                        `Displaying ${pct.text} of Horizon • ${state.projector.rotation}°`
+                    );
+                }
+            }
+
+            function setProjectorRotation(rotDegrees, showNotification = true) {
+                state.projector.rotation = rotDegrees;
+                saveProjectorConfig();
+                initSceneEntities();
+                if (showNotification) {
+                    const pct = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
+                    showToast(
+                        `Projector Rotation: ${rotDegrees}°`,
+                        `Projector ${state.projector.unit}/${state.projector.total} (${pct.text})`
+                    );
+                }
+            }
+
+            function toggleProjectorModal() {
+                state.projectorModalVisible = !state.projectorModalVisible;
+                const modal = document.getElementById('projectorModal');
+                if (state.projectorModalVisible) {
+                    updateProjectorUI();
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                } else {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                }
+            }
+
             function handleResize() {
-                state.width = window.innerWidth;
-                state.height = window.innerHeight;
-                canvas.width = state.width;
-                canvas.height = state.height;
                 initSceneEntities();
             }
 
             window.addEventListener('resize', handleResize);
 
             function handlePointerMove(clientX, clientY) {
-                const dx = clientX - state.pointer.x;
-                const dy = clientY - state.pointer.y;
+                const mapped = mapScreenToSliceCoords(clientX, clientY);
+                const dx = mapped.x - state.pointer.x;
+                const dy = mapped.y - state.pointer.y;
                 state.pointer.speed = Math.hypot(dx, dy);
                 state.pointer.prevX = state.pointer.x;
                 state.pointer.prevY = state.pointer.y;
-                state.pointer.x = clientX;
-                state.pointer.y = clientY;
+                state.pointer.x = mapped.x;
+                state.pointer.y = mapped.y;
                 state.pointer.lastMoveTime = performance.now();
             }
 
@@ -1036,10 +1787,11 @@
                     panel.classList.add('opacity-0', '-translate-x-8', 'pointer-events-none');
                     topLeftBar.classList.add('opacity-0', 'pointer-events-none');
                     topRightBar.classList.add('opacity-0', 'pointer-events-none');
-                    toggleText.textContent = 'Controls';
+                    toggleText.textContent = 'Scene Controls';
                 }
             }
 
+            // Event Listeners for Scene Controls
             canvas.addEventListener('dblclick', toggleHud);
             document.getElementById('toggleHudBtn').addEventListener('click', toggleHud);
             document.getElementById('closeHudBtn').addEventListener('click', toggleHud);
@@ -1047,6 +1799,78 @@
             document.getElementById('flipCameraBtn').addEventListener('click', toggleCameraMirror);
             document.getElementById('flipCameraQuickBtn').addEventListener('click', toggleCameraMirror);
             document.getElementById('lightningBtn').addEventListener('click', () => triggerLightning());
+
+            // Event Listeners for Multi-Projector Modal
+            document.getElementById('openProjectorHudBtn').addEventListener('click', toggleProjectorModal);
+            document.getElementById('openProjectorFromSceneBtn').addEventListener('click', toggleProjectorModal);
+            document.getElementById('closeProjectorModalBtn').addEventListener('click', toggleProjectorModal);
+            document.getElementById('projectorModal').addEventListener('click', (e) => {
+                if (e.target.id === 'projectorModal') toggleProjectorModal();
+            });
+
+            document.querySelectorAll('.total-proj-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setTotalProjectors(Number(btn.dataset.total), true);
+                });
+            });
+
+            document.querySelectorAll('.rot-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setProjectorRotation(Number(btn.dataset.rot), true);
+                });
+            });
+
+            document.getElementById('fineAngleSlider').addEventListener('input', (e) => {
+                state.projector.fineAngle = parseFloat(e.target.value);
+                saveProjectorConfig();
+                updateProjectorUI();
+            });
+
+            document.getElementById('sliceOffsetSlider').addEventListener('input', (e) => {
+                state.projector.offsetPct = parseFloat(e.target.value);
+                saveProjectorConfig();
+                updateProjectorUI();
+            });
+
+            document.getElementById('toggleCalibGridBtn').addEventListener('click', () => {
+                state.projector.showCalibGrid = !state.projector.showCalibGrid;
+                updateProjectorUI();
+            });
+
+            document.getElementById('toggleFlipVBtn').addEventListener('click', () => {
+                state.projector.flipV = !state.projector.flipV;
+                saveProjectorConfig();
+                updateProjectorUI();
+                showToast('Vertical Flip Toggled', `Vertical Flip is now ${state.projector.flipV ? 'ON' : 'OFF'}`);
+            });
+
+            document.getElementById('resetProjectorBtn').addEventListener('click', () => {
+                state.projector.total = 1;
+                state.projector.unit = 1;
+                state.projector.rotation = 0;
+                state.projector.fineAngle = 0;
+                state.projector.offsetPct = 0;
+                state.projector.flipV = false;
+                state.projector.showCalibGrid = false;
+                saveProjectorConfig();
+                initSceneEntities();
+                showToast('Projector Setup Reset', 'Restored to 1 Projector (1% – 100%) • 0°');
+            });
+
+            document.getElementById('copyLaunchUrlBtn').addEventListener('click', () => {
+                const params = document.getElementById('launchUrlPreview').textContent;
+                const fullUrl = window.location.origin + window.location.pathname + params;
+                const tempInput = document.createElement('textarea');
+                tempInput.value = fullUrl;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+
+                const copyText = document.getElementById('copyUrlText');
+                copyText.textContent = 'Copied!';
+                setTimeout(() => { copyText.textContent = 'Copy URL'; }, 1800);
+            });
 
             document.getElementById('audioToggleBtn').addEventListener('click', () => {
                 initAudio();
@@ -1099,14 +1923,43 @@
                 });
             });
 
-            // Keyboard Shortcuts:
-            // - F1 exclusively inverts Left/Right on the camera (F11 is untouched for Fullscreen)
-            // - H toggles the hidden HUD
-            // - Space triggers Thunder Scare
+            // Comprehensive Keyboard & F-Key Shortcuts:
+            // - F1: Invert Camera Left/Right
+            // - F2: Toggle Multi-Projector View & Rotation Modal
+            // - F3: Cycle Total Projectors (1 -> 2 -> 3 -> 4 -> 1)
+            // - F4: Cycle Assigned Projector Unit (1 -> 2 -> ... -> total)
+            // - F6: Cycle Rotation (0° -> 90° -> 180° -> 270°)
+            // - F7: Toggle Alignment Calibration Grid Overlay
+            // - F11: Untouched so browser native Fullscreen works seamlessly
             window.addEventListener('keydown', (e) => {
                 if (e.key === 'F1') {
                     e.preventDefault();
                     toggleCameraMirror();
+                } else if (e.key === 'F2') {
+                    e.preventDefault();
+                    toggleProjectorModal();
+                } else if (e.key === 'F3') {
+                    e.preventDefault();
+                    const nextTotal = (state.projector.total % 4) + 1;
+                    setTotalProjectors(nextTotal, true);
+                } else if (e.key === 'F4') {
+                    e.preventDefault();
+                    const nextUnit = (state.projector.unit % state.projector.total) + 1;
+                    setProjectorUnit(nextUnit, true);
+                } else if (e.key === 'F6') {
+                    e.preventDefault();
+                    const nextRot = (state.projector.rotation + 90) % 360;
+                    setProjectorRotation(nextRot, true);
+                } else if (e.key === 'F7') {
+                    e.preventDefault();
+                    state.projector.showCalibGrid = !state.projector.showCalibGrid;
+                    updateProjectorUI();
+                    showToast(
+                        `Alignment Grid: ${state.projector.showCalibGrid ? 'ON' : 'OFF'}`,
+                        'Press F7 anytime to toggle calibration crosshair'
+                    );
+                } else if (e.key === 'Escape' && state.projectorModalVisible) {
+                    toggleProjectorModal();
                 } else if (e.key === 'h' || e.key === 'H') {
                     toggleHud();
                 } else if (e.code === 'Space') {
@@ -1115,7 +1968,10 @@
                 }
             });
 
-            handleResize();
+            // Initialize saved projector config, build panoramic world, and start loop
+            loadProjectorConfig();
+            syncMirrorUI();
+            initSceneEntities();
             requestAnimationFrame(animate);
             toggleCamera();
         }
