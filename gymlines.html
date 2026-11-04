@@ -1,0 +1,2536 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GymLine Pro — Multi-Projector Sports Court & Track Line Projection System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,600;0,700;1,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000000;
+            font-family: 'Inter', sans-serif;
+            color: #f8fafc;
+        }
+        .font-sport {
+            font-family: 'Chakra Petch', sans-serif;
+            letter-spacing: 0.04em;
+        }
+        .font-mono-code {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        #courtCanvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+            cursor: crosshair;
+        }
+        .hud-glass {
+            background: rgba(9, 13, 24, 0.88);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 25px rgba(16, 185, 129, 0.14);
+        }
+        .hud-glass-cyan {
+            background: rgba(8, 14, 26, 0.92);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(56, 189, 248, 0.4);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(56, 189, 248, 0.16);
+        }
+        input[type="range"] {
+            accent-color: #10b981;
+        }
+        input[type="range"].cyan-slider {
+            accent-color: #38bdf8;
+        }
+        input[type="range"].amber-slider {
+            accent-color: #f59e0b;
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(16, 185, 129, 0.45);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="relative w-screen h-screen overflow-hidden select-none">
+
+    <!-- Primary Fullscreen Gym Court Projection Canvas -->
+    <canvas id="courtCanvas"></canvas>
+
+    <!-- Auto-Hiding On-Screen Toast Banner for F-Key & Preset Actions -->
+    <div id="toastBanner" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 -translate-y-4 transition-all duration-300">
+        <div class="hud-glass-cyan px-5 py-3 rounded-2xl flex items-center gap-3.5 border border-sky-400/50">
+            <i id="toastIcon" class="ph-fill ph-court-basketball text-2xl text-emerald-400"></i>
+            <div>
+                <div id="toastTitle" class="text-xs uppercase tracking-wider font-semibold text-sky-300">Court Preset Updated</div>
+                <div id="toastSub" class="text-sm font-bold text-white font-mono-code">Projector 1 of 1 (1% - 100%) • 0°</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Top-Left Quick Bar (Starts hidden for clean projection; toggled via H or Double-Click) -->
+    <div id="topLeftBar" class="fixed top-4 left-4 z-30 flex flex-wrap items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+        <button id="toggleHudBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium text-emerald-300 hover:text-white hover:border-emerald-400/60 transition-all shadow-lg" title="Toggle Gym Line Controls (Shortcut: H or Double-Click)">
+            <i class="ph-fill ph-sliders-horizontal text-lg text-emerald-400"></i>
+            <span id="toggleHudText">Court Controls</span>
+        </button>
+
+        <button id="openProjectorHudBtn" class="hud-glass-cyan px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-sm font-medium text-sky-300 hover:text-white hover:border-sky-400/60 transition-all shadow-lg" title="Toggle Multi-Projector Slicer & Rotation Setup (Shortcut: F2)">
+            <i class="ph-fill ph-projector-screen text-lg text-sky-400"></i>
+            <span id="projectorQuickBadge" class="font-mono-code text-xs sm:text-sm">Proj 1/1 (1-100%) • 0°</span>
+        </button>
+
+        <button id="quickCycleSportBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-amber-200 hover:text-white hover:border-amber-400/60 transition-all" title="Cycle Sport Court Preset (Shortcut: F5 or Keys 1-8)">
+            <i class="ph-fill ph-court-basketball text-amber-400 text-lg"></i>
+            <span id="activeSportQuickLabel">Sport: Multi-Sport Gym</span>
+        </button>
+    </div>
+
+    <!-- Top-Right Quick Action Bar (Starts hidden; toggled via H or Double-Click) -->
+    <div id="topRightBar" class="fixed top-4 right-4 z-30 flex flex-wrap items-center gap-2 opacity-0 pointer-events-none transition-all duration-300">
+        <button id="surfaceModeQuickBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-amber-300 hover:text-white hover:border-amber-400/60 transition-all" title="Cycle Floor Surface & Brightness Mode (Shortcut: F10)">
+            <i class="ph-fill ph-sun-horizon text-amber-400 text-lg"></i>
+            <span id="surfaceQuickLabel" class="hidden sm:inline">Floor: Laser Blackout</span>
+        </button>
+
+        <button id="flipHorizontalQuickBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-emerald-300 hover:text-white hover:border-emerald-400/60 transition-all" title="Mirror Court Left/Right (Shortcut: F1)">
+            <i class="ph-bold ph-arrows-left-right text-emerald-400 text-lg"></i>
+            <span id="mirrorQuickLabel" class="hidden sm:inline">L/R: Standard</span>
+        </button>
+
+        <button id="calibGridQuickBtn" class="hud-glass-cyan px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-sky-300 hover:text-white hover:border-sky-400/60 transition-all" title="Toggle Projector Alignment Grid (Shortcut: F7)">
+            <i class="ph-bold ph-grid-four text-sky-400 text-lg"></i>
+            <span class="hidden sm:inline">Grid (F7)</span>
+        </button>
+
+        <button id="markerModeQuickBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:border-emerald-400/60 transition-all" title="Toggle Click-to-Place Coaching Cones / Targets (Shortcut: M)">
+            <i class="ph-fill ph-map-pin text-rose-400 text-lg"></i>
+            <span id="markerQuickLabel" class="hidden sm:inline">Cones: OFF</span>
+        </button>
+    </div>
+
+    <!-- Main Toggleable HUD Control Panel (Starts hidden; toggled with H or Double-Click) -->
+    <aside id="hudPanel" class="fixed top-16 left-4 z-30 w-80 sm:w-[25rem] max-h-[calc(100vh-5rem)] overflow-y-auto custom-scroll hud-glass rounded-2xl p-5 transition-all duration-300 opacity-0 -translate-x-8 pointer-events-none">
+        <!-- Header -->
+        <div class="flex items-center justify-between pb-3 mb-4 border-b border-emerald-500/25">
+            <div class="flex items-center gap-2.5">
+                <i class="ph-fill ph-court-basketball text-2xl text-emerald-400"></i>
+                <div>
+                    <h1 class="font-sport text-xl font-bold text-white leading-none tracking-wide">GYMLINE PRO</h1>
+                    <p class="text-[11px] text-emerald-300/80 mt-0.5">Multi-Projector Static Sports Line System</p>
+                </div>
+            </div>
+            <button id="closeHudBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Hide HUD (Shortcut: H or Double-Click)">
+                <i class="ph-bold ph-x text-base"></i>
+            </button>
+        </div>
+
+        <!-- Quick Open Multi-Projector Setup Button -->
+        <button id="openProjectorFromSceneBtn" class="w-full mb-4 py-2.5 px-3.5 rounded-xl font-semibold text-xs flex items-center justify-between border border-sky-400/40 bg-sky-950/60 hover:bg-sky-900/70 text-sky-200 transition-all shadow-md">
+            <span class="flex items-center gap-2">
+                <i class="ph-fill ph-projector-screen-chart text-sky-400 text-base"></i>
+                <span>Multi-Projector Slicer & Rotation Setup</span>
+            </span>
+            <kbd class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono-code text-[11px]">Press F2</kbd>
+        </button>
+
+        <!-- 1. Select Sport / Court Line Preset (Keys 1-8 or F5) -->
+        <div class="mb-4">
+            <div class="flex items-center justify-between mb-2">
+                <label class="text-xs font-semibold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
+                    <i class="ph-fill ph-trophy text-emerald-400"></i>
+                    <span>Sport / Gym Court Preset</span>
+                </label>
+                <span class="text-[10px] font-mono-code text-slate-400">Keys <kbd class="px-1 py-0.5 bg-white/10 rounded text-slate-200">1-8</kbd> or <kbd class="px-1 py-0.5 bg-white/10 rounded text-slate-200">F5</kbd></span>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5 text-xs" id="sportPresetGroup">
+                <button data-sport="multi" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">1. Multi-Sport Gym</span>
+                    <span class="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
+                </button>
+                <button data-sport="track" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">2. Running Track</span>
+                    <span class="w-2 h-2 rounded-full bg-rose-400 shrink-0"></span>
+                </button>
+                <button data-sport="hockey" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">3. Hockey Rink</span>
+                    <span class="w-2 h-2 rounded-full bg-sky-400 shrink-0"></span>
+                </button>
+                <button data-sport="soccer" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">4. Soccer / Futsal</span>
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></span>
+                </button>
+                <button data-sport="tennis" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">5. Tennis Court</span>
+                    <span class="w-2 h-2 rounded-full bg-lime-400 shrink-0"></span>
+                </button>
+                <button data-sport="basketball" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">6. Basketball</span>
+                    <span class="w-2 h-2 rounded-full bg-orange-400 shrink-0"></span>
+                </button>
+                <button data-sport="volleyball" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">7. Volleyball</span>
+                    <span class="w-2 h-2 rounded-full bg-cyan-400 shrink-0"></span>
+                </button>
+                <button data-sport="badminton" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">8. Badminton / Pickle</span>
+                    <span class="w-2 h-2 rounded-full bg-fuchsia-400 shrink-0"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Multi-Sport Individual Layer Toggles (Visible when Multi-Sport is active) -->
+        <div id="multiLayerBox" class="mb-4 p-3 rounded-xl bg-slate-950/70 border border-emerald-500/25 text-xs">
+            <div class="text-[11px] font-semibold text-emerald-300 mb-2 flex items-center justify-between">
+                <span>Active Multi-Sport Overlay Layers:</span>
+                <span class="text-[10px] text-slate-400 font-mono-code">Toggle Layers</span>
+            </div>
+            <div class="grid grid-cols-2 gap-1.5">
+                <label class="flex items-center gap-2 cursor-pointer text-slate-200">
+                    <input type="checkbox" id="layerBasketball" checked class="rounded accent-orange-500">
+                    <span class="text-orange-300">Basketball (Main)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-slate-200">
+                    <input type="checkbox" id="layerVolleyball" checked class="rounded accent-sky-400">
+                    <span class="text-sky-300">Volleyball (Center)</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-slate-200">
+                    <input type="checkbox" id="layerBadminton" checked class="rounded accent-yellow-400">
+                    <span class="text-yellow-300">Badminton / Pickle</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer text-slate-200">
+                    <input type="checkbox" id="layerTrackOuter" class="rounded accent-rose-400">
+                    <span class="text-rose-300">Perimeter Track</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 2. Line Color Override Palette -->
+        <div class="mb-4">
+            <div class="flex items-center justify-between mb-1.5">
+                <label class="text-xs font-medium text-slate-300">Projected Line Color Palette</label>
+                <span id="paletteLabel" class="text-[11px] font-mono-code text-emerald-400">Official Multi-Color</span>
+            </div>
+            <div class="grid grid-cols-6 gap-1.5" id="colorPaletteGroup">
+                <button data-palette="official" class="palette-btn h-8 rounded-lg border border-emerald-400 bg-gradient-to-r from-orange-500 via-sky-400 to-yellow-400 text-[10px] font-bold text-black shadow" title="Official Regulation Multi-Color">REG</button>
+                <button data-palette="white" class="palette-btn h-8 rounded-lg border border-white/20 bg-white text-[10px] font-bold text-black" title="Pure High-Lumen White">WHT</button>
+                <button data-palette="yellow" class="palette-btn h-8 rounded-lg border border-white/20 bg-yellow-400 text-[10px] font-bold text-black" title="Laser High-Vis Yellow">YLW</button>
+                <button data-palette="cyan" class="palette-btn h-8 rounded-lg border border-white/20 bg-cyan-400 text-[10px] font-bold text-black" title="Electric Cyan">CYN</button>
+                <button data-palette="green" class="palette-btn h-8 rounded-lg border border-white/20 bg-lime-400 text-[10px] font-bold text-black" title="Laser Green">GRN</button>
+                <button data-palette="orange" class="palette-btn h-8 rounded-lg border border-white/20 bg-orange-500 text-[10px] font-bold text-white" title="Safety Orange">ORG</button>
+            </div>
+        </div>
+
+        <!-- 3. Line Geometry, Glow & Scale Sliders -->
+        <div class="space-y-3.5 text-xs mb-4">
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="lineWidthSlider" class="text-slate-300 font-medium flex items-center gap-1.5">
+                        <span>Line Width / Thickness</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-slate-300 font-mono-code">[ / ]</span>
+                    </label>
+                    <span id="lineWidthVal" class="text-emerald-400 font-mono-code">5.0 px</span>
+                </div>
+                <input id="lineWidthSlider" type="range" min="1.5" max="18" step="0.5" value="5" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="lineGlowSlider" class="text-slate-300 font-medium flex items-center gap-1.5">
+                        <span>Laser Line Glow / Bloom</span>
+                        <span class="text-[10px] px-1.5 py-0.2 rounded bg-white/10 text-slate-300 font-mono-code">F8 / F9</span>
+                    </label>
+                    <span id="lineGlowVal" class="text-emerald-400 font-mono-code">35%</span>
+                </div>
+                <input id="lineGlowSlider" type="range" min="0" max="100" step="5" value="35" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="courtScaleSlider" class="text-slate-300 font-medium">Court Footprint Scale / Margin</label>
+                    <span id="courtScaleVal" class="text-emerald-400 font-mono-code">90%</span>
+                </div>
+                <input id="courtScaleSlider" type="range" min="55" max="115" step="1" value="90" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer">
+            </div>
+        </div>
+
+        <!-- 4. Floor Surface & Projector Lumen Boost (F10) -->
+        <div class="pt-3 border-t border-emerald-500/20 space-y-3 text-xs">
+            <div>
+                <div class="flex items-center justify-between mb-1.5">
+                    <label class="text-amber-300 font-semibold flex items-center gap-1.5">
+                        <i class="ph-fill ph-sun-horizon text-amber-400 text-sm"></i>
+                        <span>Projection Floor Surface Mode</span>
+                    </label>
+                    <kbd class="px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono-code text-[10px]">Press F10</kbd>
+                </div>
+                <div class="grid grid-cols-2 gap-1.5" id="surfaceModeGroup">
+                    <button data-surface="blackout" class="surface-mode-btn py-1.5 px-2 rounded-lg font-medium border transition-all text-[11px]" title="Pure black #000000 background so projectors only project light on the court lines">
+                        Laser Blackout (#000)
+                    </button>
+                    <button data-surface="hardwood" class="surface-mode-btn py-1.5 px-2 rounded-lg font-medium border transition-all text-[11px]" title="Simulated maple gym floor planks + court lines">
+                        Maple Hardwood
+                    </button>
+                    <button data-surface="floodlight" class="surface-mode-btn py-1.5 px-2 rounded-lg font-medium border transition-all text-[11px]" title="High-brightness illuminated white floor with bold lines">
+                        Bright Floodlight
+                    </button>
+                    <button data-surface="xray_invert" class="surface-mode-btn py-1.5 px-2 rounded-lg font-medium border transition-all text-[11px]" title="High-contrast spectral inverted floor mode">
+                        X-Ray High-Vis
+                    </button>
+                </div>
+            </div>
+
+            <div>
+                <div class="flex justify-between mb-1">
+                    <label for="lumenBoostSlider" class="text-slate-300 font-medium">Projector Lumen / Contrast Boost</label>
+                    <span id="lumenBoostVal" class="text-amber-400 font-mono-code">100%</span>
+                </div>
+                <input id="lumenBoostSlider" type="range" min="100" max="250" step="5" value="100" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer amber-slider">
+            </div>
+
+            <!-- Dimension Labels, Center Watermark & Interactive Coaching Cones -->
+            <div class="grid grid-cols-2 gap-2 pt-1">
+                <button id="toggleDimensionsBtn" class="py-2 px-2.5 rounded-xl font-medium border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center justify-center gap-1.5 text-[11px]">
+                    <i class="ph-bold ph-ruler text-emerald-400"></i>
+                    <span id="dimensionsBtnText">Dimensions: ON (L)</span>
+                </button>
+                <button id="toggleWatermarkBtn" class="py-2 px-2.5 rounded-xl font-medium border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center justify-center gap-1.5 text-[11px]">
+                    <i class="ph-bold ph-shield-star text-sky-400"></i>
+                    <span id="watermarkBtnText">Center Logo: ON</span>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="toggleMarkersBtn" class="flex-1 py-2 px-2.5 rounded-xl font-medium border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center justify-center gap-1.5 text-[11px]">
+                    <i class="ph-fill ph-traffic-cone text-rose-400"></i>
+                    <span id="markersBtnText">Click Drill Cones: OFF (M)</span>
+                </button>
+                <button id="clearMarkersBtn" class="py-2 px-3 rounded-xl font-medium border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-200 transition-all text-[11px]" title="Clear all placed coaching cones (Shortcut: C)">
+                    Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Footer Shortcut Legend -->
+        <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-1.5 text-[10px] text-slate-400 font-mono-code">
+            <span><kbd class="px-1.5 py-0.5 bg-sky-500/20 rounded text-sky-300">F2</kbd> Projectors</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F3/F4</kbd> Split/Unit</span>
+            <span><kbd class="px-1.5 py-0.5 bg-emerald-500/20 rounded text-emerald-300">F5</kbd> Sport</span>
+            <span><kbd class="px-1.5 py-0.5 bg-amber-500/20 rounded text-amber-300">F10</kbd> Surface</span>
+            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">H</kbd> Hide UI</span>
+        </div>
+    </aside>
+
+    <!-- Dedicated Multi-Projector View Selector & Rotation Calibration Modal (Toggled via F2) -->
+    <section id="projectorModal" class="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+        <div class="hud-glass-cyan w-full max-w-xl rounded-2xl p-6 max-h-[92vh] overflow-y-auto custom-scroll border border-sky-400/40">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between pb-4 mb-5 border-b border-sky-500/25">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-300">
+                        <i class="ph-fill ph-projector-screen-chart text-2xl"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg font-bold text-white">Multi-Projector Court Slicer & Rotation</h2>
+                            <span class="px-2 py-0.5 text-[10px] font-mono-code uppercase bg-sky-500/20 text-sky-300 rounded border border-sky-400/30">Shortcut: F2</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mt-0.5">Split static gym court lines across 1, 2, 3, or 4 ceiling/wall projectors & calibrate alignment</p>
+                    </div>
+                </div>
+                <button id="closeProjectorModalBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Close Projector Setup (F2 or Esc)">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Live Panoramic Viewport Slice Visualizer Bar -->
+            <div class="mb-5 p-3.5 rounded-xl bg-slate-950/85 border border-sky-500/25">
+                <div class="flex items-center justify-between text-xs mb-2">
+                    <span class="text-slate-300 font-medium flex items-center gap-1.5">
+                        <i class="ph-fill ph-panorama text-sky-400"></i>
+                        Active Gym Floor Slice Preview
+                    </span>
+                    <span id="sliceRangeReadout" class="font-mono-code font-semibold text-sky-300">
+                        Projector 1 of 1 • 1% – 100% (Full Court)
+                    </span>
+                </div>
+                <div class="relative w-full h-9 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden">
+                    <div id="panoramaGridTicks" class="absolute inset-0 flex"></div>
+                    <div id="panoramaActiveHighlight" class="absolute top-0 bottom-0 bg-gradient-to-r from-sky-500/45 via-emerald-500/45 to-sky-500/45 border-x-2 border-sky-300 transition-all duration-200 flex items-center justify-center">
+                        <span id="panoramaActiveLabel" class="text-[11px] font-mono-code font-bold text-white drop-shadow px-1.5 py-0.5 rounded bg-black/65">
+                            1% - 100%
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Total Projectors Count (1, 2, 3, 4) -->
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-sky-300">
+                        1. Total Projectors Spanning Gym Floor
+                    </label>
+                    <span class="text-[11px] text-slate-400 font-mono-code">Cycle Key: <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F3</kbd></span>
+                </div>
+                <div class="grid grid-cols-4 gap-2" id="totalProjectorsGroup">
+                    <button data-total="1" class="total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-0.5">
+                        <span class="text-sm font-bold">1 Projector</span>
+                        <span class="text-[10px] opacity-75 font-mono-code">100% Court</span>
+                    </button>
+                    <button data-total="2" class="total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-0.5">
+                        <span class="text-sm font-bold">2 Projectors</span>
+                        <span class="text-[10px] opacity-75 font-mono-code">50% Each</span>
+                    </button>
+                    <button data-total="3" class="total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-0.5">
+                        <span class="text-sm font-bold">3 Projectors</span>
+                        <span class="text-[10px] opacity-75 font-mono-code">33.3% Each</span>
+                    </button>
+                    <button data-total="4" class="total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center gap-0.5">
+                        <span class="text-sm font-bold">4 Projectors</span>
+                        <span class="text-[10px] opacity-75 font-mono-code">25% Each</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Step 2: Select Which Projector Unit This PC Drives -->
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-sky-300">
+                        2. Assigned Projector Unit for This Display
+                    </label>
+                    <span class="text-[11px] text-slate-400 font-mono-code">Cycle Key: <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F4</kbd></span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" id="unitProjectorGroup">
+                    <!-- Populated dynamically with exact slice percentages -->
+                </div>
+            </div>
+
+            <!-- Step 3: Display Rotation & Orientation (0°, 90°, 180°, 270° + Fine Tilt & Overlap) -->
+            <div class="mb-5">
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-semibold uppercase tracking-wider text-sky-300">
+                        3. Projector Mount Orientation & Rotation
+                    </label>
+                    <span class="text-[11px] text-slate-400 font-mono-code">Cycle 90° Key: <kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F6</kbd></span>
+                </div>
+                <div class="grid grid-cols-4 gap-2 mb-3" id="rotationGroup">
+                    <button data-rot="0" class="rot-btn py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center">
+                        <span class="text-sm font-bold">0°</span>
+                        <span class="text-[10px] opacity-75">Landscape</span>
+                    </button>
+                    <button data-rot="90" class="rot-btn py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center">
+                        <span class="text-sm font-bold">90° CW</span>
+                        <span class="text-[10px] opacity-75">Portrait R</span>
+                    </button>
+                    <button data-rot="180" class="rot-btn py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center">
+                        <span class="text-sm font-bold">180°</span>
+                        <span class="text-[10px] opacity-75">Inverted</span>
+                    </button>
+                    <button data-rot="270" class="rot-btn py-2 px-3 rounded-xl text-xs font-semibold border transition-all flex flex-col items-center">
+                        <span class="text-sm font-bold">270° CW</span>
+                        <span class="text-[10px] opacity-75">Portrait L</span>
+                    </button>
+                </div>
+
+                <!-- Fine Skew/Tilt & Edge Overlap Sliders -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3.5 rounded-xl bg-slate-950/60 border border-white/10 text-xs">
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label for="fineAngleSlider" class="text-slate-300 font-medium">Fine Court Alignment Tilt (-15° to +15°)</label>
+                            <span id="fineAngleVal" class="text-sky-400 font-mono-code">0.0°</span>
+                        </div>
+                        <input id="fineAngleSlider" type="range" min="-15" max="15" step="0.25" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer cyan-slider">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between mb-1">
+                            <label for="sliceOffsetSlider" class="text-slate-300 font-medium">Horizontal Seam Shift / Overlap</label>
+                            <span id="sliceOffsetVal" class="text-sky-400 font-mono-code">0%</span>
+                        </div>
+                        <input id="sliceOffsetSlider" type="range" min="-15" max="15" step="0.5" value="0" class="w-full h-1.5 bg-slate-800 rounded-lg cursor-pointer cyan-slider">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Calibration Test Pattern, Flips & Reset -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-4 mb-4 border-b border-white/10">
+                <button id="toggleCalibGridBtn" class="flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-sky-500/40 bg-sky-500/15 hover:bg-sky-500/25 text-sky-200 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-grid-four text-base text-sky-400"></i>
+                    <span id="calibGridBtnText">Alignment Grid: OFF (F7)</span>
+                </button>
+
+                <button id="modalCycleSurfaceModeBtn" class="py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 text-amber-200 transition-all flex items-center justify-center gap-2" title="Cycle Projection Surface Mode (F10)">
+                    <i class="ph-fill ph-sun-horizon text-base text-amber-400"></i>
+                    <span id="modalSurfaceModeText">Surface: Laser Blackout (F10)</span>
+                </button>
+
+                <button id="toggleFlipVBtn" class="py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-arrows-down-up text-base text-emerald-400"></i>
+                    <span id="flipVBtnText">Vertical Flip: OFF</span>
+                </button>
+
+                <button id="resetProjectorBtn" class="py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-200 transition-all">
+                    Reset Default
+                </button>
+            </div>
+
+            <!-- Shareable Direct Launch URL for this Projector PC -->
+            <div class="p-3 rounded-xl bg-black/60 border border-white/10 flex items-center justify-between gap-2 text-xs">
+                <div class="truncate">
+                    <span class="text-slate-400 block text-[10px] uppercase tracking-wider">Bookmark / Direct Launch URL Params for this Projector PC:</span>
+                    <code id="launchUrlPreview" class="text-sky-300 font-mono-code text-[11px] truncate block mt-0.5">?sport=multi&total=1&unit=1&rot=0</code>
+                </div>
+                <button id="copyLaunchUrlBtn" class="shrink-0 px-3 py-1.5 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/30 text-sky-200 font-medium transition-all flex items-center gap-1.5">
+                    <i class="ph-bold ph-copy"></i>
+                    <span id="copyUrlText">Copy URL</span>
+                </button>
+            </div>
+
+            <!-- F-Key Cheat Sheet Footer -->
+            <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-slate-400 font-mono-code">
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F1</kbd> Mirror Court L/R</div>
+                <div><kbd class="px-1.5 py-0.5 bg-sky-500/25 rounded text-sky-300">F2</kbd> Projector Menu</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F3</kbd> Split (1/2/3/4)</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F4</kbd> Unit (1..4)</div>
+                <div><kbd class="px-1.5 py-0.5 bg-emerald-500/25 rounded text-emerald-300">F5</kbd> Cycle Sport</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F6</kbd> Rotate 90°</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F7</kbd> Alignment Grid</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">[ / ]</kbd> Line Thickness</div>
+                <div><kbd class="px-1.5 py-0.5 bg-amber-500/25 rounded text-amber-300">F10</kbd> Floor Surface</div>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        /**
+         * GYMLINE PRO — Multi-Projector Sports Court & Track Line Projection System
+         *
+         * Built on the exact multi-projector slicing, rotation, and brightness architecture of HalloweenGame.html:
+         * - Splits a continuous regulation gymnasium / sports field across 1, 2, 3, or 4 projectors:
+         *   - 4 Projectors: Unit 1 (1–25%), Unit 2 (26–50%), Unit 3 (51–75%), Unit 4 (76–100%)
+         *   - 3 Projectors: Unit 1 (1–33%), Unit 2 (34–67%), Unit 3 (68–100%)
+         *   - 2 Projectors: Unit 1 (1–50%), Unit 2 (51–100%)
+         *   - 1 Projector : Unit 1 (1–100%)
+         * - Supports 8 regulation static court presets:
+         *   1. Multi-Sport Gym Floor (Basketball + Volleyball + Badminton/Pickleball + Optional Track)
+         *   2. 6-Lane Running Track (Indoor Oval, Staggered Starts, Relay Zones, Sprint Straightaway)
+         *   3. Ice / Floor Hockey Rink (Boards, Red/Blue Lines, 5 Faceoff Circles, Creases, Trapezoids)
+         *   4. Soccer / Futsal Pitch (Touchlines, Center Circle, Penalty & Goal Areas, Penalty Arcs, Corners)
+         *   5. Tennis Court (Doubles/Singles Sidelines, Service Boxes, Center Mark, Net Posts)
+         *   6. Basketball Court (Full Court, 3-Point Arcs, Free-Throw Keys, Hash Marks, Restricted Arcs)
+         *   7. Volleyball Court (Boundary, Center Net Line, 3m Attack Lines, Service & Substitution Zones)
+         *   8. Dual Badminton & Pickleball Courts (Side-by-side regulation courts with Kitchen/Service lines)
+         */
+        function initGymLineProjectorApp() {
+            const STORAGE_KEY = 'gymline_pro_projector_cfg_v1';
+            const canvas = document.getElementById('courtCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const SPORT_METADATA = {
+                multi:      { name: 'Multi-Sport Gym',       dims: '94 ft × 50 ft (28.65m × 15.24m)' },
+                track:      { name: '6-Lane Running Track',  dims: '200m Indoor Oval • 6 Lanes (1.22m/lane)' },
+                hockey:     { name: 'Ice / Floor Hockey Rink', dims: '200 ft × 85 ft (60.96m × 25.91m)' },
+                soccer:     { name: 'Soccer / Futsal Pitch', dims: '40m × 20m (Futsal / Indoor Regulation)' },
+                tennis:     { name: 'Tennis Court',          dims: '78 ft × 36 ft (23.77m × 10.97m Doubles)' },
+                basketball: { name: 'Basketball Court',      dims: '94 ft × 50 ft (28.65m × 15.24m)' },
+                volleyball: { name: 'Volleyball Court',      dims: '18m × 9m (59 ft × 29.5 ft)' },
+                badminton:  { name: 'Badminton / Pickleball', dims: '44 ft × 20 ft (Dual Courts)' }
+            };
+
+            const SPORT_KEYS = ['multi', 'track', 'hockey', 'soccer', 'tennis', 'basketball', 'volleyball', 'badminton'];
+
+            const PALETTE_SWATCHES = {
+                white:  '#ffffff',
+                yellow: '#facc15',
+                cyan:   '#22d3ee',
+                green:  '#a3e635',
+                orange: '#f97316'
+            };
+
+            const state = {
+                // Physical screen dimensions
+                screenW: window.innerWidth,
+                screenH: window.innerHeight,
+
+                // Effective unrotated slice viewport dimensions (swaps W/H when rotated 90° or 270°)
+                viewW: window.innerWidth,
+                viewH: window.innerHeight,
+
+                // Virtual panoramic world dimensions (virtualW = viewW * totalProjectors)
+                virtualW: window.innerWidth,
+                virtualH: window.innerHeight,
+
+                // Multi-Projector Configuration
+                projector: {
+                    total: 1,          // 1, 2, 3, or 4 projectors
+                    unit: 1,           // 1 .. total
+                    rotation: 0,       // 0, 90, 180, 270 degrees
+                    fineAngle: 0,      // -15 to +15 degrees
+                    offsetPct: 0,      // -15% to +15% horizontal seam shift
+                    flipV: false,      // Vertical flip
+                    mirrorH: false,    // Horizontal mirror (F1)
+                    showCalibGrid: false
+                },
+
+                // Sport & Line Styling Configuration
+                sport: 'multi',        // 'multi' | 'track' | 'hockey' | 'soccer' | 'tennis' | 'basketball' | 'volleyball' | 'badminton'
+                multiLayers: {
+                    basketball: true,
+                    volleyball: true,
+                    badminton: true,
+                    trackOuter: false
+                },
+                palette: 'official',   // 'official' | 'white' | 'yellow' | 'cyan' | 'green' | 'orange'
+                lineWidth: 5.0,        // Base line thickness in px
+                lineGlow: 35,          // 0% to 100% neon/laser bloom
+                courtScale: 90,        // 55% to 115% court footprint scale
+                surfaceMode: 'blackout', // 'blackout' (#000000) | 'hardwood' | 'floodlight' | 'xray_invert'
+                lumenBoost: 100,       // 100% to 250% projector brightness/contrast boost
+                showDimensions: true,
+                showWatermark: true,
+
+                // Interactive Coaching Cones / Target Markers
+                markerMode: false,
+                markers: [],           // Stored in normalized virtual coordinates { nx, ny, color, label }
+
+                hudVisible: false,
+                projectorModalVisible: false
+            };
+
+            let toastTimer = null;
+
+            function showToast(title, subtitle, iconClass = 'ph-fill ph-court-basketball') {
+                const banner = document.getElementById('toastBanner');
+                document.getElementById('toastTitle').textContent = title;
+                document.getElementById('toastSub').textContent = subtitle;
+                document.getElementById('toastIcon').className = `${iconClass} text-2xl text-emerald-400`;
+
+                banner.classList.remove('opacity-0', '-translate-y-4');
+                if (toastTimer) clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    banner.classList.add('opacity-0', '-translate-y-4');
+                }, 2600);
+            }
+
+            // Compute human-friendly percentage label for a given unit & total (e.g., 1-25%, 26-50%, 51-75%, 76-100%)
+            function getSlicePercentageLabel(unitIndex1Based, totalUnits, offsetPct = 0) {
+                if (totalUnits <= 1) {
+                    return { startPct: 1, endPct: 100, text: '1% – 100%' };
+                }
+                const rawStart = ((unitIndex1Based - 1) / totalUnits) * 100 + offsetPct;
+                const rawEnd = (unitIndex1Based / totalUnits) * 100 + offsetPct;
+                const startPct = unitIndex1Based === 1 && offsetPct === 0 ? 1 : Math.round(rawStart) + (offsetPct === 0 ? 1 : 0);
+                const endPct = Math.round(rawEnd);
+                return {
+                    startPct,
+                    endPct,
+                    text: `${startPct}% – ${endPct}%`
+                };
+            }
+
+            function loadConfig() {
+                try {
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        const parsed = JSON.parse(saved);
+                        if ([1, 2, 3, 4].includes(Number(parsed.total))) state.projector.total = Number(parsed.total);
+                        if (Number(parsed.unit) >= 1 && Number(parsed.unit) <= 4) state.projector.unit = Number(parsed.unit);
+                        if ([0, 90, 180, 270].includes(Number(parsed.rotation))) state.projector.rotation = Number(parsed.rotation);
+                        if (typeof parsed.fineAngle === 'number') state.projector.fineAngle = parsed.fineAngle;
+                        if (typeof parsed.offsetPct === 'number') state.projector.offsetPct = parsed.offsetPct;
+                        if (typeof parsed.flipV === 'boolean') state.projector.flipV = parsed.flipV;
+                        if (typeof parsed.mirrorH === 'boolean') state.projector.mirrorH = parsed.mirrorH;
+                        if (SPORT_KEYS.includes(parsed.sport)) state.sport = parsed.sport;
+                        if (parsed.multiLayers && typeof parsed.multiLayers === 'object') {
+                            state.multiLayers = { ...state.multiLayers, ...parsed.multiLayers };
+                        }
+                        if (typeof parsed.palette === 'string') state.palette = parsed.palette;
+                        if (typeof parsed.lineWidth === 'number') state.lineWidth = Math.max(1.5, Math.min(18, parsed.lineWidth));
+                        if (typeof parsed.lineGlow === 'number') state.lineGlow = Math.max(0, Math.min(100, parsed.lineGlow));
+                        if (typeof parsed.courtScale === 'number') state.courtScale = Math.max(55, Math.min(115, parsed.courtScale));
+                        if (['blackout', 'hardwood', 'floodlight', 'xray_invert'].includes(parsed.surfaceMode)) {
+                            state.surfaceMode = parsed.surfaceMode;
+                        }
+                        if (typeof parsed.lumenBoost === 'number') state.lumenBoost = Math.max(100, Math.min(250, parsed.lumenBoost));
+                        if (typeof parsed.showDimensions === 'boolean') state.showDimensions = parsed.showDimensions;
+                        if (typeof parsed.showWatermark === 'boolean') state.showWatermark = parsed.showWatermark;
+                    }
+                } catch (e) {}
+
+                // URL query parameters override localStorage so each projector PC can have a dedicated shortcut
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('sport')) {
+                    const s = params.get('sport').toLowerCase();
+                    if (SPORT_KEYS.includes(s)) state.sport = s;
+                }
+                if (params.has('total')) {
+                    const t = parseInt(params.get('total'), 10);
+                    if ([1, 2, 3, 4].includes(t)) state.projector.total = t;
+                }
+                if (params.has('unit')) {
+                    const u = parseInt(params.get('unit'), 10);
+                    if (u >= 1 && u <= 4) state.projector.unit = u;
+                }
+                if (params.has('rot')) {
+                    const r = parseInt(params.get('rot'), 10);
+                    if ([0, 90, 180, 270].includes(r)) state.projector.rotation = r;
+                }
+                if (params.has('tilt')) {
+                    const tilt = parseFloat(params.get('tilt'));
+                    if (!isNaN(tilt)) state.projector.fineAngle = Math.max(-15, Math.min(15, tilt));
+                }
+                if (params.has('offset')) {
+                    const off = parseFloat(params.get('offset'));
+                    if (!isNaN(off)) state.projector.offsetPct = Math.max(-15, Math.min(15, off));
+                }
+                if (params.has('surface')) {
+                    const sm = params.get('surface');
+                    if (['blackout', 'hardwood', 'floodlight', 'xray_invert'].includes(sm)) state.surfaceMode = sm;
+                }
+                if (params.has('lumen')) {
+                    const lb = parseInt(params.get('lumen'), 10);
+                    if (!isNaN(lb)) state.lumenBoost = Math.max(100, Math.min(250, lb));
+                }
+
+                if (state.projector.unit > state.projector.total) {
+                    state.projector.unit = state.projector.total;
+                }
+            }
+
+            function saveConfig() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                        total: state.projector.total,
+                        unit: state.projector.unit,
+                        rotation: state.projector.rotation,
+                        fineAngle: state.projector.fineAngle,
+                        offsetPct: state.projector.offsetPct,
+                        flipV: state.projector.flipV,
+                        mirrorH: state.projector.mirrorH,
+                        sport: state.sport,
+                        multiLayers: state.multiLayers,
+                        palette: state.palette,
+                        lineWidth: state.lineWidth,
+                        lineGlow: state.lineGlow,
+                        courtScale: state.courtScale,
+                        surfaceMode: state.surfaceMode,
+                        lumenBoost: state.lumenBoost,
+                        showDimensions: state.showDimensions,
+                        showWatermark: state.showWatermark
+                    }));
+                } catch (e) {}
+            }
+
+            function applyCanvasFilter() {
+                const boostRatio = state.lumenBoost / 100;
+                const filters = [];
+
+                if (state.surfaceMode === 'xray_invert') {
+                    filters.push('invert(1)', 'hue-rotate(180deg)');
+                    filters.push(`brightness(${(boostRatio * 1.1).toFixed(2)})`);
+                    filters.push(`contrast(${(1.15 + (boostRatio - 1) * 0.4).toFixed(2)})`);
+                } else if (state.lumenBoost > 100) {
+                    filters.push(`brightness(${boostRatio.toFixed(2)})`);
+                    filters.push(`contrast(${(1 + (boostRatio - 1) * 0.35).toFixed(2)})`);
+                    filters.push(`saturate(${(1 + (boostRatio - 1) * 0.3).toFixed(2)})`);
+                }
+
+                canvas.style.filter = filters.length > 0 ? filters.join(' ') : 'none';
+            }
+
+            function updateViewportMetrics() {
+                state.screenW = window.innerWidth;
+                state.screenH = window.innerHeight;
+                canvas.width = state.screenW;
+                canvas.height = state.screenH;
+
+                const isQuarterTurn = state.projector.rotation === 90 || state.projector.rotation === 270;
+                state.viewW = isQuarterTurn ? state.screenH : state.screenW;
+                state.viewH = isQuarterTurn ? state.screenW : state.screenH;
+
+                state.virtualW = state.viewW * state.projector.total;
+                state.virtualH = state.viewH;
+            }
+
+            function getSliceWorldOffsetX() {
+                const baseSliceIndex = state.projector.unit - 1;
+                const shiftFraction = state.projector.offsetPct / 100;
+                const rawX = (baseSliceIndex + shiftFraction * state.projector.total) * state.viewW;
+                return Math.max(0, Math.min(Math.max(0, state.virtualW - state.viewW), rawX));
+            }
+
+            // Map screen click/tap into virtual world coordinates [0..virtualW, 0..virtualH]
+            function mapScreenToVirtualWorld(clientX, clientY) {
+                const cx = state.screenW * 0.5;
+                const cy = state.screenH * 0.5;
+                const dx = clientX - cx;
+                const dy = clientY - cy;
+
+                const totalRad = -((state.projector.rotation + state.projector.fineAngle) * Math.PI) / 180;
+                const cosA = Math.cos(totalRad);
+                const sinA = Math.sin(totalRad);
+
+                let rx = dx * cosA - dy * sinA;
+                let ry = dx * sinA + dy * cosA;
+                if (state.projector.flipV) ry = -ry;
+
+                const localX = Math.max(0, Math.min(state.viewW, rx + state.viewW * 0.5));
+                const localY = Math.max(0, Math.min(state.viewH, ry + state.viewH * 0.5));
+
+                let worldX = getSliceWorldOffsetX() + localX;
+                if (state.projector.mirrorH) {
+                    worldX = state.virtualW - worldX;
+                }
+                return { x: worldX, y: localY };
+            }
+
+            // Resolve line color based on active palette and surface mode
+            function resolveLineColor(officialHex) {
+                if (state.palette !== 'official' && PALETTE_SWATCHES[state.palette]) {
+                    const chosen = PALETTE_SWATCHES[state.palette];
+                    if (state.surfaceMode === 'floodlight' && chosen === '#ffffff') {
+                        return '#0f172a';
+                    }
+                    return chosen;
+                }
+                if (state.surfaceMode === 'floodlight' && officialHex.toLowerCase() === '#ffffff') {
+                    return '#0f172a';
+                }
+                return officialHex;
+            }
+
+            // Set stroke style with configurable line thickness and laser glow
+            function setCourtStroke(colorHex, widthMultiplier = 1.0, dashed = null) {
+                const finalColor = resolveLineColor(colorHex);
+                ctx.strokeStyle = finalColor;
+                ctx.fillStyle = finalColor;
+                ctx.lineWidth = state.lineWidth * widthMultiplier;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+
+                if (dashed && Array.isArray(dashed)) {
+                    ctx.setLineDash(dashed.map(d => d * (state.lineWidth / 4.5)));
+                } else {
+                    ctx.setLineDash([]);
+                }
+
+                if (state.lineGlow > 0) {
+                    ctx.shadowColor = finalColor;
+                    ctx.shadowBlur = (state.lineGlow / 100) * 22 * (state.lineWidth / 4.5);
+                } else {
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            // Draw floor background across the visible slice
+            function drawFloorSurface(vw, vh, sliceX, viewW) {
+                ctx.save();
+                ctx.shadowBlur = 0;
+
+                if (state.surfaceMode === 'blackout' || state.surfaceMode === 'xray_invert') {
+                    // Pure #000000 projector blackout so only the lines emit light
+                    ctx.fillStyle = '#000000';
+                    ctx.fillRect(sliceX - 4, 0, viewW + 8, vh);
+                } else if (state.surfaceMode === 'floodlight') {
+                    // High-lumen bright white/slate surface
+                    ctx.fillStyle = '#f1f5f9';
+                    ctx.fillRect(sliceX - 4, 0, viewW + 8, vh);
+
+                    // Subtle matte court tile grid
+                    ctx.strokeStyle = 'rgba(15, 23, 42, 0.05)';
+                    ctx.lineWidth = 1;
+                    const step = 48;
+                    const startX = Math.floor(sliceX / step) * step;
+                    for (let x = startX; x <= sliceX + viewW; x += step) {
+                        ctx.beginPath();
+                        ctx.moveTo(x, 0);
+                        ctx.lineTo(x, vh);
+                        ctx.stroke();
+                    }
+                } else if (state.surfaceMode === 'hardwood') {
+                    // Warm maple gymnasium floor
+                    const woodGrad = ctx.createLinearGradient(0, 0, 0, vh);
+                    woodGrad.addColorStop(0, '#783f12');
+                    woodGrad.addColorStop(0.5, '#924e17');
+                    woodGrad.addColorStop(1, '#713a10');
+                    ctx.fillStyle = woodGrad;
+                    ctx.fillRect(sliceX - 4, 0, viewW + 8, vh);
+
+                    // Horizontal hardwood maple planks
+                    const plankH = 22;
+                    ctx.lineWidth = 1;
+                    for (let y = 0; y < vh; y += plankH) {
+                        ctx.strokeStyle = 'rgba(0, 0, 0, 0.18)';
+                        ctx.beginPath();
+                        ctx.moveTo(sliceX - 4, y);
+                        ctx.lineTo(sliceX + viewW + 4, y);
+                        ctx.stroke();
+                    }
+                }
+
+                ctx.restore();
+            }
+
+            // Calculate centered bounding box for a given regulation aspect ratio inside the virtual world
+            function getCourtRect(aspectRatio, scaleMultiplier = 1.0) {
+                const scale = (state.courtScale / 100) * scaleMultiplier;
+                const maxW = state.virtualW * scale;
+                const maxH = state.virtualH * scale;
+
+                let w = maxW;
+                let h = w / aspectRatio;
+                if (h > maxH) {
+                    h = maxH;
+                    w = h * aspectRatio;
+                }
+
+                const cx = state.virtualW * 0.5;
+                const cy = state.virtualH * 0.5;
+                return {
+                    x: cx - w * 0.5,
+                    y: cy - h * 0.5,
+                    w,
+                    h,
+                    cx,
+                    cy
+                };
+            }
+
+            function drawDimensionBanner(rect, titleText, dimText, colorHex = '#38bdf8') {
+                if (!state.showDimensions) return;
+                ctx.save();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = resolveLineColor(colorHex);
+                const fontSize = Math.max(11, Math.min(18, rect.h * 0.025));
+                ctx.font = `600 ${fontSize}px "JetBrains Mono", monospace`;
+                ctx.textAlign = 'center';
+                ctx.fillText(`${titleText} • ${dimText}`, rect.cx, rect.y - Math.max(10, fontSize * 0.7));
+                ctx.restore();
+            }
+
+            function drawCenterWatermark(cx, cy, radius, label) {
+                if (!state.showWatermark) return;
+                ctx.save();
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 0.22;
+                ctx.fillStyle = resolveLineColor('#ffffff');
+                ctx.font = `700 ${Math.max(12, radius * 0.42)}px "Chakra Petch", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(label, cx, cy);
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 1. BASKETBALL COURT RENDERER (Regulation 94 x 50 ft proportion = 1.88)
+            // ============================================================================
+            function drawBasketballCourt(customColor = '#f97316', scaleMult = 1.0, showLabels = true) {
+                const rect = getCourtRect(94 / 50, scaleMult);
+                const { x, y, w, h, cx, cy } = rect;
+                const ft = w / 94; // 1 foot in virtual pixels
+
+                ctx.save();
+                setCourtStroke(customColor, 1.0);
+
+                // Outer boundary (Sidelines & Baselines)
+                ctx.strokeRect(x, y, w, h);
+
+                // Half-court line
+                ctx.beginPath();
+                ctx.moveTo(cx, y);
+                ctx.lineTo(cx, y + h);
+                ctx.stroke();
+
+                // Center restraining circle (6 ft radius) & inner jump circle (2 ft radius)
+                ctx.beginPath();
+                ctx.arc(cx, cy, 6 * ft, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, 2 * ft, 0, Math.PI * 2);
+                ctx.stroke();
+
+                drawCenterWatermark(cx, cy, 6 * ft, 'BASKETBALL');
+
+                // Left & Right Half-Court Elements
+                const sides = [
+                    { dir: 1, baseX: x },
+                    { dir: -1, baseX: x + w }
+                ];
+
+                const keyLen = 19 * ft;
+                const keyW = 16 * ft; // NBA/High-vis 16ft lane (or 12ft HS)
+                const ftRadius = 6 * ft;
+                const hoopOffset = 5.25 * ft;
+                const threePtRadius = 23.75 * ft;
+                const cornerThreeDist = 3 * ft; // 3ft from sideline
+
+                for (const s of sides) {
+                    const d = s.dir;
+                    const bx = s.baseX;
+                    const hoopX = bx + d * hoopOffset;
+                    const keyEdgeX = bx + d * keyLen;
+
+                    // Free-throw lane (The Key)
+                    setCourtStroke(customColor, 1.0);
+                    ctx.strokeRect(
+                        d === 1 ? bx : bx - keyLen,
+                        cy - keyW * 0.5,
+                        keyLen,
+                        keyW
+                    );
+
+                    // Free-throw circle (Solid outer half, dashed inner half)
+                    ctx.beginPath();
+                    ctx.arc(
+                        keyEdgeX,
+                        cy,
+                        ftRadius,
+                        d === 1 ? -Math.PI * 0.5 : Math.PI * 0.5,
+                        d === 1 ? Math.PI * 0.5 : Math.PI * 1.5
+                    );
+                    ctx.stroke();
+
+                    setCourtStroke(customColor, 0.85, [6, 6]);
+                    ctx.beginPath();
+                    ctx.arc(
+                        keyEdgeX,
+                        cy,
+                        ftRadius,
+                        d === 1 ? Math.PI * 0.5 : -Math.PI * 0.5,
+                        d === 1 ? Math.PI * 1.5 : Math.PI * 0.5
+                    );
+                    ctx.stroke();
+
+                    // Lane hash marks (rebound spaces)
+                    setCourtStroke(customColor, 0.9);
+                    const hashOffsets = [7, 8, 11, 14];
+                    for (const ho of hashOffsets) {
+                        const hx = bx + d * (ho * ft);
+                        // Top lane hashes
+                        ctx.beginPath();
+                        ctx.moveTo(hx, cy - keyW * 0.5);
+                        ctx.lineTo(hx, cy - keyW * 0.5 - 1.0 * ft);
+                        ctx.stroke();
+                        // Bottom lane hashes
+                        ctx.beginPath();
+                        ctx.moveTo(hx, cy + keyW * 0.5);
+                        ctx.lineTo(hx, cy + keyW * 0.5 + 1.0 * ft);
+                        ctx.stroke();
+                    }
+
+                    // Backboard (6 ft wide, 4 ft from baseline) & Rim
+                    const boardX = bx + d * (4 * ft);
+                    ctx.beginPath();
+                    ctx.moveTo(boardX, cy - 3 * ft);
+                    ctx.lineTo(boardX, cy + 3 * ft);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(hoopX, cy, 0.75 * ft, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Restricted Area Arc (4 ft radius from hoop center)
+                    ctx.beginPath();
+                    ctx.arc(
+                        hoopX,
+                        cy,
+                        4 * ft,
+                        d === 1 ? -Math.PI * 0.5 : Math.PI * 0.5,
+                        d === 1 ? Math.PI * 0.5 : Math.PI * 1.5
+                    );
+                    ctx.stroke();
+
+                    // 3-Point Line (Corner straight lines + main arc)
+                    const halfCourtHeight = h * 0.5;
+                    const dyCorner = halfCourtHeight - cornerThreeDist;
+                    const dxCorner = Math.sqrt(Math.max(0, threePtRadius * threePtRadius - dyCorner * dyCorner));
+                    const arcStartX = hoopX + d * dxCorner;
+                    const maxAngle = Math.atan2(dyCorner, dxCorner);
+
+                    // Top corner straight
+                    ctx.beginPath();
+                    ctx.moveTo(bx, y + cornerThreeDist);
+                    ctx.lineTo(arcStartX, y + cornerThreeDist);
+                    ctx.stroke();
+
+                    // Bottom corner straight
+                    ctx.beginPath();
+                    ctx.moveTo(bx, y + h - cornerThreeDist);
+                    ctx.lineTo(arcStartX, y + h - cornerThreeDist);
+                    ctx.stroke();
+
+                    // 3-Point Arc
+                    ctx.beginPath();
+                    if (d === 1) {
+                        ctx.arc(hoopX, cy, threePtRadius, -maxAngle, maxAngle);
+                    } else {
+                        ctx.arc(hoopX, cy, threePtRadius, Math.PI - maxAngle, Math.PI + maxAngle);
+                    }
+                    ctx.stroke();
+
+                    // Coaching box / 28-ft hash marks on sidelines
+                    const hash28X = bx + d * (28 * ft);
+                    ctx.beginPath();
+                    ctx.moveTo(hash28X, y);
+                    ctx.lineTo(hash28X, y + 3 * ft);
+                    ctx.moveTo(hash28X, y + h);
+                    ctx.lineTo(hash28X, y + h - 3 * ft);
+                    ctx.stroke();
+                }
+
+                if (showLabels) {
+                    drawDimensionBanner(rect, 'REGULATION BASKETBALL COURT', SPORT_METADATA.basketball.dims, customColor);
+                }
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 2. RUNNING TRACK RENDERER (6-Lane 200m Indoor Oval & Sprint Straightaway)
+            // ============================================================================
+            function drawRunningTrack(customColor = '#f43f5e', scaleMult = 1.0, lanesCount = 6, showLabels = true) {
+                const rect = getCourtRect(1.95, scaleMult);
+                const { x, y, w, h, cx, cy } = rect;
+
+                ctx.save();
+                const outerR = h * 0.5;
+                const straightHalf = Math.max(20, (w - h) * 0.5);
+                const laneWidth = (outerR * 0.46) / lanesCount;
+
+                // Draw Lane Boundaries (Lanes 1 to lanesCount + 1)
+                for (let i = 0; i <= lanesCount; i++) {
+                    const r = outerR - i * laneWidth;
+                    const isBorder = i === 0 || i === lanesCount;
+                    setCourtStroke(isBorder ? '#ffffff' : customColor, isBorder ? 1.15 : 0.75);
+
+                    ctx.beginPath();
+                    ctx.moveTo(cx - straightHalf, cy - r);
+                    ctx.lineTo(cx + straightHalf, cy - r);
+                    ctx.arc(cx + straightHalf, cy, r, -Math.PI * 0.5, Math.PI * 0.5);
+                    ctx.lineTo(cx - straightHalf, cy + r);
+                    ctx.arc(cx - straightHalf, cy, r, Math.PI * 0.5, Math.PI * 1.5);
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+
+                // Finish Line (Bottom straightaway, right side)
+                const finishX = cx + straightHalf * 0.55;
+                const innerR = outerR - lanesCount * laneWidth;
+                setCourtStroke('#ffffff', 1.4);
+                ctx.beginPath();
+                ctx.moveTo(finishX, cy + innerR);
+                ctx.lineTo(finishX, cy + outerR);
+                ctx.stroke();
+
+                // Staggered Start Lines & Lane Numbers (1..6)
+                const fontSize = Math.max(10, laneWidth * 0.58);
+                ctx.font = `700 ${fontSize}px "JetBrains Mono", monospace`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                for (let lane = 1; lane <= lanesCount; lane++) {
+                    const laneMidR = innerR + (lane - 0.5) * laneWidth;
+                    const laneInR = innerR + (lane - 1) * laneWidth;
+                    const laneOutR = innerR + lane * laneWidth;
+
+                    // Lane number near finish line
+                    ctx.save();
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = resolveLineColor('#facc15');
+                    ctx.fillText(String(lane), finishX - laneWidth * 0.9, cy + laneMidR);
+                    ctx.restore();
+
+                    // Staggered start ticks on bottom-left curve/straight
+                    const staggerAngle = Math.PI * 0.5 + (lane - 1) * 0.14;
+                    const sx1 = (cx - straightHalf) + Math.cos(staggerAngle) * laneInR;
+                    const sy1 = cy + Math.sin(staggerAngle) * laneInR;
+                    const sx2 = (cx - straightHalf) + Math.cos(staggerAngle) * laneOutR;
+                    const sy2 = cy + Math.sin(staggerAngle) * laneOutR;
+
+                    setCourtStroke('#facc15', 1.0);
+                    ctx.beginPath();
+                    ctx.moveTo(sx1, sy1);
+                    ctx.lineTo(sx2, sy2);
+                    ctx.stroke();
+
+                    // Relay exchange zone ticks on top straightaway
+                    const relayX1 = cx - straightHalf * 0.35 + (lane - 1) * (laneWidth * 0.45);
+                    const relayX2 = relayX1 + straightHalf * 0.45;
+                    setCourtStroke('#38bdf8', 0.85);
+                    ctx.beginPath();
+                    ctx.moveTo(relayX1, cy - laneInR - 3);
+                    ctx.lineTo(relayX1, cy - laneOutR + 3);
+                    ctx.moveTo(relayX2, cy - laneInR - 3);
+                    ctx.lineTo(relayX2, cy - laneOutR + 3);
+                    ctx.stroke();
+                }
+
+                // Infield 60m Sprint Lanes (Center Straightaway)
+                const sprintLanes = 4;
+                const sprintTotalH = innerR * 1.1;
+                const sprintLaneH = sprintTotalH / sprintLanes;
+                setCourtStroke(customColor, 0.65, [8, 8]);
+                for (let s = 0; s <= sprintLanes; s++) {
+                    const sy = cy - sprintTotalH * 0.5 + s * sprintLaneH;
+                    ctx.beginPath();
+                    ctx.moveTo(cx - straightHalf * 0.95, sy);
+                    ctx.lineTo(cx + straightHalf * 0.95, sy);
+                    ctx.stroke();
+                }
+
+                drawCenterWatermark(cx, cy, innerR * 0.7, 'TRACK & FIELD');
+                if (showLabels) {
+                    drawDimensionBanner(rect, '6-LANE INDOOR TRACK & SPRINT STRAIGHT', SPORT_METADATA.track.dims, customColor);
+                }
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 3. ICE / FLOOR HOCKEY RINK RENDERER (200 ft x 85 ft proportion = 2.35)
+            // ============================================================================
+            function drawHockeyRink() {
+                const rect = getCourtRect(200 / 85, 1.0);
+                const { x, y, w, h, cx, cy } = rect;
+                const ft = w / 200;
+                const cornerR = 28 * ft;
+
+                ctx.save();
+
+                // Helper to trace rounded rink boards path for clipping
+                function traceRinkBoards() {
+                    ctx.beginPath();
+                    ctx.moveTo(x + cornerR, y);
+                    ctx.lineTo(x + w - cornerR, y);
+                    ctx.arcTo(x + w, y, x + w, y + cornerR, cornerR);
+                    ctx.lineTo(x + w, y + h - cornerR);
+                    ctx.arcTo(x + w, y + h, x + w - cornerR, y + h, cornerR);
+                    ctx.lineTo(x + cornerR, y + h);
+                    ctx.arcTo(x, y + h, x, y + h - cornerR, cornerR);
+                    ctx.lineTo(x, y + cornerR);
+                    ctx.arcTo(x, y, x + cornerR, y, cornerR);
+                    ctx.closePath();
+                }
+
+                // Clip internal lines inside the rounded boards
+                ctx.save();
+                traceRinkBoards();
+                ctx.clip();
+
+                // Goal Lines (11 ft from each end board, Red)
+                const goalOffset = 11 * ft;
+                setCourtStroke('#ef4444', 0.95);
+                ctx.beginPath();
+                ctx.moveTo(x + goalOffset, y);
+                ctx.lineTo(x + goalOffset, y + h);
+                ctx.moveTo(x + w - goalOffset, y);
+                ctx.lineTo(x + w - goalOffset, y + h);
+                ctx.stroke();
+
+                // Blue Lines (25 ft from center line on each side)
+                const blueOffset = 25 * ft;
+                setCourtStroke('#38bdf8', 1.5);
+                ctx.beginPath();
+                ctx.moveTo(cx - blueOffset, y);
+                ctx.lineTo(cx - blueOffset, y + h);
+                ctx.moveTo(cx + blueOffset, y);
+                ctx.lineTo(cx + blueOffset, y + h);
+                ctx.stroke();
+
+                // Center Red Line (Solid + Dashed segments)
+                setCourtStroke('#ef4444', 1.5, [10, 8]);
+                ctx.beginPath();
+                ctx.moveTo(cx, y);
+                ctx.lineTo(cx, y + h);
+                ctx.stroke();
+
+                // Center Ice Faceoff Circle (15 ft radius, Blue) & Spot
+                setCourtStroke('#38bdf8', 1.0);
+                ctx.beginPath();
+                ctx.arc(cx, cy, 15 * ft, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, 1.3 * ft, 0, Math.PI * 2);
+                ctx.fill();
+
+                drawCenterWatermark(cx, cy, 15 * ft, 'HOCKEY');
+
+                // Neutral Zone Faceoff Dots (5 ft outside blue lines, 22 ft from center Y)
+                setCourtStroke('#ef4444', 1.0);
+                const nzOffsetsX = [cx - blueOffset + 5 * ft, cx + blueOffset - 5 * ft];
+                const faceoffOffsetsY = [cy - 22 * ft, cy + 22 * ft];
+                for (const nx of nzOffsetsX) {
+                    for (const ny of faceoffOffsetsY) {
+                        ctx.beginPath();
+                        ctx.arc(nx, ny, 1.2 * ft, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                // End-Zone Faceoff Circles (20 ft from goal line, 22 ft above/below center) + Goal Creases + Trapezoids
+                const endSides = [
+                    { dir: 1, gx: x + goalOffset, boardX: x },
+                    { dir: -1, gx: x + w - goalOffset, boardX: x + w }
+                ];
+
+                for (const s of endSides) {
+                    const d = s.dir;
+                    const fx = s.gx + d * (20 * ft);
+
+                    // Goaltender Trapezoid behind goal line
+                    setCourtStroke('#ef4444', 0.85);
+                    ctx.beginPath();
+                    ctx.moveTo(s.gx, cy - 11 * ft);
+                    ctx.lineTo(s.boardX, cy - 14 * ft);
+                    ctx.moveTo(s.gx, cy + 11 * ft);
+                    ctx.lineTo(s.boardX, cy + 14 * ft);
+                    ctx.stroke();
+
+                    // Goal Crease (6 ft radius semi-circle in front of goal line)
+                    setCourtStroke('#38bdf8', 1.05);
+                    ctx.beginPath();
+                    ctx.arc(
+                        s.gx,
+                        cy,
+                        6 * ft,
+                        d === 1 ? -Math.PI * 0.5 : Math.PI * 0.5,
+                        d === 1 ? Math.PI * 0.5 : Math.PI * 1.5
+                    );
+                    ctx.stroke();
+
+                    // Goal Net Frame (6 ft wide, 3.5 ft deep)
+                    setCourtStroke('#ffffff', 1.0);
+                    ctx.strokeRect(
+                        d === 1 ? s.gx - 3.5 * ft : s.gx,
+                        cy - 3 * ft,
+                        3.5 * ft,
+                        6 * ft
+                    );
+
+                    // 2 End-Zone Faceoff Circles (15 ft radius, Red)
+                    setCourtStroke('#ef4444', 0.95);
+                    for (const fy of faceoffOffsetsY) {
+                        ctx.beginPath();
+                        ctx.arc(fx, fy, 15 * ft, 0, Math.PI * 2);
+                        ctx.stroke();
+
+                        // Center faceoff spot
+                        ctx.beginPath();
+                        ctx.arc(fx, fy, 1.2 * ft, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Outer circle hash marks
+                        for (const hs of [-1, 1]) {
+                            ctx.beginPath();
+                            ctx.moveTo(fx - 2 * ft, fy + hs * 15 * ft);
+                            ctx.lineTo(fx - 2 * ft, fy + hs * 17 * ft);
+                            ctx.moveTo(fx + 2 * ft, fy + hs * 15 * ft);
+                            ctx.lineTo(fx + 2 * ft, fy + hs * 17 * ft);
+                            ctx.stroke();
+                        }
+                    }
+                }
+
+                // Referee Crease (10 ft radius semicircle on bottom boards)
+                setCourtStroke('#ef4444', 0.9);
+                ctx.beginPath();
+                ctx.arc(cx, y + h, 10 * ft, Math.PI, 0);
+                ctx.stroke();
+
+                ctx.restore();
+
+                // Outer Rounded Rink Boards
+                setCourtStroke('#ffffff', 1.35);
+                traceRinkBoards();
+                ctx.stroke();
+
+                drawDimensionBanner(rect, 'ICE / FLOOR HOCKEY RINK', SPORT_METADATA.hockey.dims, '#38bdf8');
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 4. SOCCER / FUTSAL PITCH RENDERER (2.0 Aspect Ratio)
+            // ============================================================================
+            function drawSoccerPitch() {
+                const rect = getCourtRect(2.0, 1.0);
+                const { x, y, w, h, cx, cy } = rect;
+                const m = w / 100; // Scaled meter unit
+
+                ctx.save();
+                setCourtStroke('#10b981', 1.1);
+
+                // Outer Touchlines & Goal Lines
+                ctx.strokeRect(x, y, w, h);
+
+                // Halfway Line
+                ctx.beginPath();
+                ctx.moveTo(cx, y);
+                ctx.lineTo(cx, y + h);
+                ctx.stroke();
+
+                // Center Circle & Kickoff Spot
+                ctx.beginPath();
+                ctx.arc(cx, cy, 9.15 * m, 0, Math.PI * 2);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(cx, cy, 0.7 * m, 0, Math.PI * 2);
+                ctx.fill();
+
+                drawCenterWatermark(cx, cy, 9.15 * m, 'SOCCER / FUTSAL');
+
+                // Corner Arcs (4 corners)
+                const cornerR = 2.2 * m;
+                ctx.beginPath();
+                ctx.arc(x, y, cornerR, 0, Math.PI * 0.5);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(x + w, y, cornerR, Math.PI * 0.5, Math.PI);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(x + w, y + h, cornerR, Math.PI, Math.PI * 1.5);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(x, y + h, cornerR, Math.PI * 1.5, Math.PI * 2);
+                ctx.stroke();
+
+                // Left & Right Penalty Boxes, 6-Yard Goal Boxes, Penalty Spots & D-Arcs
+                const penDepth = 16.5 * m;
+                const penWidth = 40.3 * m;
+                const goalBoxDepth = 5.5 * m;
+                const goalBoxWidth = 18.3 * m;
+                const penSpotDist = 11 * m;
+                const penArcR = 9.15 * m;
+                const arcAngle = Math.acos((penDepth - penSpotDist) / penArcR);
+
+                const sides = [
+                    { dir: 1, gx: x },
+                    { dir: -1, gx: x + w }
+                ];
+
+                for (const s of sides) {
+                    const d = s.dir;
+                    const gx = s.gx;
+
+                    // 18-Yard Penalty Area
+                    ctx.strokeRect(
+                        d === 1 ? gx : gx - penDepth,
+                        cy - penWidth * 0.5,
+                        penDepth,
+                        penWidth
+                    );
+
+                    // 6-Yard Goal Area
+                    ctx.strokeRect(
+                        d === 1 ? gx : gx - goalBoxDepth,
+                        cy - goalBoxWidth * 0.5,
+                        goalBoxDepth,
+                        goalBoxWidth
+                    );
+
+                    // Goal Frame outside goal line
+                    setCourtStroke('#ffffff', 1.0);
+                    ctx.strokeRect(
+                        d === 1 ? gx - 2.4 * m : gx,
+                        cy - 3.66 * m,
+                        2.4 * m,
+                        7.32 * m
+                    );
+
+                    // Penalty Spot
+                    setCourtStroke('#10b981', 1.1);
+                    const spotX = gx + d * penSpotDist;
+                    ctx.beginPath();
+                    ctx.arc(spotX, cy, 0.65 * m, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Penalty D-Arc
+                    ctx.beginPath();
+                    if (d === 1) {
+                        ctx.arc(spotX, cy, penArcR, -arcAngle, arcAngle);
+                    } else {
+                        ctx.arc(spotX, cy, penArcR, Math.PI - arcAngle, Math.PI + arcAngle);
+                    }
+                    ctx.stroke();
+                }
+
+                drawDimensionBanner(rect, 'SOCCER / FUTSAL PITCH', SPORT_METADATA.soccer.dims, '#10b981');
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 5. TENNIS COURT RENDERER (78 ft x 36 ft Doubles / 27 ft Singles)
+            // ============================================================================
+            function drawTennisCourt() {
+                const rect = getCourtRect(78 / 36, 1.0);
+                const { x, y, w, h, cx, cy } = rect;
+                const ft = w / 78;
+
+                ctx.save();
+                setCourtStroke('#a3e635', 1.1);
+
+                // Doubles Outer Court (78 ft x 36 ft)
+                ctx.strokeRect(x, y, w, h);
+
+                // Singles Sidelines (4.5 ft inside each doubles sideline -> 27 ft width)
+                const alley = 4.5 * ft;
+                const singlesTop = y + alley;
+                const singlesBot = y + h - alley;
+                ctx.beginPath();
+                ctx.moveTo(x, singlesTop);
+                ctx.lineTo(x + w, singlesTop);
+                ctx.moveTo(x, singlesBot);
+                ctx.lineTo(x + w, singlesBot);
+                ctx.stroke();
+
+                // Service Lines (21 ft from net on each side)
+                const srvDist = 21 * ft;
+                ctx.beginPath();
+                ctx.moveTo(cx - srvDist, singlesTop);
+                ctx.lineTo(cx - srvDist, singlesBot);
+                ctx.moveTo(cx + srvDist, singlesTop);
+                ctx.lineTo(cx + srvDist, singlesBot);
+                ctx.stroke();
+
+                // Center Service Line (connecting left and right service lines)
+                ctx.beginPath();
+                ctx.moveTo(cx - srvDist, cy);
+                ctx.lineTo(cx + srvDist, cy);
+                ctx.stroke();
+
+                // Baseline Center Marks (4 inches inside each baseline)
+                const markLen = 1.2 * ft;
+                ctx.beginPath();
+                ctx.moveTo(x, cy);
+                ctx.lineTo(x + markLen, cy);
+                ctx.moveTo(x + w, cy);
+                ctx.lineTo(x + w - markLen, cy);
+                ctx.stroke();
+
+                // Net Line (extends 3 ft outside doubles sidelines) & Net Posts
+                const netOverhang = 3 * ft;
+                setCourtStroke('#ffffff', 1.25, [8, 6]);
+                ctx.beginPath();
+                ctx.moveTo(cx, y - netOverhang);
+                ctx.lineTo(cx, y + h + netOverhang);
+                ctx.stroke();
+
+                setCourtStroke('#ffffff', 1.2);
+                ctx.beginPath();
+                ctx.arc(cx, y - netOverhang, 0.9 * ft, 0, Math.PI * 2);
+                ctx.arc(cx, y + h + netOverhang, 0.9 * ft, 0, Math.PI * 2);
+                ctx.fill();
+
+                drawCenterWatermark(cx, cy, 8 * ft, 'TENNIS');
+                drawDimensionBanner(rect, 'REGULATION TENNIS COURT (DOUBLES & SINGLES)', SPORT_METADATA.tennis.dims, '#a3e635');
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 6. VOLLEYBALL COURT RENDERER (18m x 9m = 2.0 Aspect Ratio)
+            // ============================================================================
+            function drawVolleyballCourt(customColor = '#22d3ee', scaleMult = 0.88, showLabels = true) {
+                const rect = getCourtRect(18 / 9, scaleMult);
+                const { x, y, w, h, cx, cy } = rect;
+                const m = w / 18; // 1 meter in virtual pixels
+
+                ctx.save();
+                setCourtStroke(customColor, 1.1);
+
+                // Outer Court Boundary (18m x 9m)
+                ctx.strokeRect(x, y, w, h);
+
+                // Center Net Line (Solid + Extended dashed posts)
+                ctx.beginPath();
+                ctx.moveTo(cx, y - 0.8 * m);
+                ctx.lineTo(cx, y + h + 0.8 * m);
+                ctx.stroke();
+
+                // 3-Meter (10-Foot) Attack Lines on both sides of net
+                const attackDist = 3 * m;
+                ctx.beginPath();
+                ctx.moveTo(cx - attackDist, y);
+                ctx.lineTo(cx - attackDist, y + h);
+                ctx.moveTo(cx + attackDist, y);
+                ctx.lineTo(cx + attackDist, y + h);
+                ctx.stroke();
+
+                // Coach / Substitution Zone Dashed Extensions (1.75m outside sidelines from attack line)
+                setCourtStroke(customColor, 0.9, [5, 5]);
+                const extLen = 1.75 * m;
+                for (const ax of [cx - attackDist, cx + attackDist]) {
+                    ctx.beginPath();
+                    ctx.moveTo(ax, y - extLen);
+                    ctx.lineTo(ax, y);
+                    ctx.moveTo(ax, y + h);
+                    ctx.lineTo(ax, y + h + extLen);
+                    ctx.stroke();
+                }
+
+                // Service Zone Ticks (Outside baselines)
+                setCourtStroke(customColor, 0.95);
+                const srvTick = 0.6 * m;
+                for (const bx of [x, x + w]) {
+                    const dir = bx === x ? -1 : 1;
+                    ctx.beginPath();
+                    ctx.moveTo(bx + dir * 0.2 * m, y);
+                    ctx.lineTo(bx + dir * (0.2 * m + srvTick), y);
+                    ctx.moveTo(bx + dir * 0.2 * m, y + h);
+                    ctx.lineTo(bx + dir * (0.2 * m + srvTick), y + h);
+                    ctx.stroke();
+                }
+
+                drawCenterWatermark(cx, cy, 2.2 * m, 'VOLLEYBALL');
+                if (showLabels) {
+                    drawDimensionBanner(rect, 'REGULATION VOLLEYBALL COURT', SPORT_METADATA.volleyball.dims, customColor);
+                }
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 7. DUAL BADMINTON / PICKLEBALL COURTS (44 ft x 20 ft each)
+            // ============================================================================
+            function drawSingleBadmintonPickleCourt(cx, cy, courtW, courtH, colorHex, label = '') {
+                const x = cx - courtW * 0.5;
+                const y = cy - courtH * 0.5;
+                const ft = courtW / 44; // 44 ft length, 20 ft width
+
+                ctx.save();
+                setCourtStroke(colorHex, 0.95);
+
+                // Doubles Outer Boundary (44 ft x 20 ft)
+                ctx.strokeRect(x, y, courtW, courtH);
+
+                // Badminton Singles Sidelines (1.5 ft inside each sideline -> 17 ft width)
+                const alley = 1.5 * ft;
+                ctx.beginPath();
+                ctx.moveTo(x, y + alley);
+                ctx.lineTo(x + courtW, y + alley);
+                ctx.moveTo(x, y + courtH - alley);
+                ctx.lineTo(x + courtW, y + courtH - alley);
+                ctx.stroke();
+
+                // Center Net Line
+                setCourtStroke('#ffffff', 1.0, [6, 5]);
+                ctx.beginPath();
+                ctx.moveTo(cx, y - 0.8 * ft);
+                ctx.lineTo(cx, y + courtH + 0.8 * ft);
+                ctx.stroke();
+
+                // Short Service Line / Pickleball Non-Volley "Kitchen" Line (6.5 ft / 7 ft from net)
+                setCourtStroke(colorHex, 0.95);
+                const kitchenDist = 6.75 * ft;
+                ctx.beginPath();
+                ctx.moveTo(cx - kitchenDist, y);
+                ctx.lineTo(cx - kitchenDist, y + courtH);
+                ctx.moveTo(cx + kitchenDist, y);
+                ctx.lineTo(cx + kitchenDist, y + courtH);
+                ctx.stroke();
+
+                // Long Service Line for Doubles (2.5 ft inside baseline)
+                const backAlley = 2.5 * ft;
+                ctx.beginPath();
+                ctx.moveTo(x + backAlley, y);
+                ctx.lineTo(x + backAlley, y + courtH);
+                ctx.moveTo(x + courtW - backAlley, y);
+                ctx.lineTo(x + courtW - backAlley, y + courtH);
+                ctx.stroke();
+
+                // Center Service Line (from short service line to baseline)
+                ctx.beginPath();
+                ctx.moveTo(x, cy);
+                ctx.lineTo(cx - kitchenDist, cy);
+                ctx.moveTo(cx + kitchenDist, cy);
+                ctx.lineTo(x + courtW, cy);
+                ctx.stroke();
+
+                if (label && state.showWatermark) {
+                    drawCenterWatermark(cx, cy, 4 * ft, label);
+                }
+                ctx.restore();
+            }
+
+            function drawDualBadmintonCourts(customColor = '#e879f9', isOverlay = false) {
+                const outerRect = getCourtRect(94 / 50, 1.0);
+                const subW = outerRect.w * 0.42;
+                const subH = subW * (20 / 44);
+
+                const leftCX = outerRect.cx - outerRect.w * 0.25;
+                const rightCX = outerRect.cx + outerRect.w * 0.25;
+
+                drawSingleBadmintonPickleCourt(leftCX, outerRect.cy, subW, subH, customColor, isOverlay ? '' : 'COURT 1');
+                drawSingleBadmintonPickleCourt(rightCX, outerRect.cy, subW, subH, customColor, isOverlay ? '' : 'COURT 2');
+
+                if (!isOverlay) {
+                    drawDimensionBanner(outerRect, 'DUAL BADMINTON & PICKLEBALL COURTS', SPORT_METADATA.badminton.dims, customColor);
+                }
+            }
+
+            // ============================================================================
+            // 8. MULTI-SPORT GYM FLOOR OVERLAY (Basketball + Volleyball + Badminton + Track)
+            // ============================================================================
+            function drawMultiSportGymFloor() {
+                // 1. Optional Perimeter Running Track
+                if (state.multiLayers.trackOuter) {
+                    drawRunningTrack('#f43f5e', 1.06, 3, false);
+                }
+
+                // 2. Side Badminton / Pickleball Courts (Regulation Yellow)
+                if (state.multiLayers.badminton) {
+                    drawDualBadmintonCourts('#facc15', true);
+                }
+
+                // 3. Main Basketball Court (Regulation White/Orange)
+                if (state.multiLayers.basketball) {
+                    drawBasketballCourt('#f97316', 0.94, false);
+                }
+
+                // 4. Center Volleyball Court (Regulation Cyan/Blue)
+                if (state.multiLayers.volleyball) {
+                    drawVolleyballCourt('#38bdf8', 0.68, false);
+                }
+
+                const rect = getCourtRect(94 / 50, 0.96);
+                drawDimensionBanner(rect, 'MULTI-SPORT GYMNASIUM FLOOR OVERLAY', SPORT_METADATA.multi.dims, '#10b981');
+            }
+
+            // Render user-placed interactive coaching cones / target markers
+            function drawCoachingMarkers() {
+                if (state.markers.length === 0) return;
+
+                ctx.save();
+                for (let i = 0; i < state.markers.length; i++) {
+                    const m = state.markers[i];
+                    const wx = m.nx * state.virtualW;
+                    const wy = m.ny * state.virtualH;
+                    const r = Math.max(12, state.lineWidth * 3.2);
+
+                    // Outer target ring
+                    setCourtStroke(m.color, 0.9);
+                    ctx.beginPath();
+                    ctx.arc(wx, wy, r * 1.45, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Inner cone circle
+                    ctx.fillStyle = m.color;
+                    ctx.beginPath();
+                    ctx.arc(wx, wy, r * 0.75, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Number badge
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#000000';
+                    ctx.font = `700 ${Math.max(10, r * 0.8)}px "JetBrains Mono", monospace`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(String(i + 1), wx, wy);
+                }
+                ctx.restore();
+            }
+
+            // Alignment test grid overlay (F7) rendered inside the rotated slice coordinate space
+            function drawProjectorAlignmentGrid(viewW, viewH) {
+                if (!state.projector.showCalibGrid) return;
+
+                ctx.save();
+                ctx.shadowBlur = 0;
+                ctx.setLineDash([]);
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.42)';
+                ctx.lineWidth = 1.5;
+
+                const cols = 8;
+                const rows = 6;
+                for (let i = 1; i < cols; i++) {
+                    const x = (viewW / cols) * i;
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, viewH);
+                    ctx.stroke();
+                }
+                for (let j = 1; j < rows; j++) {
+                    const y = (viewH / rows) * j;
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(viewW, y);
+                    ctx.stroke();
+                }
+
+                // Outer edge-stitching border
+                ctx.strokeStyle = 'rgba(16, 185, 129, 0.9)';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(2, 2, viewW - 4, viewH - 4);
+
+                // Center calibration target
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(viewW * 0.5, viewH * 0.5, 52, 0, Math.PI * 2);
+                ctx.moveTo(viewW * 0.5 - 78, viewH * 0.5);
+                ctx.lineTo(viewW * 0.5 + 78, viewH * 0.5);
+                ctx.moveTo(viewW * 0.5, viewH * 0.5 - 78);
+                ctx.lineTo(viewW * 0.5, viewH * 0.5 + 78);
+                ctx.stroke();
+
+                // Central projector slice & rotation watermark card
+                const pctInfo = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
+                const totalDeg = state.projector.rotation + state.projector.fineAngle;
+                const sportName = SPORT_METADATA[state.sport].name.toUpperCase();
+
+                ctx.fillStyle = 'rgba(8, 14, 26, 0.88)';
+                ctx.fillRect(viewW * 0.5 - 245, viewH * 0.5 - 64, 490, 128);
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
+                ctx.strokeRect(viewW * 0.5 - 245, viewH * 0.5 - 64, 490, 128);
+
+                ctx.fillStyle = '#38bdf8';
+                ctx.font = 'bold 21px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(`PROJECTOR ${state.projector.unit} OF ${state.projector.total} • ${sportName}`, viewW * 0.5, viewH * 0.5 - 22);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.font = 'bold 18px "JetBrains Mono", monospace';
+                ctx.fillText(`SLICE: ${pctInfo.text} • ROT: ${totalDeg}°`, viewW * 0.5, viewH * 0.5 + 10);
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px "Inter", sans-serif';
+                ctx.fillText('Press F7 to hide alignment grid • Press F2 for Projector Slicer', viewW * 0.5, viewH * 0.5 + 42);
+
+                ctx.restore();
+            }
+
+            // Master Render Function
+            function renderStaticCourtScene() {
+                updateViewportMetrics();
+                const vw = state.virtualW;
+                const vh = state.virtualH;
+                const viewW = state.viewW;
+                const viewH = state.viewH;
+                const sliceX = getSliceWorldOffsetX();
+
+                // Clear physical screen
+                ctx.setTransform(1, 0, 0, 1, 0, 0);
+                ctx.fillStyle = '#000000';
+                ctx.fillRect(0, 0, state.screenW, state.screenH);
+
+                // Apply projector rotation, fine tilt & vertical flip around physical screen center
+                ctx.save();
+                ctx.translate(state.screenW * 0.5, state.screenH * 0.5);
+
+                const totalAngleRad = ((state.projector.rotation + state.projector.fineAngle) * Math.PI) / 180;
+                ctx.rotate(totalAngleRad);
+
+                if (Math.abs(state.projector.fineAngle) > 0.01) {
+                    const rad = Math.abs(state.projector.fineAngle * Math.PI) / 180;
+                    const aspect = Math.max(viewW / viewH, viewH / viewW);
+                    const zoom = Math.cos(rad) + aspect * Math.sin(rad);
+                    ctx.scale(zoom, zoom);
+                }
+
+                if (state.projector.flipV) {
+                    ctx.scale(1, -1);
+                }
+
+                // Move origin to top-left of unrotated local slice viewport [0..viewW, 0..viewH]
+                ctx.translate(-viewW * 0.5, -viewH * 0.5);
+
+                // Clip to local slice viewport
+                ctx.beginPath();
+                ctx.rect(0, 0, viewW, viewH);
+                ctx.clip();
+
+                // Shift world coordinates by -sliceX so this projector renders its assigned slice of the gym floor
+                ctx.save();
+                ctx.translate(-sliceX, 0);
+
+                // Optional horizontal mirror across the panoramic gym floor (F1)
+                if (state.projector.mirrorH) {
+                    ctx.translate(vw, 0);
+                    ctx.scale(-1, 1);
+                }
+
+                // 1. Floor surface (Laser Blackout #000, Maple Hardwood, or Floodlight)
+                drawFloorSurface(vw, vh, sliceX, viewW);
+
+                // 2. Active Sport Court Preset
+                switch (state.sport) {
+                    case 'multi':
+                        drawMultiSportGymFloor();
+                        break;
+                    case 'track':
+                        drawRunningTrack('#f43f5e', 1.0, 6, true);
+                        break;
+                    case 'hockey':
+                        drawHockeyRink();
+                        break;
+                    case 'soccer':
+                        drawSoccerPitch();
+                        break;
+                    case 'tennis':
+                        drawTennisCourt();
+                        break;
+                    case 'basketball':
+                        drawBasketballCourt('#f97316', 1.0, true);
+                        break;
+                    case 'volleyball':
+                        drawVolleyballCourt('#22d3ee', 0.94, true);
+                        break;
+                    case 'badminton':
+                        drawDualBadmintonCourts('#e879f9', false);
+                        break;
+                }
+
+                // 3. Coaching Cones / Target Markers
+                drawCoachingMarkers();
+
+                ctx.restore();
+
+                // 4. Projector Alignment Calibration Grid (F7)
+                drawProjectorAlignmentGrid(viewW, viewH);
+
+                ctx.restore();
+            }
+
+            // Sync all HUD and Modal UI elements with current state
+            function updateAllUI() {
+                applyCanvasFilter();
+
+                const total = state.projector.total;
+                const unit = state.projector.unit;
+                const rot = state.projector.rotation;
+                const offsetPct = state.projector.offsetPct;
+                const pctInfo = getSlicePercentageLabel(unit, total, offsetPct);
+                const sportInfo = SPORT_METADATA[state.sport];
+
+                // Top Quick Badges
+                document.getElementById('projectorQuickBadge').textContent =
+                    `Proj ${unit}/${total} (${pctInfo.text}) • ${rot}°`;
+                document.getElementById('activeSportQuickLabel').textContent =
+                    `Sport: ${sportInfo.name}`;
+                document.getElementById('mirrorQuickLabel').textContent =
+                    `L/R: ${state.projector.mirrorH ? 'Mirrored' : 'Standard'}`;
+
+                // Surface Mode Quick Labels
+                const surfaceLabels = {
+                    blackout: 'Laser Blackout',
+                    hardwood: 'Maple Hardwood',
+                    floodlight: 'Bright Floodlight',
+                    xray_invert: 'X-Ray Invert'
+                };
+                document.getElementById('surfaceQuickLabel').textContent = `Floor: ${surfaceLabels[state.surfaceMode]}`;
+                document.getElementById('modalSurfaceModeText').textContent = `Surface: ${surfaceLabels[state.surfaceMode]} (F10)`;
+
+                // Sport Preset Buttons
+                document.querySelectorAll('.sport-btn').forEach(btn => {
+                    if (btn.dataset.sport === state.sport) {
+                        btn.className = 'sport-btn py-2 px-2.5 rounded-xl font-semibold border border-emerald-400 bg-emerald-500/25 text-white shadow transition-all text-left flex items-center justify-between';
+                    } else {
+                        btn.className = 'sport-btn py-2 px-2.5 rounded-xl font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all text-left flex items-center justify-between';
+                    }
+                });
+
+                // Show/hide Multi-Sport Layer Checkboxes
+                const multiBox = document.getElementById('multiLayerBox');
+                multiBox.style.display = state.sport === 'multi' ? 'block' : 'none';
+                document.getElementById('layerBasketball').checked = state.multiLayers.basketball;
+                document.getElementById('layerVolleyball').checked = state.multiLayers.volleyball;
+                document.getElementById('layerBadminton').checked = state.multiLayers.badminton;
+                document.getElementById('layerTrackOuter').checked = state.multiLayers.trackOuter;
+
+                // Line Color Palette Buttons
+                const paletteNames = {
+                    official: 'Official Multi-Color',
+                    white: 'Pure Crisp White',
+                    yellow: 'High-Vis Laser Yellow',
+                    cyan: 'Electric Cyan',
+                    green: 'Laser Green',
+                    orange: 'Safety Orange'
+                };
+                document.getElementById('paletteLabel').textContent = paletteNames[state.palette] || 'Official';
+                document.querySelectorAll('.palette-btn').forEach(btn => {
+                    if (btn.dataset.palette === state.palette) {
+                        btn.classList.add('ring-2', 'ring-emerald-400', 'scale-105');
+                    } else {
+                        btn.classList.remove('ring-2', 'ring-emerald-400', 'scale-105');
+                    }
+                });
+
+                // Line & Scale Sliders
+                document.getElementById('lineWidthSlider').value = state.lineWidth;
+                document.getElementById('lineWidthVal').textContent = `${state.lineWidth.toFixed(1)} px`;
+
+                document.getElementById('lineGlowSlider').value = state.lineGlow;
+                document.getElementById('lineGlowVal').textContent = `${state.lineGlow}%`;
+
+                document.getElementById('courtScaleSlider').value = state.courtScale;
+                document.getElementById('courtScaleVal').textContent = `${state.courtScale}%`;
+
+                document.getElementById('lumenBoostSlider').value = state.lumenBoost;
+                document.getElementById('lumenBoostVal').textContent = `${state.lumenBoost}%`;
+
+                // Surface Mode Buttons
+                document.querySelectorAll('.surface-mode-btn').forEach(btn => {
+                    if (btn.dataset.surface === state.surfaceMode) {
+                        btn.className = 'surface-mode-btn py-1.5 px-2 rounded-lg font-semibold border border-amber-400 bg-amber-500/25 text-amber-100 shadow transition-all text-[11px]';
+                    } else {
+                        btn.className = 'surface-mode-btn py-1.5 px-2 rounded-lg font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all text-[11px]';
+                    }
+                });
+
+                // Dimensions, Watermark & Marker Mode Toggles
+                document.getElementById('dimensionsBtnText').textContent = `Dimensions: ${state.showDimensions ? 'ON' : 'OFF'} (L)`;
+                document.getElementById('watermarkBtnText').textContent = `Center Logo: ${state.showWatermark ? 'ON' : 'OFF'}`;
+                document.getElementById('markersBtnText').textContent = `Click Drill Cones: ${state.markerMode ? 'ON' : 'OFF'} (M)`;
+                document.getElementById('markerQuickLabel').textContent = `Cones: ${state.markerMode ? 'ON' : 'OFF'}`;
+
+                // Multi-Projector Modal Visualizer
+                document.getElementById('sliceRangeReadout').textContent =
+                    `Projector ${unit} of ${total} • ${pctInfo.text} • Rot ${rot}°`;
+
+                const ticksContainer = document.getElementById('panoramaGridTicks');
+                ticksContainer.innerHTML = '';
+                for (let i = 1; i <= total; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'flex-1 border-r border-slate-700/80 last:border-r-0 flex items-center justify-center text-[10px] font-mono-code text-slate-500';
+                    const cellPct = getSlicePercentageLabel(i, total, 0);
+                    cell.textContent = `P${i} (${cellPct.text})`;
+                    ticksContainer.appendChild(cell);
+                }
+
+                const highlight = document.getElementById('panoramaActiveHighlight');
+                const widthPct = 100 / total;
+                const leftPct = Math.max(0, Math.min(100 - widthPct, ((unit - 1) / total) * 100 + offsetPct));
+                highlight.style.width = `${widthPct}%`;
+                highlight.style.left = `${leftPct}%`;
+                document.getElementById('panoramaActiveLabel').textContent = `P${unit}: ${pctInfo.text}`;
+
+                // Total Projectors Buttons
+                document.querySelectorAll('.total-proj-btn').forEach(btn => {
+                    const t = Number(btn.dataset.total);
+                    if (t === total) {
+                        btn.className = 'total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border border-sky-400 bg-sky-500/25 text-white shadow-lg shadow-sky-950/50 transition-all flex flex-col items-center gap-0.5';
+                    } else {
+                        btn.className = 'total-proj-btn py-2.5 px-3 rounded-xl text-xs font-semibold border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all flex flex-col items-center gap-0.5';
+                    }
+                });
+
+                // Assigned Projector Unit Buttons
+                const unitContainer = document.getElementById('unitProjectorGroup');
+                unitContainer.innerHTML = '';
+                for (let i = 1; i <= 4; i++) {
+                    const enabled = i <= total;
+                    const isSelected = i === unit;
+                    const unitPct = getSlicePercentageLabel(i, total, 0);
+                    const btn = document.createElement('button');
+                    btn.disabled = !enabled;
+                    if (!enabled) {
+                        btn.className = 'py-2.5 px-3 rounded-xl text-xs font-semibold border border-white/5 bg-white/[0.02] text-slate-600 cursor-not-allowed flex flex-col items-center gap-0.5';
+                        btn.innerHTML = `<span class="text-sm font-bold">Projector ${i}</span><span class="text-[10px] font-mono-code">Disabled</span>`;
+                    } else if (isSelected) {
+                        btn.className = 'py-2.5 px-3 rounded-xl text-xs font-semibold border border-emerald-400 bg-emerald-500/25 text-white shadow-lg shadow-emerald-950/50 transition-all flex flex-col items-center gap-0.5';
+                        btn.innerHTML = `<span class="text-sm font-bold">Projector ${i}</span><span class="text-[11px] text-emerald-200 font-mono-code">${unitPct.text}</span>`;
+                    } else {
+                        btn.className = 'py-2.5 px-3 rounded-xl text-xs font-semibold border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all flex flex-col items-center gap-0.5';
+                        btn.innerHTML = `<span class="text-sm font-bold">Projector ${i}</span><span class="text-[11px] text-sky-300 font-mono-code">${unitPct.text}</span>`;
+                    }
+                    if (enabled) {
+                        btn.addEventListener('click', () => setProjectorUnit(i, true));
+                    }
+                    unitContainer.appendChild(btn);
+                }
+
+                // Rotation Buttons
+                document.querySelectorAll('.rot-btn').forEach(btn => {
+                    const r = Number(btn.dataset.rot);
+                    if (r === rot) {
+                        btn.className = 'rot-btn py-2 px-3 rounded-xl text-xs font-semibold border border-sky-400 bg-sky-500/25 text-white shadow-lg transition-all flex flex-col items-center';
+                    } else {
+                        btn.className = 'rot-btn py-2 px-3 rounded-xl text-xs font-semibold border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition-all flex flex-col items-center';
+                    }
+                });
+
+                // Fine Angle & Offset Sliders
+                document.getElementById('fineAngleSlider').value = state.projector.fineAngle;
+                document.getElementById('fineAngleVal').textContent = `${state.projector.fineAngle > 0 ? '+' : ''}${state.projector.fineAngle.toFixed(2)}°`;
+
+                document.getElementById('sliceOffsetSlider').value = state.projector.offsetPct;
+                document.getElementById('sliceOffsetVal').textContent = `${state.projector.offsetPct > 0 ? '+' : ''}${state.projector.offsetPct}%`;
+
+                // Calibration Grid & FlipV Buttons
+                const calibBtn = document.getElementById('toggleCalibGridBtn');
+                const calibText = document.getElementById('calibGridBtnText');
+                if (state.projector.showCalibGrid) {
+                    calibBtn.className = 'flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-emerald-400 bg-emerald-500/25 text-white transition-all flex items-center justify-center gap-2';
+                    calibText.textContent = 'Alignment Grid: ON (F7)';
+                } else {
+                    calibBtn.className = 'flex-1 py-2.5 px-3.5 rounded-xl text-xs font-semibold border border-sky-500/40 bg-sky-500/15 hover:bg-sky-500/25 text-sky-200 transition-all flex items-center justify-center gap-2';
+                    calibText.textContent = 'Alignment Grid: OFF (F7)';
+                }
+
+                document.getElementById('flipVBtnText').textContent = `Vertical Flip: ${state.projector.flipV ? 'ON' : 'OFF'}`;
+
+                // Direct Launch URL Preview
+                const urlParams = `?sport=${state.sport}&total=${total}&unit=${unit}&rot=${rot}${state.projector.fineAngle ? `&tilt=${state.projector.fineAngle}` : ''}${state.projector.offsetPct ? `&offset=${state.projector.offsetPct}` : ''}${state.surfaceMode !== 'blackout' ? `&surface=${state.surfaceMode}` : ''}${state.lumenBoost !== 100 ? `&lumen=${state.lumenBoost}` : ''}`;
+                document.getElementById('launchUrlPreview').textContent = urlParams;
+
+                renderStaticCourtScene();
+            }
+
+            // State Mutators with Toast Feedback
+            function setSportPreset(sportKey, showNotification = true) {
+                if (!SPORT_METADATA[sportKey]) return;
+                state.sport = sportKey;
+                saveConfig();
+                updateAllUI();
+                if (showNotification) {
+                    const info = SPORT_METADATA[sportKey];
+                    showToast(`Court Preset: ${info.name}`, `${info.dims} • Press F5 or 1-8 to switch`);
+                }
+            }
+
+            function cycleSportPreset() {
+                const nextIdx = (SPORT_KEYS.indexOf(state.sport) + 1) % SPORT_KEYS.length;
+                setSportPreset(SPORT_KEYS[nextIdx], true);
+            }
+
+            function setTotalProjectors(totalCount, showNotification = true) {
+                state.projector.total = totalCount;
+                if (state.projector.unit > totalCount) {
+                    state.projector.unit = 1;
+                }
+                saveConfig();
+                updateAllUI();
+                if (showNotification) {
+                    const pct = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
+                    showToast(
+                        `Split Mode: ${state.projector.total} Projector${state.projector.total > 1 ? 's' : ''}`,
+                        `Active: Projector ${state.projector.unit} (${pct.text}) • ${state.projector.rotation}°`,
+                        'ph-fill ph-projector-screen-chart'
+                    );
+                }
+            }
+
+            function setProjectorUnit(unitIndex, showNotification = true) {
+                state.projector.unit = Math.max(1, Math.min(state.projector.total, unitIndex));
+                saveConfig();
+                updateAllUI();
+                if (showNotification) {
+                    const pct = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
+                    showToast(
+                        `Assigned Projector Unit ${state.projector.unit} of ${state.projector.total}`,
+                        `Displaying ${pct.text} of Court • ${state.projector.rotation}°`,
+                        'ph-fill ph-projector-screen-chart'
+                    );
+                }
+            }
+
+            function setProjectorRotation(rotDegrees, showNotification = true) {
+                state.projector.rotation = rotDegrees;
+                saveConfig();
+                updateAllUI();
+                if (showNotification) {
+                    const pct = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
+                    showToast(
+                        `Projector Rotation: ${rotDegrees}°`,
+                        `Projector ${state.projector.unit}/${state.projector.total} (${pct.text})`,
+                        'ph-fill ph-projector-screen-chart'
+                    );
+                }
+            }
+
+            function setSurfaceMode(mode, showNotification = true) {
+                state.surfaceMode = mode;
+                saveConfig();
+                updateAllUI();
+                if (showNotification) {
+                    const names = {
+                        blackout: 'Laser Blackout (#000000)',
+                        hardwood: 'Maple Hardwood Gym Floor',
+                        floodlight: 'High-Lumen Bright Floodlight',
+                        xray_invert: 'X-Ray High-Vis Inverted'
+                    };
+                    showToast(
+                        `Floor Surface: ${names[mode]}`,
+                        `Lumen Boost: ${state.lumenBoost}% • Press F10 to cycle`,
+                        'ph-fill ph-sun-horizon'
+                    );
+                }
+            }
+
+            function cycleSurfaceMode() {
+                const order = ['blackout', 'hardwood', 'floodlight', 'xray_invert'];
+                const nextIdx = (order.indexOf(state.surfaceMode) + 1) % order.length;
+                setSurfaceMode(order[nextIdx], true);
+            }
+
+            function toggleHorizontalMirror() {
+                state.projector.mirrorH = !state.projector.mirrorH;
+                saveConfig();
+                updateAllUI();
+                showToast(
+                    `Court Left/Right: ${state.projector.mirrorH ? 'Mirrored' : 'Standard'}`,
+                    'Press F1 anytime to flip court horizontal axis',
+                    'ph-bold ph-arrows-left-right'
+                );
+            }
+
+            function toggleHud() {
+                state.hudVisible = !state.hudVisible;
+                const panel = document.getElementById('hudPanel');
+                const topLeftBar = document.getElementById('topLeftBar');
+                const topRightBar = document.getElementById('topRightBar');
+                const toggleText = document.getElementById('toggleHudText');
+
+                if (state.hudVisible) {
+                    panel.classList.remove('opacity-0', '-translate-x-8', 'pointer-events-none');
+                    topLeftBar.classList.remove('opacity-0', 'pointer-events-none');
+                    topRightBar.classList.remove('opacity-0', 'pointer-events-none');
+                    toggleText.textContent = 'Hide Controls';
+                } else {
+                    panel.classList.add('opacity-0', '-translate-x-8', 'pointer-events-none');
+                    topLeftBar.classList.add('opacity-0', 'pointer-events-none');
+                    topRightBar.classList.add('opacity-0', 'pointer-events-none');
+                    toggleText.textContent = 'Court Controls';
+                }
+            }
+
+            function toggleProjectorModal() {
+                state.projectorModalVisible = !state.projectorModalVisible;
+                const modal = document.getElementById('projectorModal');
+                if (state.projectorModalVisible) {
+                    updateAllUI();
+                    modal.classList.remove('opacity-0', 'pointer-events-none');
+                } else {
+                    modal.classList.add('opacity-0', 'pointer-events-none');
+                }
+            }
+
+            // Event Listeners
+            window.addEventListener('resize', () => renderStaticCourtScene());
+            canvas.addEventListener('dblclick', toggleHud);
+
+            // Click on canvas to place or remove coaching cones when Marker Mode is active
+            canvas.addEventListener('click', (e) => {
+                if (!state.markerMode) return;
+                const worldPt = mapScreenToVirtualWorld(e.clientX, e.clientY);
+                const nx = worldPt.x / state.virtualW;
+                const ny = worldPt.y / state.virtualH;
+
+                // Check if clicking an existing cone to remove it
+                const hitIndex = state.markers.findIndex(m => {
+                    const dx = m.nx * state.virtualW - worldPt.x;
+                    const dy = m.ny * state.virtualH - worldPt.y;
+                    return Math.hypot(dx, dy) < 28;
+                });
+
+                if (hitIndex !== -1) {
+                    state.markers.splice(hitIndex, 1);
+                } else {
+                    const coneColors = ['#f43f5e', '#facc15', '#38bdf8', '#a3e635', '#f97316'];
+                    state.markers.push({
+                        nx,
+                        ny,
+                        color: coneColors[state.markers.length % coneColors.length]
+                    });
+                }
+                renderStaticCourtScene();
+            });
+
+            document.getElementById('toggleHudBtn').addEventListener('click', toggleHud);
+            document.getElementById('closeHudBtn').addEventListener('click', toggleHud);
+            document.getElementById('quickCycleSportBtn').addEventListener('click', cycleSportPreset);
+            document.getElementById('surfaceModeQuickBtn').addEventListener('click', cycleSurfaceMode);
+            document.getElementById('modalCycleSurfaceModeBtn').addEventListener('click', cycleSurfaceMode);
+            document.getElementById('flipHorizontalQuickBtn').addEventListener('click', toggleHorizontalMirror);
+
+            document.getElementById('calibGridQuickBtn').addEventListener('click', () => {
+                state.projector.showCalibGrid = !state.projector.showCalibGrid;
+                updateAllUI();
+                showToast(
+                    `Alignment Grid: ${state.projector.showCalibGrid ? 'ON' : 'OFF'}`,
+                    'Press F7 anytime to toggle calibration crosshairs',
+                    'ph-bold ph-grid-four'
+                );
+            });
+
+            function toggleMarkerMode() {
+                state.markerMode = !state.markerMode;
+                updateAllUI();
+                showToast(
+                    `Coaching Cone Mode: ${state.markerMode ? 'ENABLED' : 'OFF'}`,
+                    state.markerMode ? 'Click anywhere on floor to place/remove drill cones' : 'Press M anytime to place coaching markers',
+                    'ph-fill ph-traffic-cone'
+                );
+            }
+
+            document.getElementById('markerModeQuickBtn').addEventListener('click', toggleMarkerMode);
+            document.getElementById('toggleMarkersBtn').addEventListener('click', toggleMarkerMode);
+            document.getElementById('clearMarkersBtn').addEventListener('click', () => {
+                state.markers = [];
+                renderStaticCourtScene();
+                showToast('Coaching Cones Cleared', 'All drill markers removed from floor');
+            });
+
+            // Sport Preset Buttons
+            document.querySelectorAll('.sport-btn').forEach(btn => {
+                btn.addEventListener('click', () => setSportPreset(btn.dataset.sport, true));
+            });
+
+            // Multi-Sport Layer Checkboxes
+            ['Basketball', 'Volleyball', 'Badminton', 'TrackOuter'].forEach(layer => {
+                const el = document.getElementById(`layer${layer}`);
+                const key = layer.charAt(0).toLowerCase() + layer.slice(1);
+                el.addEventListener('change', (e) => {
+                    state.multiLayers[key] = e.target.checked;
+                    saveConfig();
+                    renderStaticCourtScene();
+                });
+            });
+
+            // Line Color Palette Buttons
+            document.querySelectorAll('.palette-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.palette = btn.dataset.palette;
+                    saveConfig();
+                    updateAllUI();
+                });
+            });
+
+            // Sliders
+            document.getElementById('lineWidthSlider').addEventListener('input', (e) => {
+                state.lineWidth = parseFloat(e.target.value);
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('lineGlowSlider').addEventListener('input', (e) => {
+                state.lineGlow = parseInt(e.target.value, 10);
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('courtScaleSlider').addEventListener('input', (e) => {
+                state.courtScale = parseInt(e.target.value, 10);
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('lumenBoostSlider').addEventListener('input', (e) => {
+                state.lumenBoost = parseInt(e.target.value, 10);
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.querySelectorAll('.surface-mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => setSurfaceMode(btn.dataset.surface, true));
+            });
+
+            document.getElementById('toggleDimensionsBtn').addEventListener('click', () => {
+                state.showDimensions = !state.showDimensions;
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('toggleWatermarkBtn').addEventListener('click', () => {
+                state.showWatermark = !state.showWatermark;
+                saveConfig();
+                updateAllUI();
+            });
+
+            // Multi-Projector Modal Controls
+            document.getElementById('openProjectorHudBtn').addEventListener('click', toggleProjectorModal);
+            document.getElementById('openProjectorFromSceneBtn').addEventListener('click', toggleProjectorModal);
+            document.getElementById('closeProjectorModalBtn').addEventListener('click', toggleProjectorModal);
+            document.getElementById('projectorModal').addEventListener('click', (e) => {
+                if (e.target.id === 'projectorModal') toggleProjectorModal();
+            });
+
+            document.querySelectorAll('.total-proj-btn').forEach(btn => {
+                btn.addEventListener('click', () => setTotalProjectors(Number(btn.dataset.total), true));
+            });
+
+            document.querySelectorAll('.rot-btn').forEach(btn => {
+                btn.addEventListener('click', () => setProjectorRotation(Number(btn.dataset.rot), true));
+            });
+
+            document.getElementById('fineAngleSlider').addEventListener('input', (e) => {
+                state.projector.fineAngle = parseFloat(e.target.value);
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('sliceOffsetSlider').addEventListener('input', (e) => {
+                state.projector.offsetPct = parseFloat(e.target.value);
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('toggleCalibGridBtn').addEventListener('click', () => {
+                state.projector.showCalibGrid = !state.projector.showCalibGrid;
+                updateAllUI();
+            });
+
+            document.getElementById('toggleFlipVBtn').addEventListener('click', () => {
+                state.projector.flipV = !state.projector.flipV;
+                saveConfig();
+                updateAllUI();
+                showToast('Vertical Flip Toggled', `Vertical Flip is now ${state.projector.flipV ? 'ON' : 'OFF'}`);
+            });
+
+            document.getElementById('resetProjectorBtn').addEventListener('click', () => {
+                state.projector.total = 1;
+                state.projector.unit = 1;
+                state.projector.rotation = 0;
+                state.projector.fineAngle = 0;
+                state.projector.offsetPct = 0;
+                state.projector.flipV = false;
+                state.projector.mirrorH = false;
+                state.projector.showCalibGrid = false;
+                state.surfaceMode = 'blackout';
+                state.lumenBoost = 100;
+                saveConfig();
+                updateAllUI();
+                showToast('Projector Setup Reset', 'Restored to 1 Projector (1% – 100%) • 0° • Laser Blackout');
+            });
+
+            document.getElementById('copyLaunchUrlBtn').addEventListener('click', () => {
+                const params = document.getElementById('launchUrlPreview').textContent;
+                const fullUrl = window.location.origin + window.location.pathname + params;
+                const tempInput = document.createElement('textarea');
+                tempInput.value = fullUrl;
+                document.body.appendChild(tempInput);
+                tempInput.select();
+                document.execCommand('copy');
+                document.body.removeChild(tempInput);
+
+                const copyText = document.getElementById('copyUrlText');
+                copyText.textContent = 'Copied!';
+                setTimeout(() => { copyText.textContent = 'Copy URL'; }, 1800);
+            });
+
+            // Comprehensive Keyboard & F-Key Shortcuts (Matching HalloweenGame.html):
+            // - F1: Mirror Court Left/Right
+            // - F2: Toggle Multi-Projector Slicer & Rotation Modal
+            // - F3: Cycle Total Projectors (1 -> 2 -> 3 -> 4 -> 1)
+            // - F4: Cycle Assigned Projector Unit (1 -> 2 -> ... -> total)
+            // - F5: Cycle Sport Court Preset
+            // - F6: Cycle Rotation (0° -> 90° -> 180° -> 270°)
+            // - F7: Toggle Alignment Calibration Grid Overlay
+            // - F8 / F9: Decrease / Increase Laser Line Glow
+            // - F10: Cycle Floor Surface Mode (Laser Blackout -> Maple Hardwood -> Bright Floodlight -> X-Ray)
+            // - [ / ] or - / =: Decrease / Increase Line Thickness
+            // - 1..8: Direct select Sport Court Preset
+            // - H: Toggle HUD Controls
+            // - L: Toggle Dimension Labels
+            // - M: Toggle Coaching Cone Placement Mode
+            // - C: Clear Coaching Cones
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'F1') {
+                    e.preventDefault();
+                    toggleHorizontalMirror();
+                } else if (e.key === 'F2') {
+                    e.preventDefault();
+                    toggleProjectorModal();
+                } else if (e.key === 'F3') {
+                    e.preventDefault();
+                    const nextTotal = (state.projector.total % 4) + 1;
+                    setTotalProjectors(nextTotal, true);
+                } else if (e.key === 'F4') {
+                    e.preventDefault();
+                    const nextUnit = (state.projector.unit % state.projector.total) + 1;
+                    setProjectorUnit(nextUnit, true);
+                } else if (e.key === 'F5') {
+                    e.preventDefault();
+                    cycleSportPreset();
+                } else if (e.key === 'F6') {
+                    e.preventDefault();
+                    const nextRot = (state.projector.rotation + 90) % 360;
+                    setProjectorRotation(nextRot, true);
+                } else if (e.key === 'F7') {
+                    e.preventDefault();
+                    state.projector.showCalibGrid = !state.projector.showCalibGrid;
+                    updateAllUI();
+                    showToast(
+                        `Alignment Grid: ${state.projector.showCalibGrid ? 'ON' : 'OFF'}`,
+                        'Press F7 anytime to toggle calibration crosshairs',
+                        'ph-bold ph-grid-four'
+                    );
+                } else if (e.key === 'F8') {
+                    e.preventDefault();
+                    state.lineGlow = Math.max(0, state.lineGlow - 10);
+                    saveConfig();
+                    updateAllUI();
+                    showToast(`Laser Line Glow: ${state.lineGlow}%`, 'Shortcut: F8 / F9');
+                } else if (e.key === 'F9') {
+                    e.preventDefault();
+                    state.lineGlow = Math.min(100, state.lineGlow + 10);
+                    saveConfig();
+                    updateAllUI();
+                    showToast(`Laser Line Glow: ${state.lineGlow}%`, 'Shortcut: F8 / F9');
+                } else if (e.key === 'F10') {
+                    e.preventDefault();
+                    cycleSurfaceMode();
+                } else if (e.key === '[' || e.key === '-') {
+                    state.lineWidth = Math.max(1.5, Number((state.lineWidth - 0.5).toFixed(1)));
+                    saveConfig();
+                    updateAllUI();
+                    showToast(`Line Thickness: ${state.lineWidth.toFixed(1)} px`, 'Shortcut: [ and ]');
+                } else if (e.key === ']' || e.key === '=' || e.key === '+') {
+                    state.lineWidth = Math.min(18, Number((state.lineWidth + 0.5).toFixed(1)));
+                    saveConfig();
+                    updateAllUI();
+                    showToast(`Line Thickness: ${state.lineWidth.toFixed(1)} px`, 'Shortcut: [ and ]');
+                } else if (e.key >= '1' && e.key <= '8') {
+                    const idx = parseInt(e.key, 10) - 1;
+                    if (SPORT_KEYS[idx]) setSportPreset(SPORT_KEYS[idx], true);
+                } else if (e.key === 'Escape' && state.projectorModalVisible) {
+                    toggleProjectorModal();
+                } else if (e.key === 'h' || e.key === 'H') {
+                    toggleHud();
+                } else if (e.key === 'l' || e.key === 'L') {
+                    state.showDimensions = !state.showDimensions;
+                    saveConfig();
+                    updateAllUI();
+                    showToast(`Court Dimensions: ${state.showDimensions ? 'ON' : 'OFF'}`, 'Press L to toggle regulation labels');
+                } else if (e.key === 'm' || e.key === 'M') {
+                    toggleMarkerMode();
+                } else if (e.key === 'c' || e.key === 'C') {
+                    state.markers = [];
+                    renderStaticCourtScene();
+                    showToast('Coaching Cones Cleared', 'All drill markers removed');
+                }
+            });
+
+            // Initialize saved config and render static court projection
+            loadConfig();
+            updateAllUI();
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initGymLineProjectorApp);
+        } else {
+            initGymLineProjectorApp();
+        }
+    </script>
+</body>
+</html>
