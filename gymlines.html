@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GymLine Pro — Multi-Projector Sports Court & Track Line Projection System</title>
+    <title>GymLine Pro — Multi-Projector Sports Court & Playground Line Projection System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -79,7 +79,7 @@
     <!-- Primary Fullscreen Gym Court Projection Canvas -->
     <canvas id="courtCanvas"></canvas>
 
-    <!-- Auto-Hiding On-Screen Toast Banner for F-Key & Preset Actions -->
+    <!-- Auto-Hiding On-Screen Toast Banner for Arrow Keys, F-Keys & Preset Actions -->
     <div id="toastBanner" class="fixed top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 -translate-y-4 transition-all duration-300">
         <div class="hud-glass-cyan px-5 py-3 rounded-2xl flex items-center gap-3.5 border border-sky-400/50">
             <i id="toastIcon" class="ph-fill ph-court-basketball text-2xl text-emerald-400"></i>
@@ -102,10 +102,19 @@
             <span id="projectorQuickBadge" class="font-mono-code text-xs sm:text-sm">Proj 1/1 (1-100%) • 0°</span>
         </button>
 
-        <button id="quickCycleSportBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-amber-200 hover:text-white hover:border-amber-400/60 transition-all" title="Cycle Sport Court Preset (Shortcut: F5 or Keys 1-8)">
-            <i class="ph-fill ph-court-basketball text-amber-400 text-lg"></i>
-            <span id="activeSportQuickLabel">Sport: Multi-Sport Gym</span>
-        </button>
+        <!-- Quick Prev / Sport Cycle / Next Stepper -->
+        <div class="hud-glass rounded-xl flex items-center p-1 gap-1">
+            <button id="quickPrevSportBtn" class="px-2.5 py-1.5 rounded-lg text-amber-300 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center" title="Previous Court Preset (Left Arrow Key)">
+                <i class="ph-bold ph-caret-left text-sm"></i>
+            </button>
+            <button id="quickCycleSportBtn" class="px-2.5 py-1.5 rounded-lg flex items-center gap-2 text-xs sm:text-sm font-medium text-amber-200 hover:text-white hover:bg-white/10 transition-all" title="Cycle Sport Court Preset (Left/Right Arrows, F5, or Keys 1-0)">
+                <i class="ph-fill ph-court-basketball text-amber-400 text-base"></i>
+                <span id="activeSportQuickLabel">1/12: Multi-Sport Gym</span>
+            </button>
+            <button id="quickNextSportBtn" class="px-2.5 py-1.5 rounded-lg text-amber-300 hover:text-white hover:bg-white/10 transition-all flex items-center justify-center" title="Next Court Preset (Right Arrow Key)">
+                <i class="ph-bold ph-caret-right text-sm"></i>
+            </button>
+        </div>
     </div>
 
     <!-- Top-Right Quick Action Bar (Starts hidden; toggled via H or Double-Click) -->
@@ -125,21 +134,63 @@
             <span class="hidden sm:inline">Grid (F7)</span>
         </button>
 
+        <button id="drawModeQuickBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:border-emerald-400/60 transition-all" title="Toggle Free Draw & Smart Straighten Line Tool (Shortcut: D)">
+            <i class="ph-fill ph-pencil-line text-amber-400 text-lg"></i>
+            <span id="drawQuickLabel" class="hidden sm:inline">Draw: OFF (D)</span>
+        </button>
+
         <button id="markerModeQuickBtn" class="hud-glass px-3.5 py-2.5 rounded-xl flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-300 hover:text-white hover:border-emerald-400/60 transition-all" title="Toggle Click-to-Place Coaching Cones / Targets (Shortcut: M)">
             <i class="ph-fill ph-map-pin text-rose-400 text-lg"></i>
             <span id="markerQuickLabel" class="hidden sm:inline">Cones: OFF</span>
         </button>
     </div>
 
+    <!-- Floating Bottom-Center Drawing Studio Toolbar (Appears automatically when Draw Mode is ON) -->
+    <div id="floatingDrawBar" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-30 hud-glass-cyan px-4 py-2.5 rounded-2xl flex flex-wrap items-center gap-2.5 opacity-0 pointer-events-none translate-y-4 transition-all duration-300 border border-sky-400/50 shadow-2xl">
+        <div class="flex items-center gap-1.5 pr-2 border-r border-white/15">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="text-xs font-bold uppercase tracking-wider text-white font-sport">Draw Studio</span>
+        </div>
+
+        <div class="flex items-center gap-1 bg-slate-950/80 p-1 rounded-xl border border-white/10">
+            <button data-drawtool="smart" class="draw-tool-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1" title="Draw naturally; nearly-straight lines snap straight & align to 0°/45°/90°, curves stay smooth">
+                <i class="ph-fill ph-magic-wand text-emerald-400"></i>
+                <span>Smart Snap</span>
+            </button>
+            <button data-drawtool="straight" class="draw-tool-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1" title="Point-to-point elastic ruler line (Hold Shift for 15°/45°/90° angle lock)">
+                <i class="ph-bold ph-ruler text-sky-400"></i>
+                <span>Ruler</span>
+            </button>
+            <button data-drawtool="freehand" class="draw-tool-btn px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1" title="Smooth freehand curve for coaching routes & custom arcs">
+                <i class="ph-bold ph-scribble-loop text-amber-400"></i>
+                <span>Freehand</span>
+            </button>
+        </div>
+
+        <button id="floatingStraightenBtn" class="px-3 py-1.5 rounded-xl text-xs font-semibold border border-emerald-400/50 bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-200 transition-all flex items-center gap-1.5 shadow" title="Convert drawn freehand lines into crisp straight lines (Shortcut: S)">
+            <i class="ph-bold ph-arrows-out-line-horizontal text-emerald-300"></i>
+            <span>Straighten (S)</span>
+        </button>
+
+        <button id="floatingUndoDrawBtn" class="px-2.5 py-1.5 rounded-xl text-xs font-medium border border-white/15 bg-white/5 hover:bg-white/15 text-slate-200 transition-all flex items-center gap-1" title="Undo Last Drawn Line (Shortcut: Z or Ctrl+Z)">
+            <i class="ph-bold ph-arrow-counter-clockwise"></i>
+            <span>Undo (Z)</span>
+        </button>
+
+        <button id="floatingExitDrawBtn" class="px-2.5 py-1.5 rounded-xl text-xs font-medium border border-rose-500/35 bg-rose-500/15 hover:bg-rose-500/25 text-rose-200 transition-all" title="Exit Draw Mode (Shortcut: D)">
+            Done
+        </button>
+    </div>
+
     <!-- Main Toggleable HUD Control Panel (Starts hidden; toggled with H or Double-Click) -->
-    <aside id="hudPanel" class="fixed top-16 left-4 z-30 w-80 sm:w-[25rem] max-h-[calc(100vh-5rem)] overflow-y-auto custom-scroll hud-glass rounded-2xl p-5 transition-all duration-300 opacity-0 -translate-x-8 pointer-events-none">
+    <aside id="hudPanel" class="fixed top-16 left-4 z-30 w-80 sm:w-[26rem] max-h-[calc(100vh-5rem)] overflow-y-auto custom-scroll hud-glass rounded-2xl p-5 transition-all duration-300 opacity-0 -translate-x-8 pointer-events-none">
         <!-- Header -->
         <div class="flex items-center justify-between pb-3 mb-4 border-b border-emerald-500/25">
             <div class="flex items-center gap-2.5">
                 <i class="ph-fill ph-court-basketball text-2xl text-emerald-400"></i>
                 <div>
                     <h1 class="font-sport text-xl font-bold text-white leading-none tracking-wide">GYMLINE PRO</h1>
-                    <p class="text-[11px] text-emerald-300/80 mt-0.5">Multi-Projector Static Sports Line System</p>
+                    <p class="text-[11px] text-emerald-300/80 mt-0.5">Multi-Projector Sports & Playground Line System</p>
                 </div>
             </div>
             <button id="closeHudBtn" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Hide HUD (Shortcut: H or Double-Click)">
@@ -156,15 +207,27 @@
             <kbd class="px-2 py-0.5 rounded bg-sky-500/20 text-sky-300 font-mono-code text-[11px]">Press F2</kbd>
         </button>
 
-        <!-- 1. Select Sport / Court Line Preset (Keys 1-8 or F5) -->
+        <!-- 1. Select Sport / Playground Court Preset (Left/Right Arrows, Keys 1-0, or F5) -->
         <div class="mb-4">
             <div class="flex items-center justify-between mb-2">
                 <label class="text-xs font-semibold uppercase tracking-wider text-emerald-300 flex items-center gap-1.5">
                     <i class="ph-fill ph-trophy text-emerald-400"></i>
-                    <span>Sport / Gym Court Preset</span>
+                    <span>Court & Playground Presets (13)</span>
                 </label>
-                <span class="text-[10px] font-mono-code text-slate-400">Keys <kbd class="px-1 py-0.5 bg-white/10 rounded text-slate-200">1-8</kbd> or <kbd class="px-1 py-0.5 bg-white/10 rounded text-slate-200">F5</kbd></span>
+                <div class="flex items-center gap-1">
+                    <button id="hudPrevSportBtn" class="px-2 py-0.5 rounded bg-white/10 hover:bg-emerald-500/30 text-emerald-300 font-mono-code text-[11px] flex items-center gap-0.5 transition-colors" title="Previous Court (Left Arrow)">
+                        <i class="ph-bold ph-arrow-left text-[10px]"></i> Prev
+                    </button>
+                    <button id="hudNextSportBtn" class="px-2 py-0.5 rounded bg-white/10 hover:bg-emerald-500/30 text-emerald-300 font-mono-code text-[11px] flex items-center gap-0.5 transition-colors" title="Next Court (Right Arrow)">
+                        Next <i class="ph-bold ph-arrow-right text-[10px]"></i>
+                    </button>
+                </div>
             </div>
+            <div class="text-[10px] font-mono-code text-slate-400 mb-2 flex items-center justify-between">
+                <span>Cycle: <kbd class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">←</kbd> <kbd class="px-1.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded">→</kbd> Arrow Keys</span>
+                <span>Direct: <kbd class="px-1 py-0.5 bg-white/10 rounded text-slate-200">1-0</kbd> or <kbd class="px-1 py-0.5 bg-white/10 rounded text-slate-200">F5</kbd></span>
+            </div>
+
             <div class="grid grid-cols-2 gap-1.5 text-xs" id="sportPresetGroup">
                 <button data-sport="multi" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
                     <span class="truncate">1. Multi-Sport Gym</span>
@@ -197,6 +260,106 @@
                 <button data-sport="badminton" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
                     <span class="truncate">8. Badminton / Pickle</span>
                     <span class="w-2 h-2 rounded-full bg-fuchsia-400 shrink-0"></span>
+                </button>
+                <button data-sport="hopscotch" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">9. Hopscotch Courses</span>
+                    <span class="w-2 h-2 rounded-full bg-yellow-300 shrink-0"></span>
+                </button>
+                <button data-sport="foursquare" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">0. Four Square & Gaga</span>
+                    <span class="w-2 h-2 rounded-full bg-pink-400 shrink-0"></span>
+                </button>
+                <button data-sport="dodgeball" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">11. Dodgeball Court</span>
+                    <span class="w-2 h-2 rounded-full bg-red-500 shrink-0"></span>
+                </button>
+                <button data-sport="agility" class="sport-btn py-2 px-2.5 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">12. Agility & Ladders</span>
+                    <span class="w-2 h-2 rounded-full bg-teal-300 shrink-0"></span>
+                </button>
+                <button data-sport="blank" class="sport-btn col-span-2 py-2 px-3 rounded-xl font-medium border text-left flex items-center justify-between transition-all">
+                    <span class="truncate">13. Blank Custom Floor (Free Draw Canvas)</span>
+                    <span class="w-2 h-2 rounded-full bg-white shrink-0"></span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Custom Line Free-Draw & Smart Straighten Studio -->
+        <div class="mb-4 p-3.5 rounded-xl bg-slate-950/80 border border-sky-400/35 text-xs space-y-3">
+            <div class="flex items-center justify-between">
+                <label class="font-semibold uppercase tracking-wider text-sky-300 flex items-center gap-1.5">
+                    <i class="ph-fill ph-pencil-line text-sky-400 text-sm"></i>
+                    <span>Free Draw & Line Studio</span>
+                </label>
+                <button id="toggleDrawModeBtn" class="px-2.5 py-1 rounded-lg font-semibold border border-sky-400/50 bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 transition-all text-[11px] flex items-center gap-1">
+                    <span id="drawModeBtnText">Draw Mode: OFF (D)</span>
+                </button>
+            </div>
+
+            <!-- 3 Drawing Sub-Modes: Smart Auto-Straighten, Straight Ruler, Freehand Curve -->
+            <div>
+                <div class="text-[10px] text-slate-400 mb-1.5 flex items-center justify-between">
+                    <span>Drawing Tool Mode:</span>
+                    <span class="font-mono-code text-sky-300" id="drawSubModeHint">Auto-snaps straight lines</span>
+                </div>
+                <div class="grid grid-cols-3 gap-1.5">
+                    <button data-drawtool="smart" class="draw-tool-btn py-1.5 px-2 rounded-lg font-medium border text-center transition-all text-[11px] flex flex-col items-center gap-0.5">
+                        <i class="ph-fill ph-magic-wand text-sm text-emerald-400"></i>
+                        <span>Smart Snap</span>
+                    </button>
+                    <button data-drawtool="straight" class="draw-tool-btn py-1.5 px-2 rounded-lg font-medium border text-center transition-all text-[11px] flex flex-col items-center gap-0.5">
+                        <i class="ph-bold ph-ruler text-sm text-sky-400"></i>
+                        <span>Ruler Line</span>
+                    </button>
+                    <button data-drawtool="freehand" class="draw-tool-btn py-1.5 px-2 rounded-lg font-medium border text-center transition-all text-[11px] flex flex-col items-center gap-0.5">
+                        <i class="ph-bold ph-scribble-loop text-sm text-amber-400"></i>
+                        <span>Freehand</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Custom Drawn Line Color Swatches -->
+            <div>
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[11px] text-slate-300">Drawn Line Color:</span>
+                    <label class="flex items-center gap-1.5 cursor-pointer text-[10px] text-emerald-300 font-mono-code">
+                        <input type="checkbox" id="angleSnapCheckbox" checked class="rounded accent-emerald-400">
+                        <span>0°/45°/90° Snap</span>
+                    </label>
+                </div>
+                <div class="grid grid-cols-6 gap-1.5" id="drawColorGroup">
+                    <button data-drawcolor="#facc15" class="draw-color-btn h-6 rounded-md bg-yellow-400 border border-white/20" title="Laser Yellow"></button>
+                    <button data-drawcolor="#22d3ee" class="draw-color-btn h-6 rounded-md bg-cyan-400 border border-white/20" title="Electric Cyan"></button>
+                    <button data-drawcolor="#a3e635" class="draw-color-btn h-6 rounded-md bg-lime-400 border border-white/20" title="Neon Green"></button>
+                    <button data-drawcolor="#f97316" class="draw-color-btn h-6 rounded-md bg-orange-500 border border-white/20" title="Safety Orange"></button>
+                    <button data-drawcolor="#f43f5e" class="draw-color-btn h-6 rounded-md bg-rose-500 border border-white/20" title="Rose Red"></button>
+                    <button data-drawcolor="#ffffff" class="draw-color-btn h-6 rounded-md bg-white border border-white/20" title="Pure White"></button>
+                </div>
+            </div>
+
+            <!-- Dashed & Arrowhead Toggles -->
+            <div class="grid grid-cols-2 gap-1.5">
+                <button id="toggleDrawDashedBtn" class="py-1.5 px-2 rounded-lg font-medium border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center justify-center gap-1.5 text-[11px]">
+                    <i class="ph-bold ph-dots-three-outline text-sky-400"></i>
+                    <span id="drawDashedText">Style: Solid</span>
+                </button>
+                <button id="toggleDrawArrowBtn" class="py-1.5 px-2 rounded-lg font-medium border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all flex items-center justify-center gap-1.5 text-[11px]">
+                    <i class="ph-bold ph-arrow-up-right text-amber-400"></i>
+                    <span id="drawArrowText">Arrowhead: OFF</span>
+                </button>
+            </div>
+
+            <!-- One-Click Straighten, Undo & Clear Actions -->
+            <div class="flex items-center gap-1.5 pt-1">
+                <button id="straightenDrawnLinesBtn" class="flex-1 py-2 px-2.5 rounded-xl font-semibold border border-emerald-400/50 bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 transition-all flex items-center justify-center gap-1.5 text-[11px] shadow" title="Instantly straighten freehand drawn lines into crisp geometric segments (Shortcut: S)">
+                    <i class="ph-bold ph-magic-wand text-emerald-300"></i>
+                    <span>Straighten Lines (S)</span>
+                </button>
+                <button id="undoDrawnLineBtn" class="py-2 px-2.5 rounded-xl font-medium border border-white/15 bg-white/5 hover:bg-white/10 text-slate-200 transition-all text-[11px]" title="Undo last drawn line (Shortcut: Z or Ctrl+Z)">
+                    Undo
+                </button>
+                <button id="clearDrawnLinesBtn" class="py-2 px-2.5 rounded-xl font-medium border border-rose-500/30 bg-rose-500/10 hover:bg-rose-500/20 text-rose-200 transition-all text-[11px]" title="Clear all custom drawn lines">
+                    Clear
                 </button>
             </div>
         </div>
@@ -335,10 +498,10 @@
 
         <!-- Footer Shortcut Legend -->
         <div class="mt-4 pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-1.5 text-[10px] text-slate-400 font-mono-code">
+            <span><kbd class="px-1.5 py-0.5 bg-emerald-500/20 rounded text-emerald-300">←/→</kbd> Cycle Court</span>
+            <span><kbd class="px-1.5 py-0.5 bg-sky-500/20 rounded text-sky-300">D</kbd> Draw</span>
+            <span><kbd class="px-1.5 py-0.5 bg-emerald-500/20 rounded text-emerald-300">S</kbd> Straighten</span>
             <span><kbd class="px-1.5 py-0.5 bg-sky-500/20 rounded text-sky-300">F2</kbd> Projectors</span>
-            <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">F3/F4</kbd> Split/Unit</span>
-            <span><kbd class="px-1.5 py-0.5 bg-emerald-500/20 rounded text-emerald-300">F5</kbd> Sport</span>
-            <span><kbd class="px-1.5 py-0.5 bg-amber-500/20 rounded text-amber-300">F10</kbd> Surface</span>
             <span><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-slate-200">H</kbd> Hide UI</span>
         </div>
     </aside>
@@ -357,7 +520,7 @@
                             <h2 class="text-lg font-bold text-white">Multi-Projector Court Slicer & Rotation</h2>
                             <span class="px-2 py-0.5 text-[10px] font-mono-code uppercase bg-sky-500/20 text-sky-300 rounded border border-sky-400/30">Shortcut: F2</span>
                         </div>
-                        <p class="text-xs text-slate-300 mt-0.5">Split static gym court lines across 1, 2, 3, or 4 ceiling/wall projectors & calibrate alignment</p>
+                        <p class="text-xs text-slate-300 mt-0.5">Split static gym & playground lines across 1, 2, 3, or 4 ceiling/wall projectors & calibrate alignment</p>
                     </div>
                 </div>
                 <button id="closeProjectorModalBtn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Close Projector Setup (F2 or Esc)">
@@ -510,11 +673,11 @@
 
             <!-- F-Key Cheat Sheet Footer -->
             <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-slate-400 font-mono-code">
-                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F1</kbd> Mirror Court L/R</div>
+                <div><kbd class="px-1.5 py-0.5 bg-emerald-500/25 rounded text-emerald-300">← / →</kbd> Prev/Next Court</div>
                 <div><kbd class="px-1.5 py-0.5 bg-sky-500/25 rounded text-sky-300">F2</kbd> Projector Menu</div>
                 <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F3</kbd> Split (1/2/3/4)</div>
                 <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F4</kbd> Unit (1..4)</div>
-                <div><kbd class="px-1.5 py-0.5 bg-emerald-500/25 rounded text-emerald-300">F5</kbd> Cycle Sport</div>
+                <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F1</kbd> Mirror Court L/R</div>
                 <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F6</kbd> Rotate 90°</div>
                 <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">F7</kbd> Alignment Grid</div>
                 <div><kbd class="px-1.5 py-0.5 bg-white/10 rounded text-white">[ / ]</kbd> Line Thickness</div>
@@ -525,26 +688,16 @@
 
     <script>
         /**
-         * GYMLINE PRO — Multi-Projector Sports Court & Track Line Projection System
+         * GYMLINE PRO — Multi-Projector Sports Court, Track & Playground Line Projection System
          *
-         * Built on the exact multi-projector slicing, rotation, and brightness architecture of HalloweenGame.html:
-         * - Splits a continuous regulation gymnasium / sports field across 1, 2, 3, or 4 projectors:
-         *   - 4 Projectors: Unit 1 (1–25%), Unit 2 (26–50%), Unit 3 (51–75%), Unit 4 (76–100%)
-         *   - 3 Projectors: Unit 1 (1–33%), Unit 2 (34–67%), Unit 3 (68–100%)
-         *   - 2 Projectors: Unit 1 (1–50%), Unit 2 (51–100%)
-         *   - 1 Projector : Unit 1 (1–100%)
-         * - Supports 8 regulation static court presets:
-         *   1. Multi-Sport Gym Floor (Basketball + Volleyball + Badminton/Pickleball + Optional Track)
-         *   2. 6-Lane Running Track (Indoor Oval, Staggered Starts, Relay Zones, Sprint Straightaway)
-         *   3. Ice / Floor Hockey Rink (Boards, Red/Blue Lines, 5 Faceoff Circles, Creases, Trapezoids)
-         *   4. Soccer / Futsal Pitch (Touchlines, Center Circle, Penalty & Goal Areas, Penalty Arcs, Corners)
-         *   5. Tennis Court (Doubles/Singles Sidelines, Service Boxes, Center Mark, Net Posts)
-         *   6. Basketball Court (Full Court, 3-Point Arcs, Free-Throw Keys, Hash Marks, Restricted Arcs)
-         *   7. Volleyball Court (Boundary, Center Net Line, 3m Attack Lines, Service & Substitution Zones)
-         *   8. Dual Badminton & Pickleball Courts (Side-by-side regulation courts with Kitchen/Service lines)
+         * Preserves 100% of the multi-projector slicing, rotation, calibration, surface modes,
+         * and coaching cone placement while adding:
+         * - Left (`ArrowLeft`) and Right (`ArrowRight`) keyboard court cycling
+         * - 12 regulation sports & playground court presets including Hopscotch Courses,
+         *   Four Square & Octagonal Gaga Pit, Regulation Dodgeball, and Speed & Agility Ladders.
          */
         function initGymLineProjectorApp() {
-            const STORAGE_KEY = 'gymline_pro_projector_cfg_v1';
+            const STORAGE_KEY = 'gymline_pro_projector_cfg_v2';
             const canvas = document.getElementById('courtCanvas');
             const ctx = canvas.getContext('2d');
 
@@ -556,10 +709,29 @@
                 tennis:     { name: 'Tennis Court',          dims: '78 ft × 36 ft (23.77m × 10.97m Doubles)' },
                 basketball: { name: 'Basketball Court',      dims: '94 ft × 50 ft (28.65m × 15.24m)' },
                 volleyball: { name: 'Volleyball Court',      dims: '18m × 9m (59 ft × 29.5 ft)' },
-                badminton:  { name: 'Badminton / Pickleball', dims: '44 ft × 20 ft (Dual Courts)' }
+                badminton:  { name: 'Badminton / Pickleball', dims: '44 ft × 20 ft (Dual Courts)' },
+                hopscotch:  { name: 'Hopscotch Playground',  dims: 'Triple Course: Classic 1-10 + Side-Step Challenge' },
+                foursquare: { name: 'Four Square & Gaga Pit', dims: '16×16 ft Four Square + 20 ft Octagonal Gaga Pit' },
+                dodgeball:  { name: 'Dodgeball Court',       dims: '60 ft × 30 ft (WDBF / NCSA Regulation)' },
+                agility:    { name: 'Agility Ladders & Circuit', dims: 'Dual 12-Rung Ladders • Hex Rings • 5-10-5 Shuttle' },
+                blank:      { name: 'Blank Custom Floor',    dims: 'Open Gym Floor Canvas • Press D to Draw Custom Lines' }
             };
 
-            const SPORT_KEYS = ['multi', 'track', 'hockey', 'soccer', 'tennis', 'basketball', 'volleyball', 'badminton'];
+            const SPORT_KEYS = [
+                'multi',
+                'track',
+                'hockey',
+                'soccer',
+                'tennis',
+                'basketball',
+                'volleyball',
+                'badminton',
+                'hopscotch',
+                'foursquare',
+                'dodgeball',
+                'agility',
+                'blank'
+            ];
 
             const PALETTE_SWATCHES = {
                 white:  '#ffffff',
@@ -595,7 +767,7 @@
                 },
 
                 // Sport & Line Styling Configuration
-                sport: 'multi',        // 'multi' | 'track' | 'hockey' | 'soccer' | 'tennis' | 'basketball' | 'volleyball' | 'badminton'
+                sport: 'multi',
                 multiLayers: {
                     basketball: true,
                     volleyball: true,
@@ -613,7 +785,17 @@
 
                 // Interactive Coaching Cones / Target Markers
                 markerMode: false,
-                markers: [],           // Stored in normalized virtual coordinates { nx, ny, color, label }
+                markers: [],           // Stored in normalized virtual coordinates { nx, ny, color }
+
+                // Free Draw & Smart Straighten Line Studio State
+                drawMode: false,
+                drawTool: 'smart',     // 'smart' (Auto-Straighten) | 'straight' (Ruler) | 'freehand' (Smooth Curve)
+                drawColor: '#facc15',
+                drawDashed: false,
+                drawArrow: false,
+                angleSnap: true,       // Snap straight lines near 0°, 45°, 90°
+                drawnLines: [],        // Array of { points: [{nx, ny}, ...], color, dashed, arrow, isStraight }
+                activeStroke: null,    // Currently dragged stroke
 
                 hudVisible: false,
                 projectorModalVisible: false
@@ -676,6 +858,12 @@
                         if (typeof parsed.lumenBoost === 'number') state.lumenBoost = Math.max(100, Math.min(250, parsed.lumenBoost));
                         if (typeof parsed.showDimensions === 'boolean') state.showDimensions = parsed.showDimensions;
                         if (typeof parsed.showWatermark === 'boolean') state.showWatermark = parsed.showWatermark;
+                        if (['smart', 'straight', 'freehand'].includes(parsed.drawTool)) state.drawTool = parsed.drawTool;
+                        if (typeof parsed.drawColor === 'string') state.drawColor = parsed.drawColor;
+                        if (typeof parsed.drawDashed === 'boolean') state.drawDashed = parsed.drawDashed;
+                        if (typeof parsed.drawArrow === 'boolean') state.drawArrow = parsed.drawArrow;
+                        if (typeof parsed.angleSnap === 'boolean') state.angleSnap = parsed.angleSnap;
+                        if (Array.isArray(parsed.drawnLines)) state.drawnLines = parsed.drawnLines;
                     }
                 } catch (e) {}
 
@@ -738,7 +926,13 @@
                         surfaceMode: state.surfaceMode,
                         lumenBoost: state.lumenBoost,
                         showDimensions: state.showDimensions,
-                        showWatermark: state.showWatermark
+                        showWatermark: state.showWatermark,
+                        drawTool: state.drawTool,
+                        drawColor: state.drawColor,
+                        drawDashed: state.drawDashed,
+                        drawArrow: state.drawArrow,
+                        angleSnap: state.angleSnap,
+                        drawnLines: state.drawnLines
                     }));
                 } catch (e) {}
             }
@@ -949,7 +1143,7 @@
             function drawBasketballCourt(customColor = '#f97316', scaleMult = 1.0, showLabels = true) {
                 const rect = getCourtRect(94 / 50, scaleMult);
                 const { x, y, w, h, cx, cy } = rect;
-                const ft = w / 94; // 1 foot in virtual pixels
+                const ft = w / 94;
 
                 ctx.save();
                 setCourtStroke(customColor, 1.0);
@@ -974,18 +1168,17 @@
 
                 drawCenterWatermark(cx, cy, 6 * ft, 'BASKETBALL');
 
-                // Left & Right Half-Court Elements
                 const sides = [
                     { dir: 1, baseX: x },
                     { dir: -1, baseX: x + w }
                 ];
 
                 const keyLen = 19 * ft;
-                const keyW = 16 * ft; // NBA/High-vis 16ft lane (or 12ft HS)
+                const keyW = 16 * ft;
                 const ftRadius = 6 * ft;
                 const hoopOffset = 5.25 * ft;
                 const threePtRadius = 23.75 * ft;
-                const cornerThreeDist = 3 * ft; // 3ft from sideline
+                const cornerThreeDist = 3 * ft;
 
                 for (const s of sides) {
                     const d = s.dir;
@@ -1024,24 +1217,22 @@
                     );
                     ctx.stroke();
 
-                    // Lane hash marks (rebound spaces)
+                    // Lane hash marks
                     setCourtStroke(customColor, 0.9);
                     const hashOffsets = [7, 8, 11, 14];
                     for (const ho of hashOffsets) {
                         const hx = bx + d * (ho * ft);
-                        // Top lane hashes
                         ctx.beginPath();
                         ctx.moveTo(hx, cy - keyW * 0.5);
                         ctx.lineTo(hx, cy - keyW * 0.5 - 1.0 * ft);
                         ctx.stroke();
-                        // Bottom lane hashes
                         ctx.beginPath();
                         ctx.moveTo(hx, cy + keyW * 0.5);
                         ctx.lineTo(hx, cy + keyW * 0.5 + 1.0 * ft);
                         ctx.stroke();
                     }
 
-                    // Backboard (6 ft wide, 4 ft from baseline) & Rim
+                    // Backboard & Rim
                     const boardX = bx + d * (4 * ft);
                     ctx.beginPath();
                     ctx.moveTo(boardX, cy - 3 * ft);
@@ -1052,7 +1243,7 @@
                     ctx.arc(hoopX, cy, 0.75 * ft, 0, Math.PI * 2);
                     ctx.stroke();
 
-                    // Restricted Area Arc (4 ft radius from hoop center)
+                    // Restricted Area Arc
                     ctx.beginPath();
                     ctx.arc(
                         hoopX,
@@ -1063,26 +1254,23 @@
                     );
                     ctx.stroke();
 
-                    // 3-Point Line (Corner straight lines + main arc)
+                    // 3-Point Line
                     const halfCourtHeight = h * 0.5;
                     const dyCorner = halfCourtHeight - cornerThreeDist;
                     const dxCorner = Math.sqrt(Math.max(0, threePtRadius * threePtRadius - dyCorner * dyCorner));
                     const arcStartX = hoopX + d * dxCorner;
                     const maxAngle = Math.atan2(dyCorner, dxCorner);
 
-                    // Top corner straight
                     ctx.beginPath();
                     ctx.moveTo(bx, y + cornerThreeDist);
                     ctx.lineTo(arcStartX, y + cornerThreeDist);
                     ctx.stroke();
 
-                    // Bottom corner straight
                     ctx.beginPath();
                     ctx.moveTo(bx, y + h - cornerThreeDist);
                     ctx.lineTo(arcStartX, y + h - cornerThreeDist);
                     ctx.stroke();
 
-                    // 3-Point Arc
                     ctx.beginPath();
                     if (d === 1) {
                         ctx.arc(hoopX, cy, threePtRadius, -maxAngle, maxAngle);
@@ -1091,7 +1279,7 @@
                     }
                     ctx.stroke();
 
-                    // Coaching box / 28-ft hash marks on sidelines
+                    // 28-ft hash marks
                     const hash28X = bx + d * (28 * ft);
                     ctx.beginPath();
                     ctx.moveTo(hash28X, y);
@@ -1119,7 +1307,6 @@
                 const straightHalf = Math.max(20, (w - h) * 0.5);
                 const laneWidth = (outerR * 0.46) / lanesCount;
 
-                // Draw Lane Boundaries (Lanes 1 to lanesCount + 1)
                 for (let i = 0; i <= lanesCount; i++) {
                     const r = outerR - i * laneWidth;
                     const isBorder = i === 0 || i === lanesCount;
@@ -1135,7 +1322,6 @@
                     ctx.stroke();
                 }
 
-                // Finish Line (Bottom straightaway, right side)
                 const finishX = cx + straightHalf * 0.55;
                 const innerR = outerR - lanesCount * laneWidth;
                 setCourtStroke('#ffffff', 1.4);
@@ -1144,7 +1330,6 @@
                 ctx.lineTo(finishX, cy + outerR);
                 ctx.stroke();
 
-                // Staggered Start Lines & Lane Numbers (1..6)
                 const fontSize = Math.max(10, laneWidth * 0.58);
                 ctx.font = `700 ${fontSize}px "JetBrains Mono", monospace`;
                 ctx.textAlign = 'center';
@@ -1155,14 +1340,12 @@
                     const laneInR = innerR + (lane - 1) * laneWidth;
                     const laneOutR = innerR + lane * laneWidth;
 
-                    // Lane number near finish line
                     ctx.save();
                     ctx.shadowBlur = 0;
                     ctx.fillStyle = resolveLineColor('#facc15');
                     ctx.fillText(String(lane), finishX - laneWidth * 0.9, cy + laneMidR);
                     ctx.restore();
 
-                    // Staggered start ticks on bottom-left curve/straight
                     const staggerAngle = Math.PI * 0.5 + (lane - 1) * 0.14;
                     const sx1 = (cx - straightHalf) + Math.cos(staggerAngle) * laneInR;
                     const sy1 = cy + Math.sin(staggerAngle) * laneInR;
@@ -1175,7 +1358,6 @@
                     ctx.lineTo(sx2, sy2);
                     ctx.stroke();
 
-                    // Relay exchange zone ticks on top straightaway
                     const relayX1 = cx - straightHalf * 0.35 + (lane - 1) * (laneWidth * 0.45);
                     const relayX2 = relayX1 + straightHalf * 0.45;
                     setCourtStroke('#38bdf8', 0.85);
@@ -1187,7 +1369,6 @@
                     ctx.stroke();
                 }
 
-                // Infield 60m Sprint Lanes (Center Straightaway)
                 const sprintLanes = 4;
                 const sprintTotalH = innerR * 1.1;
                 const sprintLaneH = sprintTotalH / sprintLanes;
@@ -1218,7 +1399,6 @@
 
                 ctx.save();
 
-                // Helper to trace rounded rink boards path for clipping
                 function traceRinkBoards() {
                     ctx.beginPath();
                     ctx.moveTo(x + cornerR, y);
@@ -1233,12 +1413,10 @@
                     ctx.closePath();
                 }
 
-                // Clip internal lines inside the rounded boards
                 ctx.save();
                 traceRinkBoards();
                 ctx.clip();
 
-                // Goal Lines (11 ft from each end board, Red)
                 const goalOffset = 11 * ft;
                 setCourtStroke('#ef4444', 0.95);
                 ctx.beginPath();
@@ -1248,7 +1426,6 @@
                 ctx.lineTo(x + w - goalOffset, y + h);
                 ctx.stroke();
 
-                // Blue Lines (25 ft from center line on each side)
                 const blueOffset = 25 * ft;
                 setCourtStroke('#38bdf8', 1.5);
                 ctx.beginPath();
@@ -1258,14 +1435,12 @@
                 ctx.lineTo(cx + blueOffset, y + h);
                 ctx.stroke();
 
-                // Center Red Line (Solid + Dashed segments)
                 setCourtStroke('#ef4444', 1.5, [10, 8]);
                 ctx.beginPath();
                 ctx.moveTo(cx, y);
                 ctx.lineTo(cx, y + h);
                 ctx.stroke();
 
-                // Center Ice Faceoff Circle (15 ft radius, Blue) & Spot
                 setCourtStroke('#38bdf8', 1.0);
                 ctx.beginPath();
                 ctx.arc(cx, cy, 15 * ft, 0, Math.PI * 2);
@@ -1277,7 +1452,6 @@
 
                 drawCenterWatermark(cx, cy, 15 * ft, 'HOCKEY');
 
-                // Neutral Zone Faceoff Dots (5 ft outside blue lines, 22 ft from center Y)
                 setCourtStroke('#ef4444', 1.0);
                 const nzOffsetsX = [cx - blueOffset + 5 * ft, cx + blueOffset - 5 * ft];
                 const faceoffOffsetsY = [cy - 22 * ft, cy + 22 * ft];
@@ -1289,7 +1463,6 @@
                     }
                 }
 
-                // End-Zone Faceoff Circles (20 ft from goal line, 22 ft above/below center) + Goal Creases + Trapezoids
                 const endSides = [
                     { dir: 1, gx: x + goalOffset, boardX: x },
                     { dir: -1, gx: x + w - goalOffset, boardX: x + w }
@@ -1299,7 +1472,6 @@
                     const d = s.dir;
                     const fx = s.gx + d * (20 * ft);
 
-                    // Goaltender Trapezoid behind goal line
                     setCourtStroke('#ef4444', 0.85);
                     ctx.beginPath();
                     ctx.moveTo(s.gx, cy - 11 * ft);
@@ -1308,7 +1480,6 @@
                     ctx.lineTo(s.boardX, cy + 14 * ft);
                     ctx.stroke();
 
-                    // Goal Crease (6 ft radius semi-circle in front of goal line)
                     setCourtStroke('#38bdf8', 1.05);
                     ctx.beginPath();
                     ctx.arc(
@@ -1320,7 +1491,6 @@
                     );
                     ctx.stroke();
 
-                    // Goal Net Frame (6 ft wide, 3.5 ft deep)
                     setCourtStroke('#ffffff', 1.0);
                     ctx.strokeRect(
                         d === 1 ? s.gx - 3.5 * ft : s.gx,
@@ -1329,19 +1499,16 @@
                         6 * ft
                     );
 
-                    // 2 End-Zone Faceoff Circles (15 ft radius, Red)
                     setCourtStroke('#ef4444', 0.95);
                     for (const fy of faceoffOffsetsY) {
                         ctx.beginPath();
                         ctx.arc(fx, fy, 15 * ft, 0, Math.PI * 2);
                         ctx.stroke();
 
-                        // Center faceoff spot
                         ctx.beginPath();
                         ctx.arc(fx, fy, 1.2 * ft, 0, Math.PI * 2);
                         ctx.fill();
 
-                        // Outer circle hash marks
                         for (const hs of [-1, 1]) {
                             ctx.beginPath();
                             ctx.moveTo(fx - 2 * ft, fy + hs * 15 * ft);
@@ -1353,7 +1520,6 @@
                     }
                 }
 
-                // Referee Crease (10 ft radius semicircle on bottom boards)
                 setCourtStroke('#ef4444', 0.9);
                 ctx.beginPath();
                 ctx.arc(cx, y + h, 10 * ft, Math.PI, 0);
@@ -1361,7 +1527,6 @@
 
                 ctx.restore();
 
-                // Outer Rounded Rink Boards
                 setCourtStroke('#ffffff', 1.35);
                 traceRinkBoards();
                 ctx.stroke();
@@ -1376,21 +1541,18 @@
             function drawSoccerPitch() {
                 const rect = getCourtRect(2.0, 1.0);
                 const { x, y, w, h, cx, cy } = rect;
-                const m = w / 100; // Scaled meter unit
+                const m = w / 100;
 
                 ctx.save();
                 setCourtStroke('#10b981', 1.1);
 
-                // Outer Touchlines & Goal Lines
                 ctx.strokeRect(x, y, w, h);
 
-                // Halfway Line
                 ctx.beginPath();
                 ctx.moveTo(cx, y);
                 ctx.lineTo(cx, y + h);
                 ctx.stroke();
 
-                // Center Circle & Kickoff Spot
                 ctx.beginPath();
                 ctx.arc(cx, cy, 9.15 * m, 0, Math.PI * 2);
                 ctx.stroke();
@@ -1401,7 +1563,6 @@
 
                 drawCenterWatermark(cx, cy, 9.15 * m, 'SOCCER / FUTSAL');
 
-                // Corner Arcs (4 corners)
                 const cornerR = 2.2 * m;
                 ctx.beginPath();
                 ctx.arc(x, y, cornerR, 0, Math.PI * 0.5);
@@ -1416,7 +1577,6 @@
                 ctx.arc(x, y + h, cornerR, Math.PI * 1.5, Math.PI * 2);
                 ctx.stroke();
 
-                // Left & Right Penalty Boxes, 6-Yard Goal Boxes, Penalty Spots & D-Arcs
                 const penDepth = 16.5 * m;
                 const penWidth = 40.3 * m;
                 const goalBoxDepth = 5.5 * m;
@@ -1434,7 +1594,6 @@
                     const d = s.dir;
                     const gx = s.gx;
 
-                    // 18-Yard Penalty Area
                     ctx.strokeRect(
                         d === 1 ? gx : gx - penDepth,
                         cy - penWidth * 0.5,
@@ -1442,7 +1601,6 @@
                         penWidth
                     );
 
-                    // 6-Yard Goal Area
                     ctx.strokeRect(
                         d === 1 ? gx : gx - goalBoxDepth,
                         cy - goalBoxWidth * 0.5,
@@ -1450,7 +1608,6 @@
                         goalBoxWidth
                     );
 
-                    // Goal Frame outside goal line
                     setCourtStroke('#ffffff', 1.0);
                     ctx.strokeRect(
                         d === 1 ? gx - 2.4 * m : gx,
@@ -1459,14 +1616,12 @@
                         7.32 * m
                     );
 
-                    // Penalty Spot
                     setCourtStroke('#10b981', 1.1);
                     const spotX = gx + d * penSpotDist;
                     ctx.beginPath();
                     ctx.arc(spotX, cy, 0.65 * m, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Penalty D-Arc
                     ctx.beginPath();
                     if (d === 1) {
                         ctx.arc(spotX, cy, penArcR, -arcAngle, arcAngle);
@@ -1491,10 +1646,8 @@
                 ctx.save();
                 setCourtStroke('#a3e635', 1.1);
 
-                // Doubles Outer Court (78 ft x 36 ft)
                 ctx.strokeRect(x, y, w, h);
 
-                // Singles Sidelines (4.5 ft inside each doubles sideline -> 27 ft width)
                 const alley = 4.5 * ft;
                 const singlesTop = y + alley;
                 const singlesBot = y + h - alley;
@@ -1505,7 +1658,6 @@
                 ctx.lineTo(x + w, singlesBot);
                 ctx.stroke();
 
-                // Service Lines (21 ft from net on each side)
                 const srvDist = 21 * ft;
                 ctx.beginPath();
                 ctx.moveTo(cx - srvDist, singlesTop);
@@ -1514,13 +1666,11 @@
                 ctx.lineTo(cx + srvDist, singlesBot);
                 ctx.stroke();
 
-                // Center Service Line (connecting left and right service lines)
                 ctx.beginPath();
                 ctx.moveTo(cx - srvDist, cy);
                 ctx.lineTo(cx + srvDist, cy);
                 ctx.stroke();
 
-                // Baseline Center Marks (4 inches inside each baseline)
                 const markLen = 1.2 * ft;
                 ctx.beginPath();
                 ctx.moveTo(x, cy);
@@ -1529,7 +1679,6 @@
                 ctx.lineTo(x + w - markLen, cy);
                 ctx.stroke();
 
-                // Net Line (extends 3 ft outside doubles sidelines) & Net Posts
                 const netOverhang = 3 * ft;
                 setCourtStroke('#ffffff', 1.25, [8, 6]);
                 ctx.beginPath();
@@ -1554,21 +1703,18 @@
             function drawVolleyballCourt(customColor = '#22d3ee', scaleMult = 0.88, showLabels = true) {
                 const rect = getCourtRect(18 / 9, scaleMult);
                 const { x, y, w, h, cx, cy } = rect;
-                const m = w / 18; // 1 meter in virtual pixels
+                const m = w / 18;
 
                 ctx.save();
                 setCourtStroke(customColor, 1.1);
 
-                // Outer Court Boundary (18m x 9m)
                 ctx.strokeRect(x, y, w, h);
 
-                // Center Net Line (Solid + Extended dashed posts)
                 ctx.beginPath();
                 ctx.moveTo(cx, y - 0.8 * m);
                 ctx.lineTo(cx, y + h + 0.8 * m);
                 ctx.stroke();
 
-                // 3-Meter (10-Foot) Attack Lines on both sides of net
                 const attackDist = 3 * m;
                 ctx.beginPath();
                 ctx.moveTo(cx - attackDist, y);
@@ -1577,7 +1723,6 @@
                 ctx.lineTo(cx + attackDist, y + h);
                 ctx.stroke();
 
-                // Coach / Substitution Zone Dashed Extensions (1.75m outside sidelines from attack line)
                 setCourtStroke(customColor, 0.9, [5, 5]);
                 const extLen = 1.75 * m;
                 for (const ax of [cx - attackDist, cx + attackDist]) {
@@ -1589,7 +1734,6 @@
                     ctx.stroke();
                 }
 
-                // Service Zone Ticks (Outside baselines)
                 setCourtStroke(customColor, 0.95);
                 const srvTick = 0.6 * m;
                 for (const bx of [x, x + w]) {
@@ -1615,15 +1759,13 @@
             function drawSingleBadmintonPickleCourt(cx, cy, courtW, courtH, colorHex, label = '') {
                 const x = cx - courtW * 0.5;
                 const y = cy - courtH * 0.5;
-                const ft = courtW / 44; // 44 ft length, 20 ft width
+                const ft = courtW / 44;
 
                 ctx.save();
                 setCourtStroke(colorHex, 0.95);
 
-                // Doubles Outer Boundary (44 ft x 20 ft)
                 ctx.strokeRect(x, y, courtW, courtH);
 
-                // Badminton Singles Sidelines (1.5 ft inside each sideline -> 17 ft width)
                 const alley = 1.5 * ft;
                 ctx.beginPath();
                 ctx.moveTo(x, y + alley);
@@ -1632,14 +1774,12 @@
                 ctx.lineTo(x + courtW, y + courtH - alley);
                 ctx.stroke();
 
-                // Center Net Line
                 setCourtStroke('#ffffff', 1.0, [6, 5]);
                 ctx.beginPath();
                 ctx.moveTo(cx, y - 0.8 * ft);
                 ctx.lineTo(cx, y + courtH + 0.8 * ft);
                 ctx.stroke();
 
-                // Short Service Line / Pickleball Non-Volley "Kitchen" Line (6.5 ft / 7 ft from net)
                 setCourtStroke(colorHex, 0.95);
                 const kitchenDist = 6.75 * ft;
                 ctx.beginPath();
@@ -1649,7 +1789,6 @@
                 ctx.lineTo(cx + kitchenDist, y + courtH);
                 ctx.stroke();
 
-                // Long Service Line for Doubles (2.5 ft inside baseline)
                 const backAlley = 2.5 * ft;
                 ctx.beginPath();
                 ctx.moveTo(x + backAlley, y);
@@ -1658,7 +1797,6 @@
                 ctx.lineTo(x + courtW - backAlley, y + courtH);
                 ctx.stroke();
 
-                // Center Service Line (from short service line to baseline)
                 ctx.beginPath();
                 ctx.moveTo(x, cy);
                 ctx.lineTo(cx - kitchenDist, cy);
@@ -1692,28 +1830,743 @@
             // 8. MULTI-SPORT GYM FLOOR OVERLAY (Basketball + Volleyball + Badminton + Track)
             // ============================================================================
             function drawMultiSportGymFloor() {
-                // 1. Optional Perimeter Running Track
                 if (state.multiLayers.trackOuter) {
                     drawRunningTrack('#f43f5e', 1.06, 3, false);
                 }
-
-                // 2. Side Badminton / Pickleball Courts (Regulation Yellow)
                 if (state.multiLayers.badminton) {
                     drawDualBadmintonCourts('#facc15', true);
                 }
-
-                // 3. Main Basketball Court (Regulation White/Orange)
                 if (state.multiLayers.basketball) {
                     drawBasketballCourt('#f97316', 0.94, false);
                 }
-
-                // 4. Center Volleyball Court (Regulation Cyan/Blue)
                 if (state.multiLayers.volleyball) {
                     drawVolleyballCourt('#38bdf8', 0.68, false);
                 }
 
                 const rect = getCourtRect(94 / 50, 0.96);
                 drawDimensionBanner(rect, 'MULTI-SPORT GYMNASIUM FLOOR OVERLAY', SPORT_METADATA.multi.dims, '#10b981');
+            }
+
+            // ============================================================================
+            // 9. HOPSCOTCH PLAYGROUND COURSES (Triple Course: Left Classic, Center Spiral/ZigZag, Right Classic)
+            // ============================================================================
+            function drawClassicHopscotchLane(cx, cy, maxH, dir = 1, courseLabel = 'HOPSCOTCH A') {
+                // Classic 7-row layout (1, 2-3, 4, 5-6, 7, 8-9, 10 + Semicircular SKY/REST Dome)
+                const boxSize = maxH / 8.8;
+                const startX = cx - dir * (boxSize * 3.8);
+
+                const rows = [
+                    { nums: [1], color: '#facc15' },
+                    { nums: [2, 3], color: '#38bdf8' },
+                    { nums: [4], color: '#a3e635' },
+                    { nums: [5, 6], color: '#f472b6' },
+                    { nums: [7], color: '#fb923c' },
+                    { nums: [8, 9], color: '#22d3ee' },
+                    { nums: [10], color: '#facc15' }
+                ];
+
+                ctx.save();
+
+                // Starter Launch Box with Footprints before Square 1
+                const launchCenterX = startX - dir * (boxSize * 0.75);
+                setCourtStroke('#ffffff', 0.9, [6, 5]);
+                ctx.strokeRect(
+                    launchCenterX - boxSize * 0.42,
+                    cy - boxSize * 0.6,
+                    boxSize * 0.84,
+                    boxSize * 1.2
+                );
+
+                ctx.font = `700 ${Math.max(10, boxSize * 0.22)}px "Chakra Petch", sans-serif`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = resolveLineColor('#ffffff');
+                ctx.fillText('START', launchCenterX, cy);
+
+                // Draw each row of hop squares
+                for (let r = 0; r < rows.length; r++) {
+                    const row = rows[r];
+                    const cellCenterX = startX + dir * (r * boxSize);
+                    const cellX = cellCenterX - boxSize * 0.5;
+
+                    setCourtStroke(row.color, 1.15);
+
+                    if (row.nums.length === 1) {
+                        const cellY = cy - boxSize * 0.5;
+                        ctx.strokeRect(cellX, cellY, boxSize, boxSize);
+
+                        ctx.save();
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = resolveLineColor(row.color);
+                        ctx.font = `700 ${Math.max(14, boxSize * 0.46)}px "Chakra Petch", sans-serif`;
+                        ctx.fillText(String(row.nums[0]), cellCenterX, cy);
+                        ctx.restore();
+                    } else {
+                        // Double side-by-side hop squares
+                        const topY = cy - boxSize;
+                        const botY = cy;
+                        ctx.strokeRect(cellX, topY, boxSize, boxSize);
+                        ctx.strokeRect(cellX, botY, boxSize, boxSize);
+
+                        ctx.save();
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = resolveLineColor(row.color);
+                        ctx.font = `700 ${Math.max(14, boxSize * 0.46)}px "Chakra Petch", sans-serif`;
+                        ctx.fillText(String(row.nums[0]), cellCenterX, cy - boxSize * 0.5);
+                        ctx.fillText(String(row.nums[1]), cellCenterX, cy + boxSize * 0.5);
+                        ctx.restore();
+                    }
+                }
+
+                // Semicircular "SKY / REST" Turn-Around Bay at the end of Square 10
+                const endEdgeX = startX + dir * (6.5 * boxSize);
+                const domeRadius = boxSize * 0.95;
+                setCourtStroke('#a3e635', 1.2);
+                ctx.beginPath();
+                if (dir === 1) {
+                    ctx.arc(endEdgeX, cy, domeRadius, -Math.PI * 0.5, Math.PI * 0.5);
+                } else {
+                    ctx.arc(endEdgeX, cy, domeRadius, Math.PI * 0.5, Math.PI * 1.5);
+                }
+                ctx.closePath();
+                ctx.stroke();
+
+                ctx.save();
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = resolveLineColor('#a3e635');
+                ctx.font = `700 ${Math.max(11, boxSize * 0.28)}px "Chakra Petch", sans-serif`;
+                ctx.fillText('SKY / REST', endEdgeX + dir * (domeRadius * 0.48), cy);
+                ctx.restore();
+
+                // Course label below
+                if (state.showWatermark) {
+                    ctx.save();
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 0.65;
+                    ctx.fillStyle = resolveLineColor('#ffffff');
+                    ctx.font = `700 ${Math.max(11, boxSize * 0.24)}px "JetBrains Mono", monospace`;
+                    ctx.fillText(courseLabel, cx, cy + boxSize * 1.45);
+                    ctx.restore();
+                }
+
+                ctx.restore();
+            }
+
+            function drawHopscotchPlayground() {
+                const rect = getCourtRect(1.95, 1.0);
+                const { x, y, w, h, cx, cy } = rect;
+
+                ctx.save();
+                // Outer Playground Safety Border
+                setCourtStroke('#38bdf8', 0.8, [10, 8]);
+                ctx.strokeRect(x, y, w, h);
+
+                // Top Course: Classic 1-10 Left-to-Right
+                const laneSpan = w * 0.42;
+                drawClassicHopscotchLane(
+                    cx - w * 0.24,
+                    cy - h * 0.22,
+                    laneSpan,
+                    1,
+                    'COURSE 1 • CLASSIC 1–10'
+                );
+
+                // Bottom-Left Course: Classic 1-10 Right-to-Left
+                drawClassicHopscotchLane(
+                    cx - w * 0.24,
+                    cy + h * 0.24,
+                    laneSpan,
+                    -1,
+                    'COURSE 2 • REVERSE 1–10'
+                );
+
+                // Right Side: Side-Step Diamond & Spiral Hopscotch Challenge (1 to 12)
+                const rightCX = cx + w * 0.24;
+                const stepR = Math.min(w * 0.042, h * 0.075);
+                const diamondPts = [
+                    { dx: -3.2, dy: 0,    n: '1',  c: '#facc15' },
+                    { dx: -2.2, dy: -1.1, n: '2',  c: '#38bdf8' },
+                    { dx: -2.2, dy: 1.1,  n: '3',  c: '#38bdf8' },
+                    { dx: -1.1, dy: 0,    n: '4',  c: '#a3e635' },
+                    { dx: 0.0,  dy: -1.3, n: '5',  c: '#f472b6' },
+                    { dx: 0.0,  dy: 1.3,  n: '6',  c: '#f472b6' },
+                    { dx: 1.1,  dy: 0,    n: '7',  c: '#fb923c' },
+                    { dx: 2.2,  dy: -1.1, n: '8',  c: '#22d3ee' },
+                    { dx: 2.2,  dy: 1.1,  n: '9',  c: '#22d3ee' },
+                    { dx: 3.3,  dy: 0,    n: '10', c: '#facc15' }
+                ];
+
+                // Connecting hop path lines
+                setCourtStroke('#ffffff', 0.65, [5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(rightCX + diamondPts[0].dx * stepR * 1.45, cy);
+                ctx.lineTo(rightCX + diamondPts[3].dx * stepR * 1.45, cy);
+                ctx.lineTo(rightCX + diamondPts[6].dx * stepR * 1.45, cy);
+                ctx.lineTo(rightCX + diamondPts[9].dx * stepR * 1.45, cy);
+                ctx.stroke();
+
+                for (const pt of diamondPts) {
+                    const px = rightCX + pt.dx * stepR * 1.45;
+                    const py = cy + pt.dy * stepR * 1.45;
+
+                    setCourtStroke(pt.c, 1.15);
+                    ctx.beginPath();
+                    ctx.arc(px, py, stepR, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.save();
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = resolveLineColor(pt.c);
+                    ctx.font = `700 ${Math.max(13, stepR * 0.78)}px "Chakra Petch", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(pt.n, px, py);
+                    ctx.restore();
+                }
+
+                if (state.showWatermark) {
+                    ctx.save();
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 0.65;
+                    ctx.fillStyle = resolveLineColor('#ffffff');
+                    ctx.font = `700 ${Math.max(11, stepR * 0.42)}px "JetBrains Mono", monospace`;
+                    ctx.textAlign = 'center';
+                    ctx.fillText('COURSE 3 • SIDE-STEP RING HOP (1–10)', rightCX, cy + stepR * 3.3);
+                    ctx.restore();
+                }
+
+                drawDimensionBanner(rect, 'PLAYGROUND HOPSCOTCH COURSES (CLASSIC & RING HOP)', SPORT_METADATA.hopscotch.dims, '#facc15');
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 10. FOUR SQUARE & OCTAGONAL GAGA BALL PIT
+            // ============================================================================
+            function drawFourSquareAndGaga() {
+                const rect = getCourtRect(1.95, 1.0);
+                const { x, y, w, h, cx, cy } = rect;
+
+                ctx.save();
+
+                // Left Half: Regulation 16 ft x 16 ft Four Square Court
+                const fsSize = Math.min(w * 0.43, h * 0.84);
+                const fsCX = cx - w * 0.24;
+                const fsCY = cy;
+                const fsX = fsCX - fsSize * 0.5;
+                const fsY = fsCY - fsSize * 0.5;
+                const halfS = fsSize * 0.5;
+
+                setCourtStroke('#f472b6', 1.25);
+                ctx.strokeRect(fsX, fsY, fsSize, fsSize);
+
+                // Inner Cross Dividing Squares 1, 2, 3, 4
+                ctx.beginPath();
+                ctx.moveTo(fsCX, fsY);
+                ctx.lineTo(fsCX, fsY + fsSize);
+                ctx.moveTo(fsX, fsCY);
+                ctx.lineTo(fsX + fsSize, fsCY);
+                ctx.stroke();
+
+                // Server / King Service Corner Line in Square 4 (Top-Left Quadrant)
+                setCourtStroke('#facc15', 1.1);
+                ctx.beginPath();
+                ctx.moveTo(fsX, fsY + halfS * 0.42);
+                ctx.lineTo(fsX + halfS * 0.42, fsY);
+                ctx.stroke();
+
+                // Center Mini Target Circle
+                setCourtStroke('#38bdf8', 1.0);
+                ctx.beginPath();
+                ctx.arc(fsCX, fsCY, fsSize * 0.08, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Quadrant Numbers (4 = KING/SERVER, 3 = QUEEN, 2 = JACK, 1 = CHALLENGER)
+                const quads = [
+                    { qx: fsX + halfS * 0.5, qy: fsY + halfS * 0.5, num: '4', sub: 'KING / SERVE', col: '#facc15' },
+                    { qx: fsCX + halfS * 0.5, qy: fsY + halfS * 0.5, num: '3', sub: 'QUEEN', col: '#38bdf8' },
+                    { qx: fsCX + halfS * 0.5, qy: fsCY + halfS * 0.5, num: '2', sub: 'JACK', col: '#a3e635' },
+                    { qx: fsX + halfS * 0.5, qy: fsCY + halfS * 0.5, num: '1', sub: 'ENTRY', col: '#f472b6' }
+                ];
+
+                for (const q of quads) {
+                    ctx.save();
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = resolveLineColor(q.col);
+                    ctx.font = `700 ${Math.max(20, halfS * 0.36)}px "Chakra Petch", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(q.num, q.qx, q.qy - halfS * 0.06);
+
+                    ctx.font = `600 ${Math.max(10, halfS * 0.1)}px "JetBrains Mono", monospace`;
+                    ctx.fillText(q.sub, q.qx, q.qy + halfS * 0.22);
+                    ctx.restore();
+                }
+
+                // Challenger Waiting Line outside Square 1
+                setCourtStroke('#ffffff', 0.9, [6, 6]);
+                ctx.beginPath();
+                ctx.moveTo(fsX - fsSize * 0.08, fsY + fsSize);
+                ctx.lineTo(fsX + halfS * 0.7, fsY + fsSize + fsSize * 0.08);
+                ctx.stroke();
+
+                // Right Half: Octagonal Gaga Ball Pit (20 ft Octagon)
+                const gagaCX = cx + w * 0.24;
+                const gagaCY = cy;
+                const gagaR = fsSize * 0.52;
+
+                setCourtStroke('#22d3ee', 1.3);
+                ctx.beginPath();
+                for (let i = 0; i < 8; i++) {
+                    const angle = (i * Math.PI) / 4 + Math.PI / 8;
+                    const vx = gagaCX + Math.cos(angle) * gagaR;
+                    const vy = gagaCY + Math.sin(angle) * gagaR;
+                    if (i === 0) ctx.moveTo(vx, vy);
+                    else ctx.lineTo(vx, vy);
+                }
+                ctx.closePath();
+                ctx.stroke();
+
+                // Inner Gaga Safety / Center Strike Ring
+                setCourtStroke('#facc15', 0.9, [8, 6]);
+                ctx.beginPath();
+                ctx.arc(gagaCX, gagaCY, gagaR * 0.45, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Center Ball Drop Spot
+                setCourtStroke('#f43f5e', 1.1);
+                ctx.beginPath();
+                ctx.arc(gagaCX, gagaCY, gagaR * 0.08, 0, Math.PI * 2);
+                ctx.fill();
+
+                drawCenterWatermark(gagaCX, gagaCY - gagaR * 0.22, gagaR * 0.55, 'GAGA PIT');
+
+                drawDimensionBanner(rect, 'FOUR SQUARE COURT & OCTAGONAL GAGA PIT', SPORT_METADATA.foursquare.dims, '#f472b6');
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 11. REGULATION DODGEBALL COURT (60 ft x 30 ft WDBF / NCSA)
+            // ============================================================================
+            function drawDodgeballCourt() {
+                const rect = getCourtRect(60 / 30, 1.0);
+                const { x, y, w, h, cx, cy } = rect;
+                const ft = w / 60;
+
+                ctx.save();
+                setCourtStroke('#ef4444', 1.2);
+
+                // Outer Sidelines & Baselines (60 ft x 30 ft)
+                ctx.strokeRect(x, y, w, h);
+
+                // Center Line
+                setCourtStroke('#ffffff', 1.35);
+                ctx.beginPath();
+                ctx.moveTo(cx, y);
+                ctx.lineTo(cx, y + h);
+                ctx.stroke();
+
+                // Neutral Zone Lines (2 ft / 4 ft each side of center line)
+                const neutralDist = 3 * ft;
+                setCourtStroke('#facc15', 0.95, [8, 6]);
+                ctx.beginPath();
+                ctx.moveTo(cx - neutralDist, y);
+                ctx.lineTo(cx - neutralDist, y + h);
+                ctx.moveTo(cx + neutralDist, y);
+                ctx.lineTo(cx + neutralDist, y + h);
+                ctx.stroke();
+
+                // Attack / Return Lines (10 ft from center line on each side)
+                const attackDist = 10 * ft;
+                setCourtStroke('#38bdf8', 1.15);
+                ctx.beginPath();
+                ctx.moveTo(cx - attackDist, y);
+                ctx.lineTo(cx - attackDist, y + h);
+                ctx.moveTo(cx + attackDist, y);
+                ctx.lineTo(cx + attackDist, y + h);
+                ctx.stroke();
+
+                // 6 Official Dodgeball Placement Spots along Center Line
+                const ballCount = 6;
+                const spacing = h / (ballCount + 1);
+                setCourtStroke('#facc15', 1.1);
+                for (let i = 1; i <= ballCount; i++) {
+                    const by = y + i * spacing;
+                    ctx.beginPath();
+                    ctx.arc(cx, by, 0.85 * ft, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.arc(cx, by, 0.35 * ft, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                // Player Return Queue Boxes along bottom sideline
+                setCourtStroke('#ef4444', 0.85, [5, 5]);
+                ctx.strokeRect(x + 2 * ft, y + h + 1.2 * ft, 14 * ft, 2.5 * ft);
+                ctx.strokeRect(x + w - 16 * ft, y + h + 1.2 * ft, 14 * ft, 2.5 * ft);
+
+                drawCenterWatermark(cx - 18 * ft, cy, 7 * ft, 'TEAM A');
+                drawCenterWatermark(cx + 18 * ft, cy, 7 * ft, 'TEAM B');
+                drawDimensionBanner(rect, 'REGULATION DODGEBALL COURT (6 BALL)', SPORT_METADATA.dodgeball.dims, '#ef4444');
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 12. SPEED & AGILITY LADDERS + PLYOMETRIC FITNESS CIRCUIT
+            // ============================================================================
+            function drawAgilityCircuit() {
+                const rect = getCourtRect(1.95, 1.0);
+                const { x, y, w, h, cx, cy } = rect;
+
+                ctx.save();
+
+                // 1. Top & Bottom 12-Rung Speed & Agility Ladders
+                const ladderW = w * 0.78;
+                const ladderH = h * 0.14;
+                const rungs = 12;
+                const rungW = ladderW / rungs;
+                const ladderStartX = cx - ladderW * 0.5;
+
+                const ladderYPositions = [y + h * 0.08, y + h - h * 0.08 - ladderH];
+
+                for (let lIdx = 0; lIdx < ladderYPositions.length; lIdx++) {
+                    const ly = ladderYPositions[lIdx];
+                    const ladderColor = lIdx === 0 ? '#facc15' : '#22d3ee';
+
+                    setCourtStroke(ladderColor, 1.15);
+                    ctx.strokeRect(ladderStartX, ly, ladderW, ladderH);
+
+                    for (let r = 1; r <= rungs; r++) {
+                        const rx = ladderStartX + r * rungW;
+                        if (r < rungs) {
+                            ctx.beginPath();
+                            ctx.moveTo(rx, ly);
+                            ctx.lineTo(rx, ly + ladderH);
+                            ctx.stroke();
+                        }
+
+                        // Rung number inside square
+                        ctx.save();
+                        ctx.shadowBlur = 0;
+                        ctx.fillStyle = resolveLineColor(ladderColor);
+                        ctx.font = `700 ${Math.max(10, ladderH * 0.28)}px "JetBrains Mono", monospace`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(String(r), rx - rungW * 0.5, ly + ladderH * 0.5);
+                        ctx.restore();
+                    }
+                }
+
+                // 2. Center Left: 6 Hexagonal Plyometric Jump Rings
+                const hexR = Math.min(w * 0.042, h * 0.085);
+                const hexCenterBaseX = cx - w * 0.22;
+                const hexOffsets = [
+                    { dx: -2.1, dy: -0.95, c: '#a3e635' },
+                    { dx: -0.7, dy:  0.95, c: '#a3e635' },
+                    { dx:  0.7, dy: -0.95, c: '#a3e635' },
+                    { dx:  2.1, dy:  0.95, c: '#a3e635' }
+                ];
+
+                for (let idx = 0; idx < hexOffsets.length; idx++) {
+                    const ho = hexOffsets[idx];
+                    const hx = hexCenterBaseX + ho.dx * hexR * 1.15;
+                    const hy = cy + ho.dy * hexR * 1.05;
+
+                    setCourtStroke(ho.c, 1.15);
+                    ctx.beginPath();
+                    for (let k = 0; k < 6; k++) {
+                        const ang = (k * Math.PI) / 3;
+                        const vx = hx + Math.cos(ang) * hexR;
+                        const vy = hy + Math.sin(ang) * hexR;
+                        if (k === 0) ctx.moveTo(vx, vy);
+                        else ctx.lineTo(vx, vy);
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+
+                    ctx.save();
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = resolveLineColor(ho.c);
+                    ctx.font = `700 ${Math.max(11, hexR * 0.55)}px "Chakra Petch", sans-serif`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(`H${idx + 1}`, hx, hy);
+                    ctx.restore();
+                }
+
+                // 3. Center Right: 5-Dot Plyo Drill Mat + 5-10-5 Pro Agility Shuttle Lines
+                const shuttleCX = cx + w * 0.20;
+                const shuttleW = w * 0.32;
+                const shuttleH = h * 0.34;
+
+                setCourtStroke('#f97316', 1.1);
+                // Left 5-yd line, Center Start line, Right 5-yd line
+                for (const mult of [-0.5, 0, 0.5]) {
+                    const sx = shuttleCX + mult * shuttleW;
+                    ctx.beginPath();
+                    ctx.moveTo(sx, cy - shuttleH * 0.5);
+                    ctx.lineTo(sx, cy + shuttleH * 0.5);
+                    ctx.stroke();
+                }
+
+                // 5-Dot Drill Pattern inside Shuttle Zone
+                const dotR = Math.max(8, h * 0.022);
+                const dotPositions = [
+                    { x: shuttleCX - shuttleW * 0.25, y: cy - shuttleH * 0.28 },
+                    { x: shuttleCX - shuttleW * 0.25, y: cy + shuttleH * 0.28 },
+                    { x: shuttleCX,                   y: cy },
+                    { x: shuttleCX + shuttleW * 0.25, y: cy - shuttleH * 0.28 },
+                    { x: shuttleCX + shuttleW * 0.25, y: cy + shuttleH * 0.28 }
+                ];
+
+                setCourtStroke('#f43f5e', 1.1);
+                for (const dp of dotPositions) {
+                    ctx.beginPath();
+                    ctx.arc(dp.x, dp.y, dotR, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+
+                drawDimensionBanner(rect, 'SPEED & AGILITY LADDERS • HEX RINGS • 5-10-5 SHUTTLE', SPORT_METADATA.agility.dims, '#2dd4bf');
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // 13. BLANK CUSTOM FLOOR CANVAS (Perimeter Reference Ticks)
+            // ============================================================================
+            function drawBlankCustomFloor() {
+                const rect = getCourtRect(94 / 50, 1.0);
+                ctx.save();
+                setCourtStroke('#38bdf8', 0.65, [8, 10]);
+                ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
+                drawCenterWatermark(rect.cx, rect.cy, rect.h * 0.14, 'CUSTOM FLOOR');
+                drawDimensionBanner(rect, 'BLANK CUSTOM GYM FLOOR CANVAS', SPORT_METADATA.blank.dims, '#38bdf8');
+                ctx.restore();
+            }
+
+            // ============================================================================
+            // FREE DRAW & SMART STRAIGHTEN GEOMETRY ENGINE
+            // ============================================================================
+
+            // Snap an endpoint (x2, y2) relative to (x1, y1) in virtual world pixels if close to 0°, 45°, 90°, etc.
+            function snapLineEndpointInWorld(x1, y1, x2, y2, forceLock15 = false) {
+                const dx = x2 - x1;
+                const dy = y2 - y1;
+                const len = Math.hypot(dx, dy);
+                if (len < 4) return { x: x2, y: y2, snappedAngle: null };
+
+                const rawDeg = (Math.atan2(dy, dx) * 180) / Math.PI;
+
+                if (forceLock15) {
+                    const lockedDeg = Math.round(rawDeg / 15) * 15;
+                    const rad = (lockedDeg * Math.PI) / 180;
+                    return {
+                        x: x1 + Math.cos(rad) * len,
+                        y: y1 + Math.sin(rad) * len,
+                        snappedAngle: lockedDeg
+                    };
+                }
+
+                if (!state.angleSnap) {
+                    return { x: x2, y: y2, snappedAngle: null };
+                }
+
+                // Soft snap within 5.5 degrees of cardinal (0°, ±90°, 180°) or 45° diagonals
+                const targets = [-180, -135, -90, -45, 0, 45, 90, 135, 180];
+                for (const t of targets) {
+                    if (Math.abs(rawDeg - t) <= 5.5) {
+                        const rad = (t * Math.PI) / 180;
+                        return {
+                            x: x1 + Math.cos(rad) * len,
+                            y: y1 + Math.sin(rad) * len,
+                            snappedAngle: t
+                        };
+                    }
+                }
+                return { x: x2, y: y2, snappedAngle: null };
+            }
+
+            // Evaluate if a raw freehand point sequence is nearly straight
+            function isStrokeNaturallyStraight(pts) {
+                if (!pts || pts.length < 3) return true;
+                const start = pts[0];
+                const end = pts[pts.length - 1];
+                const x1 = start.nx * state.virtualW;
+                const y1 = start.ny * state.virtualH;
+                const x2 = end.nx * state.virtualW;
+                const y2 = end.ny * state.virtualH;
+                const chordLen = Math.hypot(x2 - x1, y2 - y1);
+                if (chordLen < 18) return true;
+
+                let pathLen = 0;
+                let maxDev = 0;
+                for (let i = 1; i < pts.length; i++) {
+                    const px = pts[i].nx * state.virtualW;
+                    const py = pts[i].ny * state.virtualH;
+                    const prevX = pts[i - 1].nx * state.virtualW;
+                    const prevY = pts[i - 1].ny * state.virtualH;
+                    pathLen += Math.hypot(px - prevX, py - prevY);
+
+                    // Perpendicular distance from point to chord
+                    const num = Math.abs((y2 - y1) * px - (x2 - x1) * py + x2 * y1 - y2 * x1);
+                    const dev = num / chordLen;
+                    if (dev > maxDev) maxDev = dev;
+                }
+
+                // Straight if max perpendicular deviation is < 6.5% of chord length (or < 18px) and path isn't a closed loop
+                return (maxDev / chordLen < 0.068 || maxDev < 18) && (pathLen / chordLen < 1.18);
+            }
+
+            // Convert a stroke object into a crisp 2-point straight segment
+            function convertStrokeToStraightLine(stroke, forceShiftSnap = false) {
+                if (!stroke || !stroke.points || stroke.points.length < 2) return stroke;
+                const p0 = stroke.points[0];
+                const pLast = stroke.points[stroke.points.length - 1];
+
+                const x1 = p0.nx * state.virtualW;
+                const y1 = p0.ny * state.virtualH;
+                const x2 = pLast.nx * state.virtualW;
+                const y2 = pLast.ny * state.virtualH;
+
+                const snapped = snapLineEndpointInWorld(x1, y1, x2, y2, forceShiftSnap);
+                return {
+                    ...stroke,
+                    isStraight: true,
+                    points: [
+                        { nx: p0.nx, ny: p0.ny },
+                        {
+                            nx: Math.max(0, Math.min(1, snapped.x / state.virtualW)),
+                            ny: Math.max(0, Math.min(1, snapped.y / state.virtualH))
+                        }
+                    ]
+                };
+            }
+
+            // Simplify & smooth a freehand curve so hand jitter disappears
+            function smoothFreehandPoints(pts) {
+                if (!pts || pts.length <= 3) return pts;
+                // Radial distance decimation
+                const filtered = [pts[0]];
+                const minStepSq = Math.pow(6 / Math.max(state.virtualW, state.virtualH), 2);
+                for (let i = 1; i < pts.length - 1; i++) {
+                    const prev = filtered[filtered.length - 1];
+                    const dx = pts[i].nx - prev.nx;
+                    const dy = pts[i].ny - prev.ny;
+                    if (dx * dx + dy * dy >= minStepSq) {
+                        filtered.push(pts[i]);
+                    }
+                }
+                filtered.push(pts[pts.length - 1]);
+
+                // 1-pass Chaikin corner-cutting smoothing
+                if (filtered.length < 4) return filtered;
+                const smoothed = [filtered[0]];
+                for (let i = 0; i < filtered.length - 1; i++) {
+                    const p0 = filtered[i];
+                    const p1 = filtered[i + 1];
+                    smoothed.push({
+                        nx: 0.75 * p0.nx + 0.25 * p1.nx,
+                        ny: 0.75 * p0.ny + 0.25 * p1.ny
+                    });
+                    smoothed.push({
+                        nx: 0.25 * p0.nx + 0.75 * p1.nx,
+                        ny: 0.25 * p0.ny + 0.75 * p1.ny
+                    });
+                }
+                smoothed.push(filtered[filtered.length - 1]);
+                return smoothed;
+            }
+
+            // Render a single custom line or active preview stroke
+            function renderSingleCustomStroke(stroke, isPreview = false) {
+                if (!stroke || !stroke.points || stroke.points.length < 2) return;
+
+                ctx.save();
+                const dashPattern = stroke.dashed ? [10, 8] : null;
+                setCourtStroke(stroke.color || '#facc15', 1.15, dashPattern);
+
+                const pts = stroke.points;
+                ctx.beginPath();
+                const startX = pts[0].nx * state.virtualW;
+                const startY = pts[0].ny * state.virtualH;
+                ctx.moveTo(startX, startY);
+
+                if (pts.length === 2 || stroke.isStraight) {
+                    const endPt = pts[pts.length - 1];
+                    ctx.lineTo(endPt.nx * state.virtualW, endPt.ny * state.virtualH);
+                } else {
+                    for (let i = 1; i < pts.length - 1; i++) {
+                        const xc = ((pts[i].nx + pts[i + 1].nx) * 0.5) * state.virtualW;
+                        const yc = ((pts[i].ny + pts[i + 1].ny) * 0.5) * state.virtualH;
+                        ctx.quadraticCurveTo(
+                            pts[i].nx * state.virtualW,
+                            pts[i].ny * state.virtualH,
+                            xc,
+                            yc
+                        );
+                    }
+                    const last = pts[pts.length - 1];
+                    ctx.lineTo(last.nx * state.virtualW, last.ny * state.virtualH);
+                }
+                ctx.stroke();
+
+                // Optional coaching arrowhead at the end of the line
+                if (stroke.arrow) {
+                    const pEnd = pts[pts.length - 1];
+                    const pPrev = pts[Math.max(0, pts.length - 3)] || pts[0];
+                    const ex = pEnd.nx * state.virtualW;
+                    const ey = pEnd.ny * state.virtualH;
+                    const px = pPrev.nx * state.virtualW;
+                    const py = pPrev.ny * state.virtualH;
+                    const ang = Math.atan2(ey - py, ex - px);
+                    const headLen = Math.max(14, state.lineWidth * 3.4);
+
+                    ctx.setLineDash([]);
+                    ctx.beginPath();
+                    ctx.moveTo(ex, ey);
+                    ctx.lineTo(ex - headLen * Math.cos(ang - Math.PI / 6), ey - headLen * Math.sin(ang - Math.PI / 6));
+                    ctx.moveTo(ex, ey);
+                    ctx.lineTo(ex - headLen * Math.cos(ang + Math.PI / 6), ey - headLen * Math.sin(ang + Math.PI / 6));
+                    ctx.stroke();
+                }
+
+                // Live endpoint handles & snap indicator while actively dragging
+                if (isPreview) {
+                    const pEnd = pts[pts.length - 1];
+                    const ex = pEnd.nx * state.virtualW;
+                    const ey = pEnd.ny * state.virtualH;
+                    ctx.setLineDash([]);
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(startX, startY, Math.max(5, state.lineWidth * 1.1), 0, Math.PI * 2);
+                    ctx.arc(ex, ey, Math.max(5, state.lineWidth * 1.1), 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Show live straight-preview guide if in Smart mode and currently straight
+                    if (state.drawTool === 'smart' && pts.length > 2 && isStrokeNaturallyStraight(pts)) {
+                        const previewStraight = convertStrokeToStraightLine(stroke, false);
+                        const spEnd = previewStraight.points[1];
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+                        ctx.lineWidth = 1.5;
+                        ctx.setLineDash([4, 4]);
+                        ctx.beginPath();
+                        ctx.moveTo(startX, startY);
+                        ctx.lineTo(spEnd.nx * state.virtualW, spEnd.ny * state.virtualH);
+                        ctx.stroke();
+                    }
+                }
+
+                ctx.restore();
+            }
+
+            function drawCustomUserLines() {
+                if (state.drawnLines.length === 0 && !state.activeStroke) return;
+                for (let i = 0; i < state.drawnLines.length; i++) {
+                    renderSingleCustomStroke(state.drawnLines[i], false);
+                }
+                if (state.activeStroke) {
+                    renderSingleCustomStroke(state.activeStroke, true);
+                }
             }
 
             // Render user-placed interactive coaching cones / target markers
@@ -1727,19 +2580,16 @@
                     const wy = m.ny * state.virtualH;
                     const r = Math.max(12, state.lineWidth * 3.2);
 
-                    // Outer target ring
                     setCourtStroke(m.color, 0.9);
                     ctx.beginPath();
                     ctx.arc(wx, wy, r * 1.45, 0, Math.PI * 2);
                     ctx.stroke();
 
-                    // Inner cone circle
                     ctx.fillStyle = m.color;
                     ctx.beginPath();
                     ctx.arc(wx, wy, r * 0.75, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Number badge
                     ctx.shadowBlur = 0;
                     ctx.fillStyle = '#000000';
                     ctx.font = `700 ${Math.max(10, r * 0.8)}px "JetBrains Mono", monospace`;
@@ -1777,12 +2627,10 @@
                     ctx.stroke();
                 }
 
-                // Outer edge-stitching border
                 ctx.strokeStyle = 'rgba(16, 185, 129, 0.9)';
                 ctx.lineWidth = 4;
                 ctx.strokeRect(2, 2, viewW - 4, viewH - 4);
 
-                // Center calibration target
                 ctx.strokeStyle = 'rgba(56, 189, 248, 0.9)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
@@ -1793,7 +2641,6 @@
                 ctx.lineTo(viewW * 0.5, viewH * 0.5 + 78);
                 ctx.stroke();
 
-                // Central projector slice & rotation watermark card
                 const pctInfo = getSlicePercentageLabel(state.projector.unit, state.projector.total, state.projector.offsetPct);
                 const totalDeg = state.projector.rotation + state.projector.fineAngle;
                 const sportName = SPORT_METADATA[state.sport].name.toUpperCase();
@@ -1814,7 +2661,7 @@
 
                 ctx.fillStyle = '#94a3b8';
                 ctx.font = '12px "Inter", sans-serif';
-                ctx.fillText('Press F7 to hide alignment grid • Press F2 for Projector Slicer', viewW * 0.5, viewH * 0.5 + 42);
+                ctx.fillText('Press F7 to hide alignment grid • Left/Right Arrows to switch court', viewW * 0.5, viewH * 0.5 + 42);
 
                 ctx.restore();
             }
@@ -1828,12 +2675,10 @@
                 const viewH = state.viewH;
                 const sliceX = getSliceWorldOffsetX();
 
-                // Clear physical screen
                 ctx.setTransform(1, 0, 0, 1, 0, 0);
                 ctx.fillStyle = '#000000';
                 ctx.fillRect(0, 0, state.screenW, state.screenH);
 
-                // Apply projector rotation, fine tilt & vertical flip around physical screen center
                 ctx.save();
                 ctx.translate(state.screenW * 0.5, state.screenH * 0.5);
 
@@ -1851,19 +2696,15 @@
                     ctx.scale(1, -1);
                 }
 
-                // Move origin to top-left of unrotated local slice viewport [0..viewW, 0..viewH]
                 ctx.translate(-viewW * 0.5, -viewH * 0.5);
 
-                // Clip to local slice viewport
                 ctx.beginPath();
                 ctx.rect(0, 0, viewW, viewH);
                 ctx.clip();
 
-                // Shift world coordinates by -sliceX so this projector renders its assigned slice of the gym floor
                 ctx.save();
                 ctx.translate(-sliceX, 0);
 
-                // Optional horizontal mirror across the panoramic gym floor (F1)
                 if (state.projector.mirrorH) {
                     ctx.translate(vw, 0);
                     ctx.scale(-1, 1);
@@ -1872,7 +2713,7 @@
                 // 1. Floor surface (Laser Blackout #000, Maple Hardwood, or Floodlight)
                 drawFloorSurface(vw, vh, sliceX, viewW);
 
-                // 2. Active Sport Court Preset
+                // 2. Active Sport / Playground Court Preset (12 Presets)
                 switch (state.sport) {
                     case 'multi':
                         drawMultiSportGymFloor();
@@ -1898,14 +2739,32 @@
                     case 'badminton':
                         drawDualBadmintonCourts('#e879f9', false);
                         break;
+                    case 'hopscotch':
+                        drawHopscotchPlayground();
+                        break;
+                    case 'foursquare':
+                        drawFourSquareAndGaga();
+                        break;
+                    case 'dodgeball':
+                        drawDodgeballCourt();
+                        break;
+                    case 'agility':
+                        drawAgilityCircuit();
+                        break;
+                    case 'blank':
+                        drawBlankCustomFloor();
+                        break;
                 }
 
-                // 3. Coaching Cones / Target Markers
+                // 3. Custom Free-Drawn & Smart-Straightened Lines
+                drawCustomUserLines();
+
+                // 4. Coaching Cones / Target Markers
                 drawCoachingMarkers();
 
                 ctx.restore();
 
-                // 4. Projector Alignment Calibration Grid (F7)
+                // 5. Projector Alignment Calibration Grid (F7)
                 drawProjectorAlignmentGrid(viewW, viewH);
 
                 ctx.restore();
@@ -1921,16 +2780,16 @@
                 const offsetPct = state.projector.offsetPct;
                 const pctInfo = getSlicePercentageLabel(unit, total, offsetPct);
                 const sportInfo = SPORT_METADATA[state.sport];
+                const sportIndex1Based = SPORT_KEYS.indexOf(state.sport) + 1;
 
                 // Top Quick Badges
                 document.getElementById('projectorQuickBadge').textContent =
                     `Proj ${unit}/${total} (${pctInfo.text}) • ${rot}°`;
                 document.getElementById('activeSportQuickLabel').textContent =
-                    `Sport: ${sportInfo.name}`;
+                    `${sportIndex1Based}/${SPORT_KEYS.length}: ${sportInfo.name}`;
                 document.getElementById('mirrorQuickLabel').textContent =
                     `L/R: ${state.projector.mirrorH ? 'Mirrored' : 'Standard'}`;
 
-                // Surface Mode Quick Labels
                 const surfaceLabels = {
                     blackout: 'Laser Blackout',
                     hardwood: 'Maple Hardwood',
@@ -1949,7 +2808,6 @@
                     }
                 });
 
-                // Show/hide Multi-Sport Layer Checkboxes
                 const multiBox = document.getElementById('multiLayerBox');
                 multiBox.style.display = state.sport === 'multi' ? 'block' : 'none';
                 document.getElementById('layerBasketball').checked = state.multiLayers.basketball;
@@ -1957,7 +2815,6 @@
                 document.getElementById('layerBadminton').checked = state.multiLayers.badminton;
                 document.getElementById('layerTrackOuter').checked = state.multiLayers.trackOuter;
 
-                // Line Color Palette Buttons
                 const paletteNames = {
                     official: 'Official Multi-Color',
                     white: 'Pure Crisp White',
@@ -1975,7 +2832,6 @@
                     }
                 });
 
-                // Line & Scale Sliders
                 document.getElementById('lineWidthSlider').value = state.lineWidth;
                 document.getElementById('lineWidthVal').textContent = `${state.lineWidth.toFixed(1)} px`;
 
@@ -1988,7 +2844,6 @@
                 document.getElementById('lumenBoostSlider').value = state.lumenBoost;
                 document.getElementById('lumenBoostVal').textContent = `${state.lumenBoost}%`;
 
-                // Surface Mode Buttons
                 document.querySelectorAll('.surface-mode-btn').forEach(btn => {
                     if (btn.dataset.surface === state.surfaceMode) {
                         btn.className = 'surface-mode-btn py-1.5 px-2 rounded-lg font-semibold border border-amber-400 bg-amber-500/25 text-amber-100 shadow transition-all text-[11px]';
@@ -1997,13 +2852,61 @@
                     }
                 });
 
-                // Dimensions, Watermark & Marker Mode Toggles
                 document.getElementById('dimensionsBtnText').textContent = `Dimensions: ${state.showDimensions ? 'ON' : 'OFF'} (L)`;
                 document.getElementById('watermarkBtnText').textContent = `Center Logo: ${state.showWatermark ? 'ON' : 'OFF'}`;
                 document.getElementById('markersBtnText').textContent = `Click Drill Cones: ${state.markerMode ? 'ON' : 'OFF'} (M)`;
                 document.getElementById('markerQuickLabel').textContent = `Cones: ${state.markerMode ? 'ON' : 'OFF'}`;
 
-                // Multi-Projector Modal Visualizer
+                // Free Draw Studio UI Sync
+                document.getElementById('drawModeBtnText').textContent = `Draw Mode: ${state.drawMode ? 'ON' : 'OFF'} (D)`;
+                document.getElementById('drawQuickLabel').textContent = `Draw: ${state.drawMode ? 'ON' : 'OFF'} (D)`;
+
+                const drawQuickBtn = document.getElementById('drawModeQuickBtn');
+                const toggleDrawBtn = document.getElementById('toggleDrawModeBtn');
+                if (state.drawMode) {
+                    drawQuickBtn.classList.add('border-emerald-400', 'text-white');
+                    toggleDrawBtn.className = 'px-2.5 py-1 rounded-lg font-semibold border border-emerald-400 bg-emerald-500/30 text-white transition-all text-[11px] flex items-center gap-1 shadow';
+                } else {
+                    drawQuickBtn.classList.remove('border-emerald-400', 'text-white');
+                    toggleDrawBtn.className = 'px-2.5 py-1 rounded-lg font-semibold border border-sky-400/50 bg-sky-500/20 hover:bg-sky-500/30 text-sky-200 transition-all text-[11px] flex items-center gap-1';
+                }
+
+                const floatingDrawBar = document.getElementById('floatingDrawBar');
+                if (state.drawMode) {
+                    floatingDrawBar.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                } else {
+                    floatingDrawBar.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+                }
+
+                const subModeHints = {
+                    smart: 'Auto-snaps straight lines & smooths curves',
+                    straight: 'Click & drag point-to-point ruler (Shift = 15°)',
+                    freehand: 'Smooth freehand curve for routes & arcs'
+                };
+                document.getElementById('drawSubModeHint').textContent = subModeHints[state.drawTool] || '';
+
+                document.querySelectorAll('.draw-tool-btn').forEach(btn => {
+                    if (btn.dataset.drawtool === state.drawTool) {
+                        btn.classList.add('border-emerald-400', 'bg-emerald-500/25', 'text-white');
+                        btn.classList.remove('border-white/10', 'bg-white/5', 'text-slate-300');
+                    } else {
+                        btn.classList.remove('border-emerald-400', 'bg-emerald-500/25', 'text-white');
+                        btn.classList.add('border-white/10', 'bg-white/5', 'text-slate-300');
+                    }
+                });
+
+                document.querySelectorAll('.draw-color-btn').forEach(btn => {
+                    if (btn.dataset.drawcolor.toLowerCase() === state.drawColor.toLowerCase()) {
+                        btn.classList.add('ring-2', 'ring-white', 'scale-110');
+                    } else {
+                        btn.classList.remove('ring-2', 'ring-white', 'scale-110');
+                    }
+                });
+
+                document.getElementById('angleSnapCheckbox').checked = state.angleSnap;
+                document.getElementById('drawDashedText').textContent = `Style: ${state.drawDashed ? 'Dashed' : 'Solid'}`;
+                document.getElementById('drawArrowText').textContent = `Arrowhead: ${state.drawArrow ? 'ON' : 'OFF'}`;
+
                 document.getElementById('sliceRangeReadout').textContent =
                     `Projector ${unit} of ${total} • ${pctInfo.text} • Rot ${rot}°`;
 
@@ -2024,7 +2927,6 @@
                 highlight.style.left = `${leftPct}%`;
                 document.getElementById('panoramaActiveLabel').textContent = `P${unit}: ${pctInfo.text}`;
 
-                // Total Projectors Buttons
                 document.querySelectorAll('.total-proj-btn').forEach(btn => {
                     const t = Number(btn.dataset.total);
                     if (t === total) {
@@ -2034,7 +2936,6 @@
                     }
                 });
 
-                // Assigned Projector Unit Buttons
                 const unitContainer = document.getElementById('unitProjectorGroup');
                 unitContainer.innerHTML = '';
                 for (let i = 1; i <= 4; i++) {
@@ -2059,7 +2960,6 @@
                     unitContainer.appendChild(btn);
                 }
 
-                // Rotation Buttons
                 document.querySelectorAll('.rot-btn').forEach(btn => {
                     const r = Number(btn.dataset.rot);
                     if (r === rot) {
@@ -2069,14 +2969,12 @@
                     }
                 });
 
-                // Fine Angle & Offset Sliders
                 document.getElementById('fineAngleSlider').value = state.projector.fineAngle;
                 document.getElementById('fineAngleVal').textContent = `${state.projector.fineAngle > 0 ? '+' : ''}${state.projector.fineAngle.toFixed(2)}°`;
 
                 document.getElementById('sliceOffsetSlider').value = state.projector.offsetPct;
                 document.getElementById('sliceOffsetVal').textContent = `${state.projector.offsetPct > 0 ? '+' : ''}${state.projector.offsetPct}%`;
 
-                // Calibration Grid & FlipV Buttons
                 const calibBtn = document.getElementById('toggleCalibGridBtn');
                 const calibText = document.getElementById('calibGridBtnText');
                 if (state.projector.showCalibGrid) {
@@ -2089,7 +2987,6 @@
 
                 document.getElementById('flipVBtnText').textContent = `Vertical Flip: ${state.projector.flipV ? 'ON' : 'OFF'}`;
 
-                // Direct Launch URL Preview
                 const urlParams = `?sport=${state.sport}&total=${total}&unit=${unit}&rot=${rot}${state.projector.fineAngle ? `&tilt=${state.projector.fineAngle}` : ''}${state.projector.offsetPct ? `&offset=${state.projector.offsetPct}` : ''}${state.surfaceMode !== 'blackout' ? `&surface=${state.surfaceMode}` : ''}${state.lumenBoost !== 100 ? `&lumen=${state.lumenBoost}` : ''}`;
                 document.getElementById('launchUrlPreview').textContent = urlParams;
 
@@ -2104,12 +3001,17 @@
                 updateAllUI();
                 if (showNotification) {
                     const info = SPORT_METADATA[sportKey];
-                    showToast(`Court Preset: ${info.name}`, `${info.dims} • Press F5 or 1-8 to switch`);
+                    const idx = SPORT_KEYS.indexOf(sportKey) + 1;
+                    showToast(
+                        `Court ${idx}/${SPORT_KEYS.length}: ${info.name}`,
+                        `${info.dims} • Use ← / → Arrows to cycle`
+                    );
                 }
             }
 
-            function cycleSportPreset() {
-                const nextIdx = (SPORT_KEYS.indexOf(state.sport) + 1) % SPORT_KEYS.length;
+            function stepSportPreset(delta = 1) {
+                const currentIdx = SPORT_KEYS.indexOf(state.sport);
+                const nextIdx = (currentIdx + delta + SPORT_KEYS.length) % SPORT_KEYS.length;
                 setSportPreset(SPORT_KEYS[nextIdx], true);
             }
 
@@ -2227,16 +3129,120 @@
 
             // Event Listeners
             window.addEventListener('resize', () => renderStaticCourtScene());
-            canvas.addEventListener('dblclick', toggleHud);
+            canvas.addEventListener('dblclick', (e) => {
+                if (state.drawMode) return;
+                toggleHud();
+            });
 
-            // Click on canvas to place or remove coaching cones when Marker Mode is active
+            // Pointer Down / Move / Up for Free Draw & Smart Straighten Studio
+            let isPointerDrawing = false;
+
+            canvas.addEventListener('pointerdown', (e) => {
+                if (!state.drawMode) return;
+                if (e.button !== undefined && e.button !== 0) return;
+                e.preventDefault();
+                canvas.setPointerCapture(e.pointerId);
+
+                const worldPt = mapScreenToVirtualWorld(e.clientX, e.clientY);
+                const nx = Math.max(0, Math.min(1, worldPt.x / state.virtualW));
+                const ny = Math.max(0, Math.min(1, worldPt.y / state.virtualH));
+
+                isPointerDrawing = true;
+                state.activeStroke = {
+                    points: [{ nx, ny }, { nx, ny }],
+                    color: state.drawColor,
+                    dashed: state.drawDashed,
+                    arrow: state.drawArrow,
+                    isStraight: state.drawTool === 'straight'
+                };
+                renderStaticCourtScene();
+            });
+
+            canvas.addEventListener('pointermove', (e) => {
+                if (!isPointerDrawing || !state.activeStroke) return;
+                e.preventDefault();
+
+                const worldPt = mapScreenToVirtualWorld(e.clientX, e.clientY);
+                let wx = worldPt.x;
+                let wy = worldPt.y;
+
+                if (state.drawTool === 'straight' || e.shiftKey) {
+                    const p0 = state.activeStroke.points[0];
+                    const snapped = snapLineEndpointInWorld(
+                        p0.nx * state.virtualW,
+                        p0.ny * state.virtualH,
+                        wx,
+                        wy,
+                        e.shiftKey
+                    );
+                    wx = snapped.x;
+                    wy = snapped.y;
+                    state.activeStroke.isStraight = true;
+                    state.activeStroke.points = [
+                        p0,
+                        {
+                            nx: Math.max(0, Math.min(1, wx / state.virtualW)),
+                            ny: Math.max(0, Math.min(1, wy / state.virtualH))
+                        }
+                    ];
+                } else {
+                    state.activeStroke.points.push({
+                        nx: Math.max(0, Math.min(1, wx / state.virtualW)),
+                        ny: Math.max(0, Math.min(1, wy / state.virtualH))
+                    });
+                }
+
+                renderStaticCourtScene();
+            });
+
+            function finishActiveDrawingStroke(e) {
+                if (!isPointerDrawing || !state.activeStroke) return;
+                isPointerDrawing = false;
+
+                const pts = state.activeStroke.points;
+                if (pts.length >= 2) {
+                    const start = pts[0];
+                    const end = pts[pts.length - 1];
+                    const distPx = Math.hypot(
+                        (end.nx - start.nx) * state.virtualW,
+                        (end.ny - start.ny) * state.virtualH
+                    );
+
+                    // Ignore accidental microscopic clicks < 6px
+                    if (distPx >= 6) {
+                        let finalized = state.activeStroke;
+                        if (state.drawTool === 'straight' || (e && e.shiftKey)) {
+                            finalized = convertStrokeToStraightLine(finalized, e && e.shiftKey);
+                        } else if (state.drawTool === 'smart') {
+                            if (isStrokeNaturallyStraight(pts)) {
+                                finalized = convertStrokeToStraightLine(finalized, false);
+                            } else {
+                                finalized.points = smoothFreehandPoints(pts);
+                                finalized.isStraight = false;
+                            }
+                        } else {
+                            finalized.points = smoothFreehandPoints(pts);
+                            finalized.isStraight = false;
+                        }
+
+                        state.drawnLines.push(finalized);
+                        saveConfig();
+                    }
+                }
+
+                state.activeStroke = null;
+                renderStaticCourtScene();
+            }
+
+            canvas.addEventListener('pointerup', finishActiveDrawingStroke);
+            canvas.addEventListener('pointercancel', finishActiveDrawingStroke);
+
             canvas.addEventListener('click', (e) => {
-                if (!state.markerMode) return;
+                if (state.drawMode || !state.markerMode) return;
                 const worldPt = mapScreenToVirtualWorld(e.clientX, e.clientY);
                 const nx = worldPt.x / state.virtualW;
                 const ny = worldPt.y / state.virtualH;
 
-                // Check if clicking an existing cone to remove it
                 const hitIndex = state.markers.findIndex(m => {
                     const dx = m.nx * state.virtualW - worldPt.x;
                     const dy = m.ny * state.virtualH - worldPt.y;
@@ -2258,7 +3264,14 @@
 
             document.getElementById('toggleHudBtn').addEventListener('click', toggleHud);
             document.getElementById('closeHudBtn').addEventListener('click', toggleHud);
-            document.getElementById('quickCycleSportBtn').addEventListener('click', cycleSportPreset);
+
+            // Prev / Next / Cycle Sport Buttons
+            document.getElementById('quickPrevSportBtn').addEventListener('click', () => stepSportPreset(-1));
+            document.getElementById('quickNextSportBtn').addEventListener('click', () => stepSportPreset(1));
+            document.getElementById('quickCycleSportBtn').addEventListener('click', () => stepSportPreset(1));
+            document.getElementById('hudPrevSportBtn').addEventListener('click', () => stepSportPreset(-1));
+            document.getElementById('hudNextSportBtn').addEventListener('click', () => stepSportPreset(1));
+
             document.getElementById('surfaceModeQuickBtn').addEventListener('click', cycleSurfaceMode);
             document.getElementById('modalCycleSurfaceModeBtn').addEventListener('click', cycleSurfaceMode);
             document.getElementById('flipHorizontalQuickBtn').addEventListener('click', toggleHorizontalMirror);
@@ -2275,6 +3288,7 @@
 
             function toggleMarkerMode() {
                 state.markerMode = !state.markerMode;
+                if (state.markerMode) state.drawMode = false;
                 updateAllUI();
                 showToast(
                     `Coaching Cone Mode: ${state.markerMode ? 'ENABLED' : 'OFF'}`,
@@ -2282,6 +3296,120 @@
                     'ph-fill ph-traffic-cone'
                 );
             }
+
+            function toggleDrawMode(forceState) {
+                state.drawMode = typeof forceState === 'boolean' ? forceState : !state.drawMode;
+                if (state.drawMode) state.markerMode = false;
+                updateAllUI();
+                showToast(
+                    `Free Draw Line Studio: ${state.drawMode ? 'ACTIVE' : 'OFF'}`,
+                    state.drawMode
+                        ? `Mode: ${state.drawTool.toUpperCase()} • Drag on floor to draw • Press S to straighten`
+                        : 'Press D anytime to draw custom lines on the gym floor',
+                    'ph-fill ph-pencil-line'
+                );
+            }
+
+            function straightenExistingLines() {
+                if (state.drawnLines.length === 0) {
+                    showToast('No Custom Lines Yet', 'Press D and drag on the floor to draw a line first', 'ph-fill ph-pencil-line');
+                    return;
+                }
+
+                // First check if the most recent line is still curved; if so, straighten it. Otherwise straighten all curved lines.
+                const lastIdx = state.drawnLines.length - 1;
+                if (!state.drawnLines[lastIdx].isStraight) {
+                    state.drawnLines[lastIdx] = convertStrokeToStraightLine(state.drawnLines[lastIdx], false);
+                    saveConfig();
+                    renderStaticCourtScene();
+                    showToast('Last Drawn Line Straightened!', 'Snapped to a crisp straight segment • Press S again for all lines', 'ph-bold ph-magic-wand');
+                    return;
+                }
+
+                let count = 0;
+                state.drawnLines = state.drawnLines.map(stroke => {
+                    if (!stroke.isStraight || stroke.points.length > 2) {
+                        count++;
+                    }
+                    return convertStrokeToStraightLine(stroke, false);
+                });
+                saveConfig();
+                renderStaticCourtScene();
+                showToast(
+                    'All Drawn Lines Straightened!',
+                    count > 0 ? `Straightened & aligned ${count} custom stroke(s)` : 'Re-aligned all custom lines with 0°/45°/90° snap',
+                    'ph-bold ph-magic-wand'
+                );
+            }
+
+            function undoLastDrawnLine() {
+                if (state.drawnLines.length === 0) {
+                    showToast('Nothing to Undo', 'No custom drawn lines on the floor', 'ph-bold ph-arrow-counter-clockwise');
+                    return;
+                }
+                state.drawnLines.pop();
+                saveConfig();
+                renderStaticCourtScene();
+                showToast('Undid Last Line', `${state.drawnLines.length} custom line(s) remaining`, 'ph-bold ph-arrow-counter-clockwise');
+            }
+
+            document.getElementById('drawModeQuickBtn').addEventListener('click', () => toggleDrawMode());
+            document.getElementById('toggleDrawModeBtn').addEventListener('click', () => toggleDrawMode());
+            document.getElementById('floatingExitDrawBtn').addEventListener('click', () => toggleDrawMode(false));
+
+            document.querySelectorAll('.draw-tool-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.drawTool = btn.dataset.drawtool;
+                    if (!state.drawMode) state.drawMode = true;
+                    saveConfig();
+                    updateAllUI();
+                    const labels = {
+                        smart: 'Smart Auto-Straighten & Curve Smoothing',
+                        straight: 'Point-to-Point Straight Line Ruler',
+                        freehand: 'Smooth Freehand Curve'
+                    };
+                    showToast(`Draw Tool: ${labels[state.drawTool]}`, 'Drag anywhere on the court floor to draw', 'ph-fill ph-pencil-line');
+                });
+            });
+
+            document.querySelectorAll('.draw-color-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    state.drawColor = btn.dataset.drawcolor;
+                    saveConfig();
+                    updateAllUI();
+                });
+            });
+
+            document.getElementById('angleSnapCheckbox').addEventListener('change', (e) => {
+                state.angleSnap = e.target.checked;
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('toggleDrawDashedBtn').addEventListener('click', () => {
+                state.drawDashed = !state.drawDashed;
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('toggleDrawArrowBtn').addEventListener('click', () => {
+                state.drawArrow = !state.drawArrow;
+                saveConfig();
+                updateAllUI();
+            });
+
+            document.getElementById('straightenDrawnLinesBtn').addEventListener('click', straightenExistingLines);
+            document.getElementById('floatingStraightenBtn').addEventListener('click', straightenExistingLines);
+
+            document.getElementById('undoDrawnLineBtn').addEventListener('click', undoLastDrawnLine);
+            document.getElementById('floatingUndoDrawBtn').addEventListener('click', undoLastDrawnLine);
+
+            document.getElementById('clearDrawnLinesBtn').addEventListener('click', () => {
+                state.drawnLines = [];
+                saveConfig();
+                renderStaticCourtScene();
+                showToast('Custom Lines Cleared', 'All user-drawn lines removed from floor', 'ph-bold ph-trash');
+            });
 
             document.getElementById('markerModeQuickBtn').addEventListener('click', toggleMarkerMode);
             document.getElementById('toggleMarkersBtn').addEventListener('click', toggleMarkerMode);
@@ -2291,12 +3419,10 @@
                 showToast('Coaching Cones Cleared', 'All drill markers removed from floor');
             });
 
-            // Sport Preset Buttons
             document.querySelectorAll('.sport-btn').forEach(btn => {
                 btn.addEventListener('click', () => setSportPreset(btn.dataset.sport, true));
             });
 
-            // Multi-Sport Layer Checkboxes
             ['Basketball', 'Volleyball', 'Badminton', 'TrackOuter'].forEach(layer => {
                 const el = document.getElementById(`layer${layer}`);
                 const key = layer.charAt(0).toLowerCase() + layer.slice(1);
@@ -2307,7 +3433,6 @@
                 });
             });
 
-            // Line Color Palette Buttons
             document.querySelectorAll('.palette-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     state.palette = btn.dataset.palette;
@@ -2316,7 +3441,6 @@
                 });
             });
 
-            // Sliders
             document.getElementById('lineWidthSlider').addEventListener('input', (e) => {
                 state.lineWidth = parseFloat(e.target.value);
                 saveConfig();
@@ -2357,7 +3481,6 @@
                 updateAllUI();
             });
 
-            // Multi-Projector Modal Controls
             document.getElementById('openProjectorHudBtn').addEventListener('click', toggleProjectorModal);
             document.getElementById('openProjectorFromSceneBtn').addEventListener('click', toggleProjectorModal);
             document.getElementById('closeProjectorModalBtn').addEventListener('click', toggleProjectorModal);
@@ -2428,24 +3551,18 @@
                 setTimeout(() => { copyText.textContent = 'Copy URL'; }, 1800);
             });
 
-            // Comprehensive Keyboard & F-Key Shortcuts (Matching HalloweenGame.html):
-            // - F1: Mirror Court Left/Right
-            // - F2: Toggle Multi-Projector Slicer & Rotation Modal
-            // - F3: Cycle Total Projectors (1 -> 2 -> 3 -> 4 -> 1)
-            // - F4: Cycle Assigned Projector Unit (1 -> 2 -> ... -> total)
-            // - F5: Cycle Sport Court Preset
-            // - F6: Cycle Rotation (0° -> 90° -> 180° -> 270°)
-            // - F7: Toggle Alignment Calibration Grid Overlay
-            // - F8 / F9: Decrease / Increase Laser Line Glow
-            // - F10: Cycle Floor Surface Mode (Laser Blackout -> Maple Hardwood -> Bright Floodlight -> X-Ray)
-            // - [ / ] or - / =: Decrease / Increase Line Thickness
-            // - 1..8: Direct select Sport Court Preset
-            // - H: Toggle HUD Controls
-            // - L: Toggle Dimension Labels
-            // - M: Toggle Coaching Cone Placement Mode
-            // - C: Clear Coaching Cones
+            // Keyboard & Arrow Key Shortcuts
             window.addEventListener('keydown', (e) => {
-                if (e.key === 'F1') {
+                // Avoid hijacking Left/Right arrows while user is actively adjusting a range slider
+                const isRangeFocused = document.activeElement && document.activeElement.tagName === 'INPUT' && document.activeElement.type === 'range';
+
+                if (e.key === 'ArrowLeft' && !isRangeFocused) {
+                    e.preventDefault();
+                    stepSportPreset(-1);
+                } else if (e.key === 'ArrowRight' && !isRangeFocused) {
+                    e.preventDefault();
+                    stepSportPreset(1);
+                } else if (e.key === 'F1') {
                     e.preventDefault();
                     toggleHorizontalMirror();
                 } else if (e.key === 'F2') {
@@ -2461,7 +3578,7 @@
                     setProjectorUnit(nextUnit, true);
                 } else if (e.key === 'F5') {
                     e.preventDefault();
-                    cycleSportPreset();
+                    stepSportPreset(1);
                 } else if (e.key === 'F6') {
                     e.preventDefault();
                     const nextRot = (state.projector.rotation + 90) % 360;
@@ -2500,11 +3617,26 @@
                     saveConfig();
                     updateAllUI();
                     showToast(`Line Thickness: ${state.lineWidth.toFixed(1)} px`, 'Shortcut: [ and ]');
-                } else if (e.key >= '1' && e.key <= '8') {
+                } else if (e.key >= '1' && e.key <= '9') {
                     const idx = parseInt(e.key, 10) - 1;
                     if (SPORT_KEYS[idx]) setSportPreset(SPORT_KEYS[idx], true);
-                } else if (e.key === 'Escape' && state.projectorModalVisible) {
-                    toggleProjectorModal();
+                } else if (e.key === '0') {
+                    if (SPORT_KEYS[9]) setSportPreset(SPORT_KEYS[9], true);
+                } else if (e.key === 'Escape') {
+                    if (state.projectorModalVisible) {
+                        toggleProjectorModal();
+                    } else if (state.drawMode) {
+                        toggleDrawMode(false);
+                    }
+                } else if (e.key === 'd' || e.key === 'D') {
+                    toggleDrawMode();
+                } else if (e.key === 's' || e.key === 'S') {
+                    straightenExistingLines();
+                } else if (e.key === 'z' || e.key === 'Z') {
+                    if (e.ctrlKey || e.metaKey || state.drawMode) {
+                        e.preventDefault();
+                        undoLastDrawnLine();
+                    }
                 } else if (e.key === 'h' || e.key === 'H') {
                     toggleHud();
                 } else if (e.key === 'l' || e.key === 'L') {
