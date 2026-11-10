@@ -1,6 +1,7 @@
 <!doctype html>
 <!-- Pricing is loaded from the published Website Data tab + Legacy Banner Sheet.
-     Forms (Registration, Contact, and Hidden Admin Course Builder) connect to data-apps-script-url. -->
+     Forms (Registration, Contact, and Hidden Admin Course Builder) connect to data-apps-script-url.
+     Includes both Home and Services views in a single zero-reload file. -->
 <html lang="en"
   data-pricing-sheet-url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTlxjtgKTWNo3FxQv-gWNrYrOZ2_EeUtW-CrOosc-fcDCGpyWLifozl3-akZGuruyg-f4QuiUVi7725/pub?gid=1138505600&amp;single=true&amp;output=csv"
   data-legacy-banner-sheet-url="https://docs.google.com/spreadsheets/d/e/2PACX-1vTGFypKKaBXxRgUX3Vip2YzseORYRUACHHLeq3UTmL2_AZ2NJYK2MFzJdbgZ7kmnRZ3eCnDPy6fylC3/pub?output=csv"
@@ -9,9 +10,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ACE Driving School | Driver Education in Windsor-Essex</title>
+  <title>ACE Driving School | Driver Education &amp; Services in Windsor-Essex</title>
   <meta name="author" content="ACE Driving School">
-  <meta name="description" content="ACE Driving School provides Beginner Driver Education, online classes and in-car training across Windsor, LaSalle, Tecumseh, Belle River and Amherstburg.">
+  <meta name="description" content="Explore ACE Driving School Beginner Driver Education, online classes, private lessons, adaptive driving services and G2 or G mock road tests across Windsor, LaSalle, Tecumseh, Belle River and Amherstburg.">
   <meta name="keywords" content="Driver Education Course Windsor Ontario, ACE Driving School, MTO Approved, Drivers Ed, Windsor, LaSalle, Tecumseh, Belle River, Amherstburg">
   <link rel="canonical" href="https://www.acedrivingschool.ca/">
   <link href="assets/img/favicon.png" rel="icon">
@@ -184,6 +185,21 @@
       transform: translateY(0);
     }
 
+    /* Single-File View Router Containers */
+    .page-view {
+      display: none;
+    }
+
+    .page-view.is-active {
+      display: block;
+      animation: view-fade .22s ease;
+    }
+
+    @keyframes view-fade {
+      from { opacity: 0.4; }
+      to { opacity: 1; }
+    }
+
     /* Animated Counter Styles */
     [data-toggle="counter-up"] {
       font-variant-numeric: tabular-nums;
@@ -268,7 +284,8 @@
       transition: color .15s ease;
     }
 
-    .nav-links a:not(.button-link):hover {
+    .nav-links a:not(.button-link):hover,
+    .nav-links a[aria-current="page"] {
       color: var(--blue);
     }
 
@@ -429,7 +446,7 @@
       pointer-events: auto;
     }
 
-    /* Hero Section */
+    /* Home Hero Section */
     .hero {
       position: relative;
       overflow: hidden;
@@ -459,7 +476,7 @@
       align-items: center;
       gap: 9px;
       margin: 0 0 18px;
-      color: inherit;
+      color: var(--blue);
       font-size: .82rem;
       font-weight: 900;
       letter-spacing: .11em;
@@ -472,6 +489,11 @@
       height: 4px;
       border-radius: 4px;
       background: var(--yellow);
+    }
+
+    .hero .eyebrow,
+    .page-hero .eyebrow {
+      color: var(--white);
     }
 
     .hero-eyebrow::after {
@@ -1711,6 +1733,299 @@
     }
 
     /* ==========================================================================
+       Services View Styles (Page Hero, 3D Flip Catalog Cards, & Legacy Grid)
+       ========================================================================== */
+    .page-hero {
+      position: relative;
+      overflow: hidden;
+      color: var(--white);
+      background: url("assets/img/intro-bg.png") center bottom/cover no-repeat,
+                  linear-gradient(135deg, #0b2a49 0%, #123f76 52%, #1f56d2 100%);
+      padding-block: 0;
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 850px;
+      padding-block: 98px 110px;
+    }
+
+    .page-hero h1 {
+      margin: 0;
+      font-size: clamp(3rem, 7vw, 5.7rem);
+      line-height: .98;
+      letter-spacing: -.055em;
+    }
+
+    .page-hero p:last-of-type {
+      max-width: 720px;
+      margin: 23px 0 0;
+      color: rgba(255, 255, 255, .8);
+      font-size: 1.18rem;
+    }
+
+    .catalog-heading h2 {
+      max-width: 850px;
+      margin: 0;
+      color: var(--navy);
+      font-size: clamp(2.15rem, 5vw, 3.8rem);
+      line-height: 1;
+      letter-spacing: -.045em;
+    }
+
+    .catalog-notices {
+      display: grid;
+      gap: 8px;
+      margin: 20px 0 38px;
+      padding: 18px 20px;
+      border-left: 5px solid var(--yellow);
+      background: var(--ice);
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .catalog-notices p {
+      margin: 0;
+    }
+
+    .catalog-notices a {
+      color: var(--blue);
+      font-weight: 900;
+    }
+
+    .catalog-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .catalog-card {
+      position: relative;
+      min-width: 0;
+      height: 610px;
+      perspective: 1400px;
+    }
+
+    .catalog-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transform-style: preserve-3d;
+      transition: transform .55s ease;
+    }
+
+    .catalog-card.is-flipped .catalog-inner {
+      transform: rotateY(180deg);
+    }
+
+    .catalog-face {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      overflow: hidden;
+      flex-direction: column;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--white);
+      box-shadow: var(--shadow-sm);
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .catalog-back {
+      padding: 24px;
+      overflow-y: auto;
+      transform: rotateY(180deg);
+    }
+
+    .catalog-back h3 {
+      margin: 0 0 14px;
+      color: var(--navy);
+      font-size: 1.35rem;
+      line-height: 1.15;
+    }
+
+    .catalog-back p {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.55;
+    }
+
+    .catalog-back a {
+      color: var(--blue);
+      font-weight: 800;
+    }
+
+    .catalog-photo {
+      position: relative;
+      display: grid;
+      min-height: 230px;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .catalog-photo img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .catalog-photo.clipboard img {
+      object-position: 68% center;
+    }
+
+    .catalog-body {
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      padding: 22px;
+    }
+
+    .catalog-body h3 {
+      margin: 0 0 9px;
+      color: var(--navy);
+      font-size: 1.25rem;
+      line-height: 1.12;
+    }
+
+    .catalog-body p {
+      margin: 0;
+      color: var(--muted);
+      font-size: .9rem;
+      line-height: 1.5;
+    }
+
+    .catalog-price {
+      margin: 22px 0 14px;
+      color: var(--navy);
+      font-size: 1.85rem;
+      font-weight: 950;
+      letter-spacing: -.045em;
+    }
+
+    .catalog-price small {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    .catalog-actions {
+      display: grid;
+      gap: 9px;
+      margin-top: auto;
+    }
+
+    .catalog-actions .button {
+      width: 100%;
+      font-size: .78rem;
+    }
+
+    .catalog-actions .contact {
+      color: var(--blue);
+      font-size: .82rem;
+      font-weight: 900;
+      text-align: center;
+      text-underline-offset: 3px;
+    }
+
+    .flip-button {
+      align-self: center;
+      padding: 4px 0;
+      border: 0;
+      color: var(--blue);
+      background: transparent;
+      font-size: .82rem;
+      font-weight: 850;
+      text-decoration: underline;
+      text-underline-offset: 4px;
+      cursor: pointer;
+    }
+
+    .catalog-back .flip-button {
+      margin-top: auto;
+      align-self: flex-start;
+    }
+
+    .legacy-services-section {
+      background: #ecf5ff;
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, .1);
+    }
+
+    .legacy-services {
+      width: min(1000px, calc(100% - 40px));
+    }
+
+    .legacy-intro {
+      width: min(560px, 100%);
+      margin: 18px auto 58px;
+      color: #556877;
+      text-align: center;
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .legacy-service-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 40px 34px;
+    }
+
+    .legacy-service-card {
+      position: relative;
+      min-height: 176px;
+      overflow: hidden;
+      padding: 30px;
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 10px 29px rgba(68, 88, 144, .1);
+      transition: transform .3s ease-in-out;
+    }
+
+    .legacy-service-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .legacy-service-icon {
+      position: absolute;
+      left: -10px;
+      top: calc(50% - 32px);
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+    }
+
+    .legacy-service-icon svg {
+      width: 58px;
+      height: 58px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.75;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .legacy-service-card h3 {
+      margin: 0 0 15px 48px;
+      color: #283d50;
+      font-size: 1.15rem;
+    }
+
+    .legacy-service-card p {
+      margin: 0 0 0 48px;
+      color: #283d50;
+      font-size: .9rem;
+      line-height: 1.7;
+    }
+
+    /* ==========================================================================
        Pure JS Forms, Multi-Step Registration Wizard & Hidden Admin Panel Styles
        ========================================================================== */
     .ace-form {
@@ -1784,7 +2099,6 @@
       pointer-events: none !important;
     }
 
-    /* Wizard Progress Indicator */
     .wizard-progress {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -1848,7 +2162,6 @@
       display: block;
     }
 
-    /* Filter Pills for Sessions */
     .session-filter-bar {
       display: flex;
       flex-wrap: wrap;
@@ -1882,7 +2195,6 @@
       color: var(--white);
     }
 
-    /* Dynamic Session Radio Cards */
     .session-cards-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2014,7 +2326,7 @@
       border: 1px solid rgba(166, 58, 43, .28);
     }
 
-    /* Hidden Admin Section (Invisible unless unlocked via ?admin=1, #admin, or Ctrl+Shift+A) */
+    /* Hidden Admin Section */
     .admin-vault-section {
       display: none;
       padding-block: 56px;
@@ -2729,6 +3041,88 @@
         flex: 1 1 100%;
       }
 
+      /* Services Mobile Breakpoint Adjustments */
+      .hero-inner {
+        padding-block: 75px 85px;
+      }
+
+      .page-hero h1 {
+        font-size: clamp(3rem, 15vw, 4.5rem);
+      }
+
+      .catalog-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .catalog-card {
+        height: 560px;
+      }
+
+      .catalog-face {
+        border-radius: 16px;
+      }
+
+      .catalog-photo {
+        min-height: 0;
+        aspect-ratio: 1;
+      }
+
+      .catalog-body,
+      .catalog-back {
+        padding: 13px;
+      }
+
+      .catalog-body h3,
+      .catalog-back h3 {
+        font-size: .92rem;
+      }
+
+      .catalog-body p,
+      .catalog-back p {
+        font-size: .72rem;
+        line-height: 1.4;
+      }
+
+      .catalog-price {
+        margin: 14px 0 10px;
+        font-size: 1.3rem;
+      }
+
+      .catalog-price small {
+        font-size: .61rem;
+      }
+
+      .catalog-actions {
+        gap: 7px;
+      }
+
+      .catalog-actions .button {
+        min-height: 40px;
+        padding: 8px 6px;
+        font-size: .62rem;
+        line-height: 1.15;
+        text-align: center;
+      }
+
+      .catalog-actions .contact,
+      .flip-button {
+        font-size: .65rem;
+      }
+
+      .legacy-intro {
+        margin-bottom: 34px;
+      }
+
+      .legacy-service-grid {
+        grid-template-columns: 1fr;
+        gap: 18px;
+      }
+
+      .legacy-service-card {
+        min-height: 160px;
+      }
+
       .wizard-progress {
         grid-template-columns: 1fr;
         gap: 6px;
@@ -2798,15 +3192,15 @@
   <!-- ======= Header ======= -->
   <header class="site-header">
     <div class="container nav-shell">
-      <a class="brand" href="#top" aria-label="ACE Driving School home">
+      <a class="brand" href="#top" data-nav-view="home" aria-label="ACE Driving School home">
         <img src="assets/img/acelogo.png" alt="ACE Driving School">
       </a>
       <nav class="site-nav" id="site-nav" aria-label="Main navigation">
         <ul class="nav-links">
-          <li><a href="#top">Home</a></li>
+          <li><a href="#top" data-nav-view="home" aria-current="page">Home</a></li>
+          <li><a href="#services" data-nav-view="services">Services</a></li>
           <li><a href="#pricing">Pricing</a></li>
           <li><a href="#program">3-Step Program</a></li>
-          <li><a href="/services">Services</a></li>
           <li><a href="/studentresources">Student Resources</a></li>
           <li><a href="#contact">Contact</a></li>
           <li class="mobile-only"><a href="https://aceweblearning.com/">Online Course Access</a></li>
@@ -2825,445 +3219,740 @@
   <div class="nav-backdrop" id="nav-backdrop" aria-hidden="true"></div>
 
   <main id="main-content">
-    <!-- ======= Hero Section ======= -->
-    <section class="hero" id="top">
-      <div class="container hero-grid">
-        <div class="hero-intro">
-          <p class="eyebrow hero-eyebrow">Windsor-Essex <span class="bde-accent">BDE</span> Provider</p>
-          <h1>For <span>Safe</span> Driving.</h1>
-          <p class="hero-copy">Learn safe and confident driving through our complete Beginner Driver Education course, online classes and one-on-one in-car lessons.</p>
-          <div class="hero-actions">
-            <button class="button button-primary" type="button" data-open-register>Register / View Schedule</button>
-            <a class="button button-outline" href="#pricing">Compare Packages</a>
+    <!-- ======================================================================
+         VIEW 1: HOME PAGE VIEW
+         ====================================================================== -->
+    <div id="view-home" class="page-view is-active" data-view="home">
+      <!-- ======= Hero Section ======= -->
+      <section class="hero" id="top">
+        <div class="container hero-grid">
+          <div class="hero-intro">
+            <p class="eyebrow hero-eyebrow">Windsor-Essex <span class="bde-accent">BDE</span> Provider</p>
+            <h1>For <span>Safe</span> Driving.</h1>
+            <p class="hero-copy">Learn safe and confident driving through our complete Beginner Driver Education course, online classes and one-on-one in-car lessons.</p>
+            <div class="hero-actions">
+              <button class="button button-primary" type="button" data-open-register>Register / View Schedule</button>
+              <a class="button button-outline" href="#pricing">Compare Packages</a>
+            </div>
+            <p class="current-student">Already enrolled? <a href="https://aceweblearning.com/">Open your online course</a> or visit <a href="/studentresources">Student Resources</a>.</p>
           </div>
-          <p class="current-student">Already enrolled? <a href="https://aceweblearning.com/">Open your online course</a> or visit <a href="/studentresources">Student Resources</a>.</p>
+
+          <aside class="road-card" aria-label="Beginner Driver Education course hours">
+            <p class="road-card-label">Certified in Just</p>
+            <div class="program-total">
+              <strong data-toggle="counter-up" data-target="40">40</strong>
+              <span> total hours</span>
+            </div>
+            <div class="hours-list">
+              <div class="hour-chip">
+                <b data-toggle="counter-up" data-target="20">20</b>
+                <span>hours in-class or online</span>
+              </div>
+              <div class="hour-chip">
+                <b data-toggle="counter-up" data-target="10">10</b>
+                <span>hours in-car training</span>
+              </div>
+              <div class="hour-chip">
+                <b data-toggle="counter-up" data-target="10">10</b>
+                <span>hours flexible allocation</span>
+              </div>
+            </div>
+            <p class="road-card-note">Industry-leading lesson plans recognized by MTO and developed by local, experienced instructors.</p>
+
+            <!-- Dynamic Legacy Google Sheet Price Banner -->
+            <div class="legacy-price-banner" id="legacy-price-banner">
+              <div class="price-text">
+                <span class="sale-label" id="sale-label"></span>
+                <span class="regular-price" id="regular-price"></span>
+                <span class="sale-price-row">
+                  <span class="sale-price" id="sale-price"></span>
+                  <span class="hst" id="hst"></span>
+                </span>
+                <span class="validity" id="validity"></span>
+                <span class="in-class" id="in-class"></span>
+                <span class="course-name" id="course-name"></span>
+                <span class="additional-info" id="additional-info1"></span>
+                <span class="additional-info" id="additional-info2"></span>
+              </div>
+            </div>
+          </aside>
         </div>
+      </section>
 
-        <aside class="road-card" aria-label="Beginner Driver Education course hours">
-          <p class="road-card-label">Certified in Just</p>
-          <div class="program-total">
-            <strong data-toggle="counter-up" data-target="40">40</strong>
-            <span> total hours</span>
+      <!-- ======= Trust Bar ======= -->
+      <div class="trust-bar">
+        <div class="container trust-grid">
+          <div class="trust-item">
+            <b>MTO certification</b>
+            <span>Get certified after completing the BDE course.</span>
           </div>
-          <div class="hours-list">
-            <div class="hour-chip">
-              <b data-toggle="counter-up" data-target="20">20</b>
-              <span>hours in-class or online</span>
-            </div>
-            <div class="hour-chip">
-              <b data-toggle="counter-up" data-target="10">10</b>
-              <span>hours in-car training</span>
-            </div>
-            <div class="hour-chip">
-              <b data-toggle="counter-up" data-target="10">10</b>
-              <span>hours flexible allocation</span>
-            </div>
+          <div class="trust-item">
+            <b>Free pickup and drop-off</b>
+            <span>Within city limits for your in-car training hours.</span>
           </div>
-          <p class="road-card-note">Industry-leading lesson plans recognized by MTO and developed by local, experienced instructors.</p>
-
-          <!-- Dynamic Legacy Google Sheet Price Banner -->
-          <div class="legacy-price-banner" id="legacy-price-banner">
-            <div class="price-text">
-              <span class="sale-label" id="sale-label"></span>
-              <span class="regular-price" id="regular-price"></span>
-              <span class="sale-price-row">
-                <span class="sale-price" id="sale-price"></span>
-                <span class="hst" id="hst"></span>
-              </span>
-              <span class="validity" id="validity"></span>
-              <span class="in-class" id="in-class"></span>
-              <span class="course-name" id="course-name"></span>
-              <span class="additional-info" id="additional-info1"></span>
-              <span class="additional-info" id="additional-info2"></span>
-            </div>
+          <div class="trust-item">
+            <b>Serving Windsor-Essex</b>
+            <span>Windsor, LaSalle, Tecumseh, Belle River and Amherstburg.</span>
           </div>
-        </aside>
+        </div>
       </div>
-    </section>
 
-    <!-- ======= Trust Bar ======= -->
-    <div class="trust-bar">
-      <div class="container trust-grid">
-        <div class="trust-item">
-          <b>MTO certification</b>
-          <span>Get certified after completing the BDE course.</span>
+      <!-- ======= Mock Test Feature ======= -->
+      <section class="mock-feature" aria-labelledby="mock-feature-title">
+        <div class="container">
+          <div class="mock-feature-panel">
+            <div>
+              <p class="mock-feature-kicker">G2 or G road test coming up?</p>
+              <h2 id="mock-feature-title">G2 and G Mock Tests on Real Routes</h2>
+              <p class="mock-feature-copy">Experience realistic road-test conditions before test day. Complete a mock exam with a certified instructor, then receive a detailed score sheet showing what you did well and where you can improve.</p>
+            </div>
+            <div class="mock-options">
+              <div class="mock-option">
+                <strong>Meet at Windsor DriveTest</strong>
+                <span>$40 + HST</span>
+              </div>
+              <div class="mock-option">
+                <strong>Windsor pickup and drop-off</strong>
+                <span>$80 + HST</span>
+              </div>
+              <div class="mock-option">
+                <strong>Available Saturdays</strong>
+                <span>8:00 a.m.–5:00 p.m.</span>
+              </div>
+              <a class="button button-primary mock-feature-link" href="https://book.squareup.com/appointments/deymbzfpy3pbra/location/L02BA4N3EVMT0/services" target="_blank" rel="noopener">Book Your Mock Test</a>
+            </div>
+          </div>
         </div>
-        <div class="trust-item">
-          <b>Free pickup and drop-off</b>
-          <span>Within city limits for your in-car training hours.</span>
+      </section>
+
+      <!-- ======= Pricing Section ======= -->
+      <section id="pricing">
+        <div class="container">
+          <header class="pricing-heading">
+            <p class="eyebrow">Course pricing</p>
+            <h2>Choose Package by County</h2>
+            <div class="pricing-intro">
+              All in-person classroom portions are taught at our
+              <details class="map-choice">
+                <summary>278 Tecumseh Rd E</summary>
+                <span class="map-menu">
+                  <a href="https://www.google.com/maps/search/?api=1&amp;query=278+Tecumseh+Rd+E%2C+Windsor%2C+ON" target="_blank" rel="noopener">Google Maps</a>
+                  <a href="https://maps.apple.com/?q=ACE+Driving+School&amp;address=278+Tecumseh+Rd+E%2C+Windsor%2C+ON" target="_blank" rel="noopener">Apple Maps</a>
+                </span>
+              </details>
+              office.<br>
+              All prices are subject to HST.<br>
+              All Beginner Driver Education packages include <span class="inline-counter-badge" data-toggle="counter-up" data-target="10">10</span> hours of one-on-one in-car training.<br>
+              <a class="text-link pricing-services-link" href="#services">Explore all services</a>
+            </div>
+          </header>
+          <p class="pricing-state" id="pricing-state" data-state="fallback" aria-live="polite">Loading current spreadsheet prices…</p>
+          <div class="region-grid" id="price-grid" aria-live="polite"></div>
+          <noscript>
+            <p>Please call <a href="tel:+15199463393">519-946-3393</a> for current pricing.</p>
+          </noscript>
         </div>
-        <div class="trust-item">
-          <b>Serving Windsor-Essex</b>
-          <span>Windsor, LaSalle, Tecumseh, Belle River and Amherstburg.</span>
+      </section>
+
+      <!-- ======= 3 Easy Steps + Animated Hours Breakdown ======= -->
+      <section class="section-soft" id="program">
+        <div class="container">
+          <div class="journey-grid">
+            <div class="journey-copy">
+              <p class="eyebrow" style="color:var(--blue)">Help in Getting Your</p>
+              <h2>G2 in <span data-toggle="counter-up" data-target="3">3</span> Easy Steps</h2>
+              <p>Our MTO-approved curriculum combines flexible classroom learning with personalized in-car coaching.</p>
+              <a class="button button-secondary" href="#services">See All Course Details</a>
+            </div>
+            <div class="steps">
+              <article class="step">
+                <div class="step-number" data-toggle="counter-up" data-target="1" data-pad="2">01</div>
+                <div>
+                  <h3>In-class or online Drivers Ed</h3>
+                  <p><span class="inline-counter-badge" data-toggle="counter-up" data-target="5">5</span><strong>-hour days</strong> to help prepare for your G1. In the <span class="inline-counter-badge" data-toggle="counter-up" data-target="4">4</span> <strong>classes</strong>, you will learn the rules of the road, defensive driving techniques, fines &amp; penalties, and more as required by the MTO.</p>
+                </div>
+              </article>
+              <article class="step">
+                <div class="step-number" data-toggle="counter-up" data-target="2" data-pad="2">02</div>
+                <div>
+                  <h3>In-vehicle Lessons</h3>
+                  <p>After successfully completing the course and passing your G1 written exam, get <span class="inline-counter-badge" data-toggle="counter-up" data-target="10">10</span> <strong>hours</strong> of one-on-one in-car training with a certified driving instructor.</p>
+                </div>
+              </article>
+              <article class="step">
+                <div class="step-number" data-toggle="counter-up" data-target="3" data-pad="2">03</div>
+                <div>
+                  <h3>Getting certified</h3>
+                  <p>After completing steps 1 &amp; 2 you are ready to receive your certification. This allows you to get your G2 after only <span class="inline-counter-badge" data-toggle="counter-up" data-target="8">8</span> <strong>months</strong> of your G1, and is recognized by the auto insurance industry for potential discounts.</p>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Animated Hours Counter Band -->
+          <div class="bde-counters-band" aria-label="Beginner Driver Education course hour breakdown">
+            <div class="bde-counter-item">
+              <span data-toggle="counter-up" data-target="20">20</span>
+              <p>Hours<br>In Classroom</p>
+            </div>
+            <div class="bde-counter-item">
+              <span data-toggle="counter-up" data-target="10">10</span>
+              <p>Hours<br>In-Car Training</p>
+            </div>
+            <div class="bde-counter-item">
+              <span data-toggle="counter-up" data-target="10">10</span>
+              <p>Hours<br>Flexible Allocation</p>
+            </div>
+            <div class="bde-counter-item">
+              <span data-toggle="counter-up" data-target="40">40</span>
+              <p>Hours<br>Total for Certification</p>
+            </div>
+          </div>
         </div>
-      </div>
+      </section>
+
+      <!-- ======= Reviews Section ======= -->
+      <section class="reviews-section" id="reviews">
+        <div class="container">
+          <header class="reviews-heading">
+            <p class="eyebrow">Reviews</p>
+            <h2>Trusted in our Community</h2>
+          </header>
+          <div class="reviews-grid">
+            <article class="review-card">
+              <div class="review-top">
+                <span class="review-avatar initial maya" aria-hidden="true">M</span>
+                <div>
+                  <h3 class="review-author">Maya Browning</h3>
+                  <span class="review-date">4 months ago</span>
+                </div>
+              </div>
+              <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p class="review-text">I'm so happy I chose Ace Driving School! Thanks to their amazing teaching, I passed my G2 on the first try with confidence. …</p>
+            </article>
+
+            <article class="review-card">
+              <div class="review-top">
+                <span class="review-avatar initial dlna" aria-hidden="true">D</span>
+                <div>
+                  <h3 class="review-author">Dlna</h3>
+                  <span class="review-date">6 months ago</span>
+                </div>
+              </div>
+              <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p class="review-text">Najo trained my daughter. Great instructor and she passed on the first try. Recommend ace driving school! Good prices too.</p>
+            </article>
+
+            <article class="review-card">
+              <div class="review-top">
+                <span class="review-avatar initial me" aria-hidden="true">Me</span>
+                <div>
+                  <h3 class="review-author">Me Me</h3>
+                  <span class="review-date">1 month ago</span>
+                </div>
+              </div>
+              <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p class="review-text">Best experience at ace driving school. I passed my G2 and G1 first try due to their amazing professionalism and organization. …</p>
+            </article>
+
+            <article class="review-card">
+              <div class="review-top">
+                <span class="review-avatar"><img src="assets/img/reviews/jimmygrichenko-google-profile.png" alt=""></span>
+                <div>
+                  <h3 class="review-author">Jimmygrichenko</h3>
+                  <span class="review-date">9 months ago</span>
+                </div>
+              </div>
+              <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p class="review-text">Ace driving school is the best. Clean cars and always punctual.Very good service and instructors...</p>
+            </article>
+
+            <article class="review-card">
+              <div class="review-top">
+                <span class="review-avatar"><img src="assets/img/reviews/dustin-andrew-google-profile.png" alt=""></span>
+                <div>
+                  <h3 class="review-author">Dustin Andrew</h3>
+                  <span class="review-date">2 years ago</span>
+                </div>
+              </div>
+              <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p class="review-text">Thank you ACE!<br><br>I did the online learn at your own pace program. …</p>
+            </article>
+
+            <article class="review-card">
+              <div class="review-top">
+                <span class="review-avatar"><img src="assets/img/reviews/mario-mendoza-google-profile.png" alt=""></span>
+                <div>
+                  <h3 class="review-author">Mario Mendoza</h3>
+                  <span class="review-date">2 years ago</span>
+                </div>
+              </div>
+              <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
+              <p class="review-text">Ace driving school was fantastic the in class was very informational and I got to learn so much on how to drive. …</p>
+            </article>
+          </div>
+
+          <div class="reviews-actions">
+            <a class="review-action" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Read all reviews</a>
+            <a class="review-action" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Leave a review on Google</a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= Reputation & Awards Strip ======= -->
+      <section class="reputation-strip" aria-label="ACE Driving School ratings, awards and directory listings">
+        <div class="container">
+          <a class="google-score" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener" aria-label="ACE Driving School has a 4.8 rating on Google">
+            <img class="score-google" src="assets/img/reviews/google-g.svg" alt="Google">
+            <span class="score-stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></span>
+            <span class="score-value">4.8 / 5</span>
+            <span class="score-count">Based on 1k+ Reviews on Google and More</span>
+          </a>
+
+          <h2 class="recognition-title">Community recognition</h2>
+          <div class="awards-arc">
+            <a class="award-mark" href="https://windsor.communityvotes.com/2023/02/education-lessons-and-courses/driving-school" target="_blank" rel="noopener">
+              <img src="assets/img/reviews/platforms/communityvotes.png" alt="CommunityVotes">
+              <strong>Bronze</strong>
+              <span>CommunityVotes Windsor<br>Driving School · 2023</span>
+            </a>
+            <a class="award-mark" href="https://windsor.communityvotes.com/2026/02/education-lessons-and-courses/driving-school" target="_blank" rel="noopener">
+              <img src="assets/img/reviews/platforms/communityvotes.png" alt="CommunityVotes">
+              <strong>Top Pick</strong>
+              <span>CommunityVotes Windsor<br>Driving School · 2026</span>
+            </a>
+            <a class="award-mark" href="https://windsor.communityvotes.com/2024/02/education-lessons-and-courses/driving-school" target="_blank" rel="noopener">
+              <img src="assets/img/reviews/platforms/communityvotes.png" alt="CommunityVotes">
+              <strong>Top Pick</strong>
+              <span>CommunityVotes Windsor<br>Driving School · 2024</span>
+            </a>
+          </div>
+
+          <h2 class="directory-title">Find ACE Driving School around the web</h2>
+        </div>
+
+        <div class="platform-ribbon">
+          <div class="platform-track">
+            <div class="platform-group">
+              <a class="platform-link" href="https://www.yelp.ca/biz/ace-driving-school-windsor" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/yelp.png" alt=""><span>Yelp</span></a>
+              <a class="platform-link" href="https://www.yellowpages.ca/bus/Ontario/Windsor/Ace-Driving-School/6069935.html" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/yellowpages.png" alt=""><span>Yellow Pages</span></a>
+              <a class="platform-link" href="https://www.bestprosintown.com/on/windsor/ace-driving-school-/" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/bestprosintown.png" alt=""><span>BestProsInTown</span></a>
+              <a class="platform-link" href="https://www.cylex-canada.ca/company/ace-driving-school-24291686.html" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/cylex.png" alt=""><span>Cylex</span></a>
+              <a class="platform-link" href="https://ca.drivingschools.directory/en-ca/i/42281-ace-driving-school/" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/driving-schools-directory.png" alt=""><span>DrivingSchools.Directory</span></a>
+              <a class="platform-link" href="https://www.waze.com/live-map/directions/ca/on/windsor/ace-driving-school?to=place.ChIJkVHEAlksO4gRg17oA8ZW17c" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/waze.png" alt=""><span>Waze</span></a>
+              <a class="platform-link" href="https://getpassed.net/practices/canada/ontario/windsor/ace-driving-school-4294" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/getpassed.png" alt=""><span>GetPassed</span></a>
+            </div>
+            <div class="platform-group" aria-hidden="true">
+              <a class="platform-link" href="https://www.yelp.ca/biz/ace-driving-school-windsor" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/yelp.png" alt=""><span>Yelp</span></a>
+              <a class="platform-link" href="https://www.yellowpages.ca/bus/Ontario/Windsor/Ace-Driving-School/6069935.html" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/yellowpages.png" alt=""><span>Yellow Pages</span></a>
+              <a class="platform-link" href="https://www.bestprosintown.com/on/windsor/ace-driving-school-/" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/bestprosintown.png" alt=""><span>BestProsInTown</span></a>
+              <a class="platform-link" href="https://www.cylex-canada.ca/company/ace-driving-school-24291686.html" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/cylex.png" alt=""><span>Cylex</span></a>
+              <a class="platform-link" href="https://ca.drivingschools.directory/en-ca/i/42281-ace-driving-school/" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/driving-schools-directory.png" alt=""><span>DrivingSchools.Directory</span></a>
+              <a class="platform-link" href="https://www.waze.com/live-map/directions/ca/on/windsor/ace-driving-school?to=place.ChIJkVHEAlksO4gRg17oA8ZW17c" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/waze.png" alt=""><span>Waze</span></a>
+              <a class="platform-link" href="https://getpassed.net/practices/canada/ontario/windsor/ace-driving-school-4294" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/getpassed.png" alt=""><span>GetPassed</span></a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= Compact Registration Callout Banner (Opens Modal) ======= -->
+      <section class="cta-banner-section" id="register">
+        <div class="container">
+          <div class="cta-banner">
+            <div>
+              <p class="eyebrow">Registration &amp; Schedule</p>
+              <h2>Register Early — Classrooms Fill Up!</h2>
+              <p>View upcoming online and in-person class dates and reserve your spot in under 2 minutes.</p>
+            </div>
+            <div class="cta-banner-actions">
+              <button class="button button-primary" type="button" data-open-register>Open Registration &amp; Schedule</button>
+              <a class="button button-outline" href="tel:+15199463393">Call 519-946-3393</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= Contact Section (Pure JS + Google Sheets Backend) ======= -->
+      <section class="section-soft" id="contact">
+        <div class="container">
+          <header class="section-heading">
+            <div>
+              <p class="eyebrow">Contact ACE</p>
+              <h2>Questions before you get started?</h2>
+              <p>Give us a call, email, or visit our Windsor office. You may also send us a message using the form below.</p>
+            </div>
+          </header>
+          <div class="contact-grid">
+            <article class="contact-card">
+              <h3>Contact Us</h3>
+              <ul class="contact-list">
+                <li>
+                  <span>Address</span>
+                  <address>278 Tecumseh Road East, Windsor, Ontario N8X 2R2, Canada</address>
+                </li>
+                <li>
+                  <span>Phone</span>
+                  <a href="tel:+15199463393">+1 519 946 3393</a>
+                </li>
+                <li>
+                  <span>Mobile</span>
+                  <a href="tel:+15192544667">+1 519 254 4667</a>
+                </li>
+                <li>
+                  <span>Email</span>
+                  <a href="mailto:info@acedrivingschool.ca">info@acedrivingschool.ca</a>
+                </li>
+                <li>
+                  <span>Office hours</span>
+                  Monday–Thursday, 11:30 a.m.–4:30 p.m.<br>
+                  Friday–Sunday, closed
+                </li>
+              </ul>
+              <iframe class="map-frame" title="Map showing ACE Driving School at 278 Tecumseh Road East in Windsor" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2951.1119750899734!2d-83.02376598454566!3d42.29747607919125!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x883b2c58e73d6b87%3A0x2319abbf5e79a528!2s278%20Tecumseh%20Rd%20E%2C+Windsor%2C+ON+N8X+2R2!5e0!3m2!1sen!2sca!4v1587503364290!5m2!1sen!2sca" loading="lazy" allowfullscreen></iframe>
+            </article>
+
+            <article class="message-card">
+              <h3>Send us a message</h3>
+              <p class="form-note">Please allow 1–2 business days for a response by phone or SMS. Messages are sent directly to our team, and we usually respond sooner.</p>
+
+              <form class="ace-form" id="contactForm" novalidate>
+                <input type="text" name="website_hp" class="hp-trap" tabindex="-1" autocomplete="off">
+                <div class="form-row-2">
+                  <div class="field-group">
+                    <label for="contact-name">Full Name<span class="req">*</span></label>
+                    <input class="field-input" id="contact-name" name="name" type="text" required placeholder="Jane Doe">
+                  </div>
+                  <div class="field-group">
+                    <label for="contact-phone">Phone Number<span class="req">*</span></label>
+                    <input class="field-input" id="contact-phone" name="phone" type="tel" required placeholder="519-555-0199">
+                  </div>
+                </div>
+
+                <div class="form-row-2">
+                  <div class="field-group">
+                    <label for="contact-email">Email Address</label>
+                    <input class="field-input" id="contact-email" name="email" type="email" placeholder="jane@example.com">
+                  </div>
+                  <div class="field-group">
+                    <label for="contact-topic">Inquiry Topic</label>
+                    <select class="field-select" id="contact-topic" name="topic">
+                      <option value="Beginner Driver Education (BDE)">Beginner Driver Education (BDE)</option>
+                      <option value="G2 / G Mock Road Test">G2 / G Mock Road Test</option>
+                      <option value="Private In-Car Lessons">Private In-Car Lessons</option>
+                      <option value="Road Test Car Rental">Road Test Car Rental</option>
+                      <option value="Adaptive / Senior Driving">Adaptive / Senior Driving</option>
+                      <option value="General Question">General Question</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div class="field-group">
+                  <label for="contact-message">How can we help?<span class="req">*</span></label>
+                  <textarea class="field-textarea" id="contact-message" name="message" required placeholder="Tell us which municipality you are in or any questions about upcoming classes..."></textarea>
+                </div>
+
+                <div class="form-status-banner" id="contactStatus" role="status" aria-live="polite"></div>
+
+                <div>
+                  <button class="button button-secondary" type="submit" id="contactSubmitBtn">Send Message</button>
+                </div>
+              </form>
+            </article>
+          </div>
+        </div>
+      </section>
     </div>
 
-    <!-- ======= Mock Test Feature ======= -->
-    <section class="mock-feature" aria-labelledby="mock-feature-title">
-      <div class="container">
-        <div class="mock-feature-panel">
-          <div>
-            <p class="mock-feature-kicker">G2 or G road test coming up?</p>
-            <h2 id="mock-feature-title">G2 and G Mock Tests on Real Routes</h2>
-            <p class="mock-feature-copy">Experience realistic road-test conditions before test day. Complete a mock exam with a certified instructor, then receive a detailed score sheet showing what you did well and where you can improve.</p>
-          </div>
-          <div class="mock-options">
-            <div class="mock-option">
-              <strong>Meet at Windsor DriveTest</strong>
-              <span>$40 + HST</span>
-            </div>
-            <div class="mock-option">
-              <strong>Windsor pickup and drop-off</strong>
-              <span>$80 + HST</span>
-            </div>
-            <div class="mock-option">
-              <strong>Available Saturdays</strong>
-              <span>8:00 a.m.–5:00 p.m.</span>
-            </div>
-            <a class="button button-primary mock-feature-link" href="https://book.squareup.com/appointments/deymbzfpy3pbra/location/L02BA4N3EVMT0/services" target="_blank" rel="noopener">Book Your Mock Test</a>
+    <!-- ======================================================================
+         VIEW 2: SERVICES PAGE VIEW
+         ====================================================================== -->
+    <div id="view-services" class="page-view" data-view="services" aria-hidden="true">
+      <section class="page-hero">
+        <div class="container hero-inner">
+          <p class="eyebrow">ACE Driving School services</p>
+          <h1>Scroll down to view all our service</h1>
+          <p>Questions? Call any time</p>
+          <div class="hero-actions">
+            <button class="button button-primary" type="button" data-open-register>Register / View Schedule</button>
+            <a class="button button-secondary" href="#service-options">View Services &amp; Pricing</a>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- ======= Pricing Section ======= -->
-    <section id="pricing">
-      <div class="container">
-        <header class="pricing-heading">
-          <p class="eyebrow">Course pricing</p>
-          <h2>Choose Package by County</h2>
-          <div class="pricing-intro">
-            All in-person classroom portions are taught at our
-            <details class="map-choice">
-              <summary>278 Tecumseh Rd E</summary>
-              <span class="map-menu">
-                <a href="https://www.google.com/maps/search/?api=1&amp;query=278+Tecumseh+Rd+E%2C+Windsor%2C+ON" target="_blank" rel="noopener">Google Maps</a>
-                <a href="https://maps.apple.com/?q=ACE+Driving+School&amp;address=278+Tecumseh+Rd+E%2C+Windsor%2C+ON" target="_blank" rel="noopener">Apple Maps</a>
-              </span>
-            </details>
-            office.<br>
-            All prices are subject to HST.<br>
-            All Beginner Driver Education packages include <span class="inline-counter-badge" data-toggle="counter-up" data-target="10">10</span> hours of one-on-one in-car training.<br>
-            <a class="text-link pricing-services-link" href="/services">Explore all services</a>
+      <section id="service-options">
+        <div class="container">
+          <header class="catalog-heading">
+            <p class="eyebrow">Services and pricing</p>
+            <h2>Choose the support that fits your next step.</h2>
+          </header>
+          <div class="catalog-notices">
+            <p><strong>All prices are subject to HST.</strong></p>
+            <p>Prices may vary by residence. Please <a href="tel:+15199463393">contact ACE</a> to confirm rates for residences outside the City of Windsor limits.</p>
           </div>
-        </header>
-        <p class="pricing-state" id="pricing-state" data-state="fallback" aria-live="polite">Loading current spreadsheet prices…</p>
-        <div class="region-grid" id="price-grid" aria-live="polite"></div>
-        <noscript>
-          <p>Please call <a href="tel:+15199463393">519-946-3393</a> for current pricing.</p>
-        </noscript>
-      </div>
-    </section>
 
-    <!-- ======= 3 Easy Steps + Animated Hours Breakdown ======= -->
-    <section class="section-soft" id="program">
-      <div class="container">
-        <div class="journey-grid">
-          <div class="journey-copy">
-            <p class="eyebrow" style="color:var(--blue)">Help in Getting Your</p>
-            <h2>G2 in <span data-toggle="counter-up" data-target="3">3</span> Easy Steps</h2>
-            <p>Our MTO-approved curriculum combines flexible classroom learning with personalized in-car coaching.</p>
-            <a class="button button-secondary" href="/services">See All Course Details</a>
-          </div>
-          <div class="steps">
-            <article class="step">
-              <div class="step-number" data-toggle="counter-up" data-target="1" data-pad="2">01</div>
-              <div>
-                <h3>In-class or online Drivers Ed</h3>
-                <p><span class="inline-counter-badge" data-toggle="counter-up" data-target="5">5</span><strong>-hour days</strong> to help prepare for your G1. In the <span class="inline-counter-badge" data-toggle="counter-up" data-target="4">4</span> <strong>classes</strong>, you will learn the rules of the road, defensive driving techniques, fines &amp; penalties, and more as required by the MTO.</p>
+          <div class="catalog-grid">
+            <!-- Card 1: In-Person BDE -->
+            <article class="catalog-card">
+              <div class="catalog-inner">
+                <div class="catalog-face catalog-front">
+                  <div class="catalog-photo">
+                    <img src="assets/img/services/in-person-bde-ace-classroom-chairs-tables.png" alt="ACE classroom with chairs and tables for in-person BDE" loading="lazy">
+                  </div>
+                  <div class="catalog-body">
+                    <h3>In-Person Beginner Driver Education</h3>
+                    <div class="catalog-price">$439.99</div>
+                    <div class="catalog-actions">
+                      <button class="button button-primary" type="button" data-open-register data-package-name="In-Person Beginner Driver Education ($439.99)">Register / View Schedule</button>
+                      <button class="flip-button" type="button" aria-expanded="false">View details</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="catalog-face catalog-back" aria-hidden="true">
+                  <h3>In-Person Beginner Driver Education</h3>
+                  <p>Complete ACE’s MTO-approved Beginner Driver Education course in our Windsor classroom. The package includes 20 hours of classroom instruction, 10 hours of one-on-one in-car training, and 10 hours of flexible allocation. Successful completion allows eligible students to attempt their G2 road test after eight months with a G1 licence. Course completion is recorded in the student’s Ontario driver’s licence history and may also qualify them for a car-insurance discount, depending on their insurance provider.</p>
+                  <button class="flip-button" type="button">Back to price</button>
+                </div>
               </div>
             </article>
-            <article class="step">
-              <div class="step-number" data-toggle="counter-up" data-target="2" data-pad="2">02</div>
-              <div>
-                <h3>In-vehicle Lessons</h3>
-                <p>After successfully completing the course and passing your G1 written exam, get <span class="inline-counter-badge" data-toggle="counter-up" data-target="10">10</span> <strong>hours</strong> of one-on-one in-car training with a certified driving instructor.</p>
+
+            <!-- Card 2: Online BDE -->
+            <article class="catalog-card">
+              <div class="catalog-inner">
+                <div class="catalog-face catalog-front">
+                  <div class="catalog-photo">
+                    <img src="assets/img/services/online-bde-ace-web-learning-driver-seat.png" alt="ACE Web Learning driver seated in a car seat for online BDE" loading="lazy">
+                  </div>
+                  <div class="catalog-body">
+                    <h3>Online Beginner Driver Education</h3>
+                    <div class="catalog-price">$389.99</div>
+                    <div class="catalog-actions">
+                      <button class="button button-primary" type="button" data-open-register data-package-name="Online Beginner Driver Education ($389.99)">Register / View Schedule</button>
+                      <button class="flip-button" type="button" aria-expanded="false">View details</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="catalog-face catalog-back" aria-hidden="true">
+                  <h3>Online Beginner Driver Education</h3>
+                  <p>Complete ACE’s MTO-approved Beginner Driver Education course online at your own pace. The package includes 20 hours of online instruction, 10 hours of one-on-one in-car training, and 10 hours of flexible allocation. Successful completion allows eligible students to attempt their G2 road test after eight months with a G1 licence. Course completion is recorded in the student’s Ontario driver’s licence history and may also qualify them for a car-insurance discount, depending on their insurance provider.</p>
+                  <button class="flip-button" type="button">Back to price</button>
+                </div>
               </div>
             </article>
-            <article class="step">
-              <div class="step-number" data-toggle="counter-up" data-target="3" data-pad="2">03</div>
-              <div>
-                <h3>Getting certified</h3>
-                <p>After completing steps 1 &amp; 2 you are ready to receive your certification. This allows you to get your G2 after only <span class="inline-counter-badge" data-toggle="counter-up" data-target="8">8</span> <strong>months</strong> of your G1, and is recognized by the auto insurance industry for potential discounts.</p>
+
+            <!-- Card 3: Private Driving Lessons -->
+            <article class="catalog-card">
+              <div class="catalog-inner">
+                <div class="catalog-face catalog-front">
+                  <div class="catalog-photo">
+                    <img src="assets/img/services/private-driving-lessons-car-interior.webp" alt="Interior of a car showing the driver's seat for private driving lessons" loading="lazy">
+                  </div>
+                  <div class="catalog-body">
+                    <h3>Private Driving Lessons</h3>
+                    <div class="catalog-price">$50 / hour<small>1 hour $50 &nbsp;•&nbsp; 2 hours $100</small></div>
+                    <div class="catalog-actions">
+                      <button class="button button-primary" type="button" data-open-register data-package-name="Private Driving Lessons ($50 / hour)">Register / View Schedule</button>
+                      <button class="flip-button" type="button" aria-expanded="false">View details</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="catalog-face catalog-back" aria-hidden="true">
+                  <h3>Private Driving Lessons</h3>
+                  <p>Receive one-on-one in-car instruction. Private lessons are available for new drivers, G2 and G road-test preparation, skill improvement, and drivers who want additional practice. Your instructor provides guidance, corrections, and practical feedback throughout the lesson to help prepare you properly for your G2 or G road test.</p>
+                  <button class="flip-button" type="button">Back to price</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 4: Road-Test Vehicle Rental -->
+            <article class="catalog-card">
+              <div class="catalog-inner">
+                <div class="catalog-face catalog-front">
+                  <div class="catalog-photo">
+                    <img src="assets/img/services/road-test-vehicle-rental-grey-honda-civic.jpg" alt="Grey Honda Civic for road-test vehicle rental" loading="lazy">
+                  </div>
+                  <div class="catalog-body">
+                    <h3>Road-Test Vehicle Rental</h3>
+                    <div class="catalog-price">$75</div>
+                    <div class="catalog-actions">
+                      <button class="button button-primary" type="button" data-open-register data-package-name="Road-Test Vehicle Rental ($75)">Register / View Schedule</button>
+                      <button class="flip-button" type="button" aria-expanded="false">View details</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="catalog-face catalog-back" aria-hidden="true">
+                  <h3>Road-Test Vehicle Rental</h3>
+                  <p>Use the ACE Driving School vehicle you trained in for your G2 or G road test. The $75 rental includes pickup and drop-off within the City of Windsor. Students outside Windsor city limits may meet the instructor at the Windsor DriveTest Centre. Additional charges may apply for pickups outside city limits or road tests in Chatham. Advance booking is required, and students remain responsible for booking their official road test with <a href="https://drivetest.ca/book-a-road-test/overview/" target="_blank" rel="noopener">DriveTest</a>.</p>
+                  <button class="flip-button" type="button">Back to price</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 5: G2 and G Mock Tests -->
+            <article class="catalog-card">
+              <div class="catalog-inner">
+                <div class="catalog-face catalog-front">
+                  <div class="catalog-photo clipboard">
+                    <img src="assets/img/services/road-test-ready-package-clipboard-inside-car.jpg" alt="Clipboard and score sheet for a G2 or G mock road test" loading="lazy">
+                  </div>
+                  <div class="catalog-body">
+                    <h3>G2 and G Mock Tests on Real Routes</h3>
+                    <div class="catalog-price">$40 / $80<small>Meet at DriveTest: 20 min · $40 + HST<br>Windsor pickup and drop-off: 45 min · $80 + HST</small></div>
+                    <div class="catalog-actions">
+                      <a class="button button-primary" href="https://book.squareup.com/appointments/deymbzfpy3pbra/location/L02BA4N3EVMT0/services" target="_blank" rel="noopener">Book Your Mock Test</a>
+                      <button class="flip-button" type="button" aria-expanded="false">View details</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="catalog-face catalog-back" aria-hidden="true">
+                  <h3>G2 and G Mock Tests on Real Routes</h3>
+                  <p>Experience realistic G2 or G road-test conditions with ACE’s new Mock Road Test service. Practise on real Windsor DriveTest-area routes with a certified instructor who has 20 years of experience. After your mock test, you’ll receive a detailed score sheet similar to the one used during an official road test, showing what you did well and which mistakes you need to improve. Sessions normally run rain or shine, subject to safe road and weather conditions. Choose a 20-minute session meeting at the Windsor DriveTest Centre for $40, or a 45-minute session with pickup and drop-off within Windsor for $80. Available Saturdays by appointment.</p>
+                  <p><strong>Please note:</strong> This service is a mock examination, not a driving lesson. During the mock test, your instructor will observe and assess your driving without coaching, correcting, or providing pointers while you drive. Afterward, you will receive feedback and a detailed score sheet showing your strengths and the areas you need to improve.</p>
+                  <p>The assessment is designed around the skills currently evaluated during Ontario road tests. The G2 mock test may cover turns, stops, intersections, lane changes, parallel parking, three-point turns, one-way streets, residential driving, traffic lights, and stop and yield signs. The G mock test may cover advanced driving on major roads and expressways, including merging, entering and exiting the expressway, maintaining appropriate speed and following distance, signalling, turns, curves, lane changes, intersections, and business-area driving. The route and individual tasks may vary because of traffic, weather, safety conditions, and current DriveTest requirements.</p>
+                  <button class="flip-button" type="button">Back to price</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 6: Senior Driving Lessons -->
+            <article class="catalog-card">
+              <div class="catalog-inner">
+                <div class="catalog-face catalog-front">
+                  <div class="catalog-photo">
+                    <img src="assets/img/services/senior-driving-lessons-classic-car-artwork.webp" alt="Classic car artwork for senior driving lessons" loading="lazy">
+                  </div>
+                  <div class="catalog-body">
+                    <h3>Senior Driving Lessons</h3>
+                    <div class="catalog-price">$50 / hour</div>
+                    <div class="catalog-actions">
+                      <button class="button button-primary" type="button" data-open-register data-package-name="Senior Driving Lessons ($50 / hour)">Register / View Schedule</button>
+                      <button class="flip-button" type="button" aria-expanded="false">View details</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="catalog-face catalog-back" aria-hidden="true">
+                  <h3>Senior Driving Lessons</h3>
+                  <p>One-on-one driving lessons for seniors and experienced drivers who want to refresh their skills, rebuild confidence, review current road rules, or prepare for a Ministry-required driving reassessment following a medical review. Your instructor provides practical guidance based on your individual needs. Booking for a senior or preparing for a mandated road-test reassessment? ACE can help. Please contact our office for more information.</p>
+                  <button class="flip-button" type="button">Back to price</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 7: Driving With a Disability: Private Lessons -->
+            <article class="catalog-card">
+              <div class="catalog-inner">
+                <div class="catalog-face catalog-front">
+                  <div class="catalog-photo">
+                    <img src="assets/img/services/driving-with-disability-new-ace-school-office-exterior.png" alt="New exterior of ACE Driving School for adaptive private driving lessons" loading="lazy">
+                  </div>
+                  <div class="catalog-body">
+                    <h3>Driving With a Disability: Private Lessons</h3>
+                    <p>Individual instruction planned around the learner’s needs and driving goals.</p>
+                    <div class="catalog-price">Contact for pricing</div>
+                    <div class="catalog-actions">
+                      <button class="button button-primary" type="button" data-open-register data-package-name="Driving With a Disability: Private Lessons">Open Registration Form</button>
+                      <a class="contact" href="tel:+15199463393">Contact ACE: 519-946-3393</a>
+                      <button class="flip-button" type="button" aria-expanded="false">View details</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="catalog-face catalog-back" aria-hidden="true">
+                  <h3>Driving With a Disability: Private Lessons</h3>
+                  <p>ACE provides one-on-one adaptive driving lessons in Windsor for drivers with disabilities, people returning to driving after an injury or trauma, and learners experiencing driving anxiety. Training may include hand controls, foot-operated adaptations, one-handed driving techniques, and other modified-vehicle equipment. Instruction is provided by a licensed adaptive-driving instructor and tailored to each learner’s abilities, experience, equipment requirements, and driving goals.</p>
+                  <p>Where appropriate, ACE works with Interactive Rehab &amp; Driving Anxiety Solution to support clients seeking driving-anxiety and desensitization programs, behind-the-wheel retraining after injury or trauma, vehicle-modification assessments, and MTO functional driving assessments. Please contact our office to discuss your individual needs, equipment availability, and pricing.</p>
+                  <button class="flip-button" type="button">Back to price</button>
+                </div>
+              </div>
+            </article>
+
+            <!-- Card 8: Adaptive Driving Assessments and Examinations -->
+            <article class="catalog-card">
+              <div class="catalog-inner">
+                <div class="catalog-face catalog-front">
+                  <div class="catalog-photo">
+                    <img src="assets/img/services/driving-with-disability-new-ace-school-office-exterior.png" alt="New exterior of ACE Driving School for adaptive driving assessments and examinations" loading="lazy">
+                  </div>
+                  <div class="catalog-body">
+                    <h3>Adaptive Driving Assessments and Examinations</h3>
+                    <p>Assessments and examinations with adaptive-driving support.</p>
+                    <div class="catalog-price">Contact for pricing</div>
+                    <div class="catalog-actions">
+                      <button class="button button-primary" type="button" data-open-register data-package-name="Adaptive Driving Assessments and Examinations">Open Registration Form</button>
+                      <a class="contact" href="tel:+15199463393">Contact ACE: 519-946-3393</a>
+                      <button class="flip-button" type="button" aria-expanded="false">View details</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="catalog-face catalog-back" aria-hidden="true">
+                  <h3>Adaptive Driving Assessments and Examinations</h3>
+                  <p>ACE provides adaptive driving assessments and examinations in Windsor for drivers who use hand controls, foot-operated adaptations, one-handed driving techniques, and other modified-vehicle equipment. Assessments are conducted by ACE’s licensed adaptive-driving instructor in collaboration with Interactive Rehab &amp; Driving Anxiety Solution.</p>
+                  <p>Through this collaboration, clients may receive vehicle-modification assessments, MTO functional driving assessments, medical and on-road evaluations, and return-to-driving assessments following an injury or trauma. Please contact our office to discuss referral requirements, equipment, scheduling, and pricing.</p>
+                  <button class="flip-button" type="button">Back to price</button>
+                </div>
               </div>
             </article>
           </div>
         </div>
+      </section>
 
-        <!-- Animated Hours Counter Band -->
-        <div class="bde-counters-band" aria-label="Beginner Driver Education course hour breakdown">
-          <div class="bde-counter-item">
-            <span data-toggle="counter-up" data-target="20">20</span>
-            <p>Hours<br>In Classroom</p>
-          </div>
-          <div class="bde-counter-item">
-            <span data-toggle="counter-up" data-target="10">10</span>
-            <p>Hours<br>In-Car Training</p>
-          </div>
-          <div class="bde-counter-item">
-            <span data-toggle="counter-up" data-target="10">10</span>
-            <p>Hours<br>Flexible Allocation</p>
-          </div>
-          <div class="bde-counter-item">
-            <span data-toggle="counter-up" data-target="40">40</span>
-            <p>Hours<br>Total for Certification</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======= Reviews Section ======= -->
-    <section class="reviews-section" id="reviews">
-      <div class="container">
-        <header class="reviews-heading">
-          <p class="eyebrow">Reviews</p>
-          <h2>Trusted in our Community</h2>
-        </header>
-        <div class="reviews-grid">
-          <article class="review-card">
-            <div class="review-top">
-              <span class="review-avatar initial maya" aria-hidden="true">M</span>
-              <div>
-                <h3 class="review-author">Maya Browning</h3>
-                <span class="review-date">4 months ago</span>
+      <!-- Legacy "What We Offer" Section with Zero-Dependency Inline SVGs -->
+      <section class="legacy-services-section">
+        <div class="container legacy-services">
+          <p class="eyebrow">What we offer</p>
+          <p class="legacy-intro">Serving Windsor-Lasalle-Tecumseh-Belle River-Amherstburg.<br>We are commited to staying ahead of the rest by providing the best learning experience.</p>
+          <div class="legacy-service-grid">
+            <article class="legacy-service-card">
+              <div class="legacy-service-icon" style="color:#ff689b" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 22s8-5.5 8-12a8 8 0 1 0-16 0c0 6.5 8 12 8 12Z"/><circle cx="12" cy="10" r="3"/></svg>
               </div>
-            </div>
-            <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
-            <p class="review-text">I'm so happy I chose Ace Driving School! Thanks to their amazing teaching, I passed my G2 on the first try with confidence. …</p>
-          </article>
+              <h3>Free Pickup &amp; Dropoff</h3>
+              <p>Within citiy limits for your in-car training hours</p>
+            </article>
 
-          <article class="review-card">
-            <div class="review-top">
-              <span class="review-avatar initial dlna" aria-hidden="true">D</span>
-              <div>
-                <h3 class="review-author">Dlna</h3>
-                <span class="review-date">6 months ago</span>
+            <article class="legacy-service-card">
+              <div class="legacy-service-icon" style="color:#e9bf06" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M6 3h12a1 1 0 0 1 1 1v17l-7-4-7 4V4a1 1 0 0 1 1-1Z"/></svg>
               </div>
-            </div>
-            <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
-            <p class="review-text">Najo trained my daughter. Great instructor and she passed on the first try. Recommend ace driving school! Good prices too.</p>
-          </article>
+              <h3>MTO Certification</h3>
+              <p>Get certified after completing the BDE course</p>
+            </article>
 
-          <article class="review-card">
-            <div class="review-top">
-              <span class="review-avatar initial me" aria-hidden="true">Me</span>
-              <div>
-                <h3 class="review-author">Me Me</h3>
-                <span class="review-date">1 month ago</span>
+            <article class="legacy-service-card">
+              <div class="legacy-service-icon" style="color:#3fcdc7" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="14" y2="17"/></svg>
               </div>
-            </div>
-            <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
-            <p class="review-text">Best experience at ace driving school. I passed my G2 and G1 first try due to their amazing professionalism and organization. …</p>
-          </article>
+              <h3>Friendly Instructors</h3>
+              <p>Delivering the best learning experince</p>
+            </article>
 
-          <article class="review-card">
-            <div class="review-top">
-              <span class="review-avatar"><img src="assets/img/reviews/jimmygrichenko-google-profile.png" alt=""></span>
-              <div>
-                <h3 class="review-author">Jimmygrichenko</h3>
-                <span class="review-date">9 months ago</span>
+            <article class="legacy-service-card">
+              <div class="legacy-service-icon" style="color:#41cf2e" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M12 15a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M13.4 11.6 17 8"/><path d="M4.9 19.1a10 10 0 1 1 14.2 0"/></svg>
               </div>
-            </div>
-            <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
-            <p class="review-text">Ace driving school is the best. Clean cars and always punctual.Very good service and instructors...</p>
-          </article>
+              <h3>Safe School Vehicles</h3>
+              <p>Use our school vehicles for your road test</p>
+            </article>
 
-          <article class="review-card">
-            <div class="review-top">
-              <span class="review-avatar"><img src="assets/img/reviews/dustin-andrew-google-profile.png" alt=""></span>
-              <div>
-                <h3 class="review-author">Dustin Andrew</h3>
-                <span class="review-date">2 years ago</span>
+            <article class="legacy-service-card">
+              <div class="legacy-service-icon" style="color:#d6ff22" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
               </div>
-            </div>
-            <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
-            <p class="review-text">Thank you ACE!<br><br>I did the online learn at your own pace program. …</p>
-          </article>
+              <h3>Online Classes</h3>
+              <p>Learn online using our virtual classrooms</p>
+            </article>
 
-          <article class="review-card">
-            <div class="review-top">
-              <span class="review-avatar"><img src="assets/img/reviews/mario-mendoza-google-profile.png" alt=""></span>
-              <div>
-                <h3 class="review-author">Mario Mendoza</h3>
-                <span class="review-date">2 years ago</span>
+            <article class="legacy-service-card">
+              <div class="legacy-service-icon" style="color:#4680ff" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
               </div>
-            </div>
-            <div class="review-stars" aria-label="5 out of 5 stars">★★★★★</div>
-            <p class="review-text">Ace driving school was fantastic the in class was very informational and I got to learn so much on how to drive. …</p>
-          </article>
-        </div>
-
-        <div class="reviews-actions">
-          <a class="review-action" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Read all reviews</a>
-          <a class="review-action" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener">Leave a review on Google</a>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======= Reputation & Awards Strip ======= -->
-    <section class="reputation-strip" aria-label="ACE Driving School ratings, awards and directory listings">
-      <div class="container">
-        <a class="google-score" href="https://www.google.com/maps/place/ACE+Driving+School/@42.2971676,-83.0214612,17z/data=!4m17!1m8!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!2sACE+Driving+School!8m2!3d42.2974975!4d-83.0215087!10e5!16s%2Fg%2F1tptr8nl!3m7!1s0x883b2c5902c45191:0xb7d756c603e85e83!8m2!3d42.2974975!4d-83.0215087!9m1!1b1!16s%2Fg%2F1tptr8nl?entry=ttu&amp;g_ep=EgoyMDI2MDkzMC4wIKXMDSoASAFQAw%3D%3D" target="_blank" rel="noopener" aria-label="ACE Driving School has a 4.8 rating on Google">
-          <img class="score-google" src="assets/img/reviews/google-g.svg" alt="Google">
-          <span class="score-stars" aria-hidden="true"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></span>
-          <span class="score-value">4.8 / 5</span>
-          <span class="score-count">Based on 1k+ Reviews on Google and More</span>
-        </a>
-
-        <h2 class="recognition-title">Community recognition</h2>
-        <div class="awards-arc">
-          <a class="award-mark" href="https://windsor.communityvotes.com/2023/02/education-lessons-and-courses/driving-school" target="_blank" rel="noopener">
-            <img src="assets/img/reviews/platforms/communityvotes.png" alt="CommunityVotes">
-            <strong>Bronze</strong>
-            <span>CommunityVotes Windsor<br>Driving School · 2023</span>
-          </a>
-          <a class="award-mark" href="https://windsor.communityvotes.com/2026/02/education-lessons-and-courses/driving-school" target="_blank" rel="noopener">
-            <img src="assets/img/reviews/platforms/communityvotes.png" alt="CommunityVotes">
-            <strong>Top Pick</strong>
-            <span>CommunityVotes Windsor<br>Driving School · 2026</span>
-          </a>
-          <a class="award-mark" href="https://windsor.communityvotes.com/2024/02/education-lessons-and-courses/driving-school" target="_blank" rel="noopener">
-            <img src="assets/img/reviews/platforms/communityvotes.png" alt="CommunityVotes">
-            <strong>Top Pick</strong>
-            <span>CommunityVotes Windsor<br>Driving School · 2024</span>
-          </a>
-        </div>
-
-        <h2 class="directory-title">Find ACE Driving School around the web</h2>
-      </div>
-
-      <div class="platform-ribbon">
-        <div class="platform-track">
-          <div class="platform-group">
-            <a class="platform-link" href="https://www.yelp.ca/biz/ace-driving-school-windsor" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/yelp.png" alt=""><span>Yelp</span></a>
-            <a class="platform-link" href="https://www.yellowpages.ca/bus/Ontario/Windsor/Ace-Driving-School/6069935.html" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/yellowpages.png" alt=""><span>Yellow Pages</span></a>
-            <a class="platform-link" href="https://www.bestprosintown.com/on/windsor/ace-driving-school-/" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/bestprosintown.png" alt=""><span>BestProsInTown</span></a>
-            <a class="platform-link" href="https://www.cylex-canada.ca/company/ace-driving-school-24291686.html" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/cylex.png" alt=""><span>Cylex</span></a>
-            <a class="platform-link" href="https://ca.drivingschools.directory/en-ca/i/42281-ace-driving-school/" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/driving-schools-directory.png" alt=""><span>DrivingSchools.Directory</span></a>
-            <a class="platform-link" href="https://www.waze.com/live-map/directions/ca/on/windsor/ace-driving-school?to=place.ChIJkVHEAlksO4gRg17oA8ZW17c" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/waze.png" alt=""><span>Waze</span></a>
-            <a class="platform-link" href="https://getpassed.net/practices/canada/ontario/windsor/ace-driving-school-4294" target="_blank" rel="noopener"><img src="assets/img/reviews/platforms/getpassed.png" alt=""><span>GetPassed</span></a>
-          </div>
-          <div class="platform-group" aria-hidden="true">
-            <a class="platform-link" href="https://www.yelp.ca/biz/ace-driving-school-windsor" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/yelp.png" alt=""><span>Yelp</span></a>
-            <a class="platform-link" href="https://www.yellowpages.ca/bus/Ontario/Windsor/Ace-Driving-School/6069935.html" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/yellowpages.png" alt=""><span>Yellow Pages</span></a>
-            <a class="platform-link" href="https://www.bestprosintown.com/on/windsor/ace-driving-school-/" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/bestprosintown.png" alt=""><span>BestProsInTown</span></a>
-            <a class="platform-link" href="https://www.cylex-canada.ca/company/ace-driving-school-24291686.html" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/cylex.png" alt=""><span>Cylex</span></a>
-            <a class="platform-link" href="https://ca.drivingschools.directory/en-ca/i/42281-ace-driving-school/" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/driving-schools-directory.png" alt=""><span>DrivingSchools.Directory</span></a>
-            <a class="platform-link" href="https://www.waze.com/live-map/directions/ca/on/windsor/ace-driving-school?to=place.ChIJkVHEAlksO4gRg17oA8ZW17c" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/waze.png" alt=""><span>Waze</span></a>
-            <a class="platform-link" href="https://getpassed.net/practices/canada/ontario/windsor/ace-driving-school-4294" target="_blank" rel="noopener" tabindex="-1"><img src="assets/img/reviews/platforms/getpassed.png" alt=""><span>GetPassed</span></a>
+              <h3>In-car Training</h3>
+              <p>Hourly training with qualified instructors</p>
+            </article>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
-    <!-- ======= Compact Registration Callout Banner (Opens Modal) ======= -->
-    <section class="cta-banner-section" id="register">
-      <div class="container">
-        <div class="cta-banner">
-          <div>
-            <p class="eyebrow">Registration &amp; Schedule</p>
-            <h2>Register Early — Classrooms Fill Up!</h2>
-            <p>View upcoming online and in-person class dates and reserve your spot in under 2 minutes.</p>
-          </div>
-          <div class="cta-banner-actions">
-            <button class="button button-primary" type="button" data-open-register>Open Registration &amp; Schedule</button>
-            <a class="button button-outline" href="tel:+15199463393">Call 519-946-3393</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======= Contact Section (Pure JS + Google Sheets Backend) ======= -->
-    <section class="section-soft" id="contact">
-      <div class="container">
-        <header class="section-heading">
-          <div>
-            <p class="eyebrow">Contact ACE</p>
-            <h2>Questions before you get started?</h2>
-            <p>Give us a call, email, or visit our Windsor office. You may also send us a message using the form below.</p>
-          </div>
-        </header>
-        <div class="contact-grid">
-          <article class="contact-card">
-            <h3>Contact Us</h3>
-            <ul class="contact-list">
-              <li>
-                <span>Address</span>
-                <address>278 Tecumseh Road East, Windsor, Ontario N8X 2R2, Canada</address>
-              </li>
-              <li>
-                <span>Phone</span>
-                <a href="tel:+15199463393">+1 519 946 3393</a>
-              </li>
-              <li>
-                <span>Mobile</span>
-                <a href="tel:+15192544667">+1 519 254 4667</a>
-              </li>
-              <li>
-                <span>Email</span>
-                <a href="mailto:info@acedrivingschool.ca">info@acedrivingschool.ca</a>
-              </li>
-              <li>
-                <span>Office hours</span>
-                Monday–Thursday, 11:30 a.m.–4:30 p.m.<br>
-                Friday–Sunday, closed
-              </li>
-            </ul>
-            <iframe class="map-frame" title="Map showing ACE Driving School at 278 Tecumseh Road East in Windsor" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2951.1119750899734!2d-83.02376598454566!3d42.29747607919125!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x883b2c58e73d6b87%3A0x2319abbf5e79a528!2s278%20Tecumseh%20Rd%20E%2C%20Windsor%2C%20ON%20N8X%202R2!5e0!3m2!1sen!2sca!4v1587503364290!5m2!1sen!2sca" loading="lazy" allowfullscreen></iframe>
-          </article>
-
-          <article class="message-card">
-            <h3>Send us a message</h3>
-            <p class="form-note">Please allow 1–2 business days for a response by phone or SMS. Messages are sent directly to our team, and we usually respond sooner.</p>
-
-            <form class="ace-form" id="contactForm" novalidate>
-              <input type="text" name="website_hp" class="hp-trap" tabindex="-1" autocomplete="off">
-              <div class="form-row-2">
-                <div class="field-group">
-                  <label for="contact-name">Full Name<span class="req">*</span></label>
-                  <input class="field-input" id="contact-name" name="name" type="text" required placeholder="Jane Doe">
-                </div>
-                <div class="field-group">
-                  <label for="contact-phone">Phone Number<span class="req">*</span></label>
-                  <input class="field-input" id="contact-phone" name="phone" type="tel" required placeholder="519-555-0199">
-                </div>
-              </div>
-
-              <div class="form-row-2">
-                <div class="field-group">
-                  <label for="contact-email">Email Address</label>
-                  <input class="field-input" id="contact-email" name="email" type="email" placeholder="jane@example.com">
-                </div>
-                <div class="field-group">
-                  <label for="contact-topic">Inquiry Topic</label>
-                  <select class="field-select" id="contact-topic" name="topic">
-                    <option value="Beginner Driver Education (BDE)">Beginner Driver Education (BDE)</option>
-                    <option value="G2 / G Mock Road Test">G2 / G Mock Road Test</option>
-                    <option value="Private In-Car Lessons">Private In-Car Lessons</option>
-                    <option value="Road Test Car Rental">Road Test Car Rental</option>
-                    <option value="General Question">General Question</option>
-                  </select>
-                </div>
-              </div>
-
-              <div class="field-group">
-                <label for="contact-message">How can we help?<span class="req">*</span></label>
-                <textarea class="field-textarea" id="contact-message" name="message" required placeholder="Tell us which municipality you are in or any questions about upcoming classes..."></textarea>
-              </div>
-
-              <div class="form-status-banner" id="contactStatus" role="status" aria-live="polite"></div>
-
-              <div>
-                <button class="button button-secondary" type="submit" id="contactSubmitBtn">Send Message</button>
-              </div>
-            </form>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ======= Hidden Admin Course Session Builder (Invisible to regular visitors) ======= -->
+    <!-- ======= Hidden Admin Course Session Builder (Shared across views) ======= -->
     <!-- Access via ?admin=1, #admin, or Ctrl+Shift+A -->
     <section class="admin-vault-section" id="admin-vault" aria-hidden="true">
       <div class="container">
@@ -3477,10 +4166,10 @@
       <div>
         <h3>Page links</h3>
         <ul class="footer-links">
-          <li><a href="#top">Home</a></li>
+          <li><a href="#top" data-nav-view="home">Home</a></li>
+          <li><a href="#services" data-nav-view="services">Services</a></li>
           <li><a href="#pricing">Pricing</a></li>
           <li><a href="#register" data-open-register>Course Schedule</a></li>
-          <li><a href="/services">Services</a></li>
           <li><a href="/studentresources">Student Resources</a></li>
           <li><a href="/privacypolicy">Privacy Policy</a></li>
           <li><a href="/careers">Careers</a></li>
@@ -3500,7 +4189,7 @@
     <div class="footer-bottom-bar">
       <div class="container footer-bottom">
         <span>&copy; <span id="year"></span> ACE Driving School.</span>
-        <a href="#top">Back to top</a>
+        <a href="#main-content">Back to top</a>
       </div>
     </div>
   </footer>
@@ -3533,15 +4222,102 @@
         navBackdrop.addEventListener('click', closeNav);
       }
 
-      document.querySelectorAll('.site-nav a:not([data-open-register])').forEach(link => {
-        link.addEventListener('click', closeNav);
-      });
-
       window.addEventListener('resize', () => {
         if (window.innerWidth > 980) closeNav();
       });
 
-      // 2. Registration Modal Controller + Preselected Package Support
+      // 2. Single-File View Router (Home <-> Services)
+      const viewHome = document.getElementById('view-home');
+      const viewServices = document.getElementById('view-services');
+      const navViewLinks = document.querySelectorAll('.site-nav [data-nav-view]');
+      const homeAnchors = new Set(['#top', '#pricing', '#program', '#reviews', '#register', '#contact']);
+      const servicesAnchors = new Set(['#services', '#service-options']);
+
+      let activeView = 'home';
+
+      const switchView = (targetView, scrollTargetSelector = null, updateUrlHash = null) => {
+        const isServices = targetView === 'services';
+        activeView = isServices ? 'services' : 'home';
+
+        viewHome.classList.toggle('is-active', !isServices);
+        viewHome.setAttribute('aria-hidden', String(isServices));
+
+        viewServices.classList.toggle('is-active', isServices);
+        viewServices.setAttribute('aria-hidden', String(!isServices));
+
+        navViewLinks.forEach(link => {
+          if (link.dataset.navView === activeView) {
+            link.setAttribute('aria-current', 'page');
+          } else {
+            link.removeAttribute('aria-current');
+          }
+        });
+
+        document.title = isServices
+          ? 'Driving Lessons and Services | ACE Driving School'
+          : 'ACE Driving School | Driver Education in Windsor-Essex';
+
+        closeNav();
+
+        if (updateUrlHash !== null) {
+          history.pushState({ view: activeView }, '', updateUrlHash);
+        }
+
+        if (scrollTargetSelector) {
+          const targetEl = document.querySelector(scrollTargetSelector);
+          if (targetEl) {
+            requestAnimationFrame(() => targetEl.scrollIntoView({ behavior: 'smooth' }));
+            return;
+          }
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      };
+
+      // Sync view on initial load or browser Back/Forward
+      const syncViewWithLocation = () => {
+        const hash = window.location.hash.toLowerCase();
+        const params = new URLSearchParams(window.location.search);
+        const path = window.location.pathname.toLowerCase();
+
+        if (
+          servicesAnchors.has(hash) ||
+          params.get('page') === 'services' ||
+          path.endsWith('/services') ||
+          path.endsWith('/services.html')
+        ) {
+          const scrollTarget = hash === '#service-options' ? '#service-options' : null;
+          switchView('services', scrollTarget, null);
+        } else if (homeAnchors.has(hash)) {
+          switchView('home', hash === '#top' ? null : hash, null);
+        }
+      };
+
+      window.addEventListener('popstate', syncViewWithLocation);
+      syncViewWithLocation();
+
+      // 3. 3D Flip Cards on Services View
+      document.querySelectorAll('.catalog-card').forEach(card => {
+        const front = card.querySelector('.catalog-front');
+        const frontButton = front.querySelector('.flip-button');
+        const back = card.querySelector('.catalog-back');
+        const backButton = back.querySelector('.flip-button');
+        back.setAttribute('inert', '');
+
+        const setFlipped = flipped => {
+          card.classList.toggle('is-flipped', flipped);
+          frontButton.setAttribute('aria-expanded', String(flipped));
+          front.setAttribute('aria-hidden', String(flipped));
+          back.setAttribute('aria-hidden', String(!flipped));
+          front.toggleAttribute('inert', flipped);
+          back.toggleAttribute('inert', !flipped);
+          (flipped ? backButton : frontButton).focus();
+        };
+
+        frontButton.addEventListener('click', () => setFlipped(true));
+        backButton.addEventListener('click', () => setFlipped(false));
+      });
+
+      // 4. Registration Modal Controller + Preselected Package Support
       const registerModal = document.getElementById('registerModal');
       const modalCloseBtn = registerModal ? registerModal.querySelector('.modal-close') : null;
       const selectedPackageHint = document.getElementById('selectedPackageHint');
@@ -3592,8 +4368,39 @@
           openRegisterModal(e, pkg);
           return;
         }
+
         if (e.target.closest('[data-close-register]') || e.target === registerModal) {
           closeRegisterModal();
+          return;
+        }
+
+        // Intercept internal navigation links for seamless single-file routing
+        const link = e.target.closest('a[href]');
+        if (!link) return;
+        const href = (link.getAttribute('href') || '').trim();
+
+        if (href === '/services' || href === '/services.html' || href === '#services') {
+          e.preventDefault();
+          switchView('services', null, '#services');
+          return;
+        }
+
+        if (href === '#service-options') {
+          e.preventDefault();
+          switchView('services', '#service-options', '#service-options');
+          return;
+        }
+
+        if (href === '/' || href === '#top') {
+          e.preventDefault();
+          switchView('home', null, '#top');
+          return;
+        }
+
+        if (homeAnchors.has(href)) {
+          e.preventDefault();
+          switchView('home', href, href);
+          return;
         }
       });
 
@@ -3631,7 +4438,7 @@
 
       document.getElementById('year').textContent = new Date().getFullYear();
 
-      // 3. Step-by-Step Counter Animation
+      // 5. Step-by-Step Counter Animation
       const counters = document.querySelectorAll('[data-toggle="counter-up"]');
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -3687,7 +4494,7 @@
         counters.forEach(startCounter);
       }
 
-      // 4. Regional Pricing Grid from Google Sheet
+      // 6. Regional Pricing Grid from Google Sheet
       const grid = document.getElementById('price-grid');
       const status = document.getElementById('pricing-state');
       const sheetUrl = (document.documentElement.dataset.pricingSheetUrl || '').trim();
@@ -3909,7 +4716,7 @@
         });
       };
 
-      // 5. Legacy 2-Column Google Sheet Price Banner Parser
+      // 7. Legacy 2-Column Google Sheet Price Banner Parser
       const parseLegacyBannerCsv = csvData => {
         const banner = document.getElementById('legacy-price-banner');
         if (!banner) return false;
@@ -4002,7 +4809,7 @@
       }
 
       // =========================================================================
-      // 6. Pure JS Google Sheets Backend Forms (Registration, Contact, & Admin)
+      // 8. Pure JS Google Sheets Backend Forms (Registration, Contact, & Admin)
       // =========================================================================
       const DEPLOYMENT_STORAGE_KEY = 'ace_apps_script_url_override_v1';
       const LOCAL_SESSIONS_KEY = 'ace_driving_local_sessions_v1';
@@ -4332,7 +5139,7 @@
         }
       });
 
-      // 7. Hidden Admin Section Unlock & Course Builder
+      // 9. Hidden Admin Section Unlock & Course Builder
       const adminVault = document.getElementById('admin-vault');
       const adminSessionForm = document.getElementById('adminSessionForm');
       const adminStatus = document.getElementById('adminStatus');
