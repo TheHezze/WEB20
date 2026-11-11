@@ -649,15 +649,42 @@
     }
 
     .legacy-price-banner {
-      display: none;
-      margin-top: 22px;
-      padding-top: 18px;
-      border-top: 1px solid rgba(255, 255, 255, .18);
+      display: grid;
+      grid-template-rows: 0fr;
+      opacity: 0;
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 1px solid transparent;
       text-align: center;
+      overflow: hidden;
+      pointer-events: none;
+      transform: translateY(8px);
+      transition:
+        grid-template-rows 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+        opacity 0.45s ease,
+        transform 0.5s cubic-bezier(0.22, 1, 0.36, 1),
+        margin-top 0.45s ease,
+        padding-top 0.45s ease,
+        border-color 0.45s ease;
+    }
+
+    .legacy-price-banner > .price-text {
+      min-height: 0;
+      overflow: hidden;
     }
 
     .legacy-price-banner.active {
-      display: block;
+      grid-template-rows: 1fr;
+      opacity: 1;
+      margin-top: 22px;
+      padding-top: 18px;
+      border-top-color: rgba(255, 255, 255, .18);
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .legacy-price-banner span:empty {
+      display: none !important;
     }
 
     .legacy-price-banner .price-text {
@@ -987,6 +1014,11 @@
       font-weight: 700;
       color: var(--navy);
       background: var(--sky);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .pricing-state.is-hidden {
+      display: none !important;
     }
 
     .pricing-state::before {
@@ -995,15 +1027,12 @@
       height: 8px;
       border-radius: 50%;
       background: var(--blue);
+      animation: pulse-dot 1.2s ease-in-out infinite;
     }
 
-    .pricing-state[data-state="live"] {
-      color: var(--success);
-      background: #e7f6ed;
-    }
-
-    .pricing-state[data-state="live"]::before {
-      background: var(--success);
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 0.35; transform: scale(0.88); }
+      50% { opacity: 1; transform: scale(1.15); }
     }
 
     .region-grid {
@@ -1011,6 +1040,30 @@
       grid-template-columns: 1fr;
       gap: 28px;
       align-items: stretch;
+      min-height: 180px;
+      opacity: 0;
+      transform: translateY(12px);
+      transition: opacity 0.48s cubic-bezier(0.22, 1, 0.36, 1), transform 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .region-grid.is-loaded {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    [data-service-price],
+    #home-mock-drivetest-price,
+    #home-mock-pickup-price {
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.42s ease, transform 0.42s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    body.prices-ready [data-service-price],
+    body.prices-ready #home-mock-drivetest-price,
+    body.prices-ready #home-mock-pickup-price {
+      opacity: 1;
+      transform: translateY(0);
     }
 
     .pricing-region {
@@ -1102,7 +1155,7 @@
       border: 1px solid var(--line);
       border-radius: 20px;
       background: var(--white);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
     }
 
     .price-card:hover {
@@ -1114,6 +1167,26 @@
       color: var(--white);
       border-color: var(--navy);
       background: var(--navy);
+    }
+
+    /* Distinguished Sale Card Styling */
+    .price-card.on-sale:not(.featured) {
+      border: 2px solid var(--yellow);
+      background: linear-gradient(180deg, #fffdf6 0%, var(--white) 48%);
+      box-shadow: 0 14px 34px rgba(13, 47, 82, .11);
+    }
+
+    .price-card.featured.on-sale {
+      border: 2px solid var(--yellow);
+      box-shadow: 0 16px 38px rgba(13, 47, 82, .22), inset 0 0 0 1px rgba(255, 194, 28, .28);
+    }
+
+    .price-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
     }
 
     .price-card .format {
@@ -1133,6 +1206,27 @@
     .price-card.featured .format {
       color: #082742;
       background: var(--yellow);
+    }
+
+    .sale-savings-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 11px;
+      border-radius: 999px;
+      background: #e7f6ed;
+      color: var(--success);
+      border: 1px solid rgba(22, 120, 74, .22);
+      font-size: .7rem;
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .price-card.featured .sale-savings-pill {
+      background: rgba(105, 240, 105, .16);
+      color: #69f069;
+      border-color: rgba(105, 240, 105, .36);
     }
 
     .price-card h4 {
@@ -1157,7 +1251,32 @@
     }
 
     .price-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
       margin: 18px 0 14px;
+    }
+
+    .price-Card-sale-kicker {
+      display: inline-block;
+      padding: 2px 11px;
+      border-radius: 999px;
+      background: var(--yellow);
+      color: var(--navy);
+      font-family: 'Dancing Script', cursive;
+      font-size: 1.04rem;
+      font-weight: 700;
+      line-height: 1.25;
+      margin-bottom: 2px;
+      box-shadow: 0 4px 12px rgba(255, 194, 28, .28);
+    }
+
+    .price-main-row {
+      display: flex;
+      align-items: baseline;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .price {
@@ -1172,15 +1291,41 @@
       color: var(--yellow);
     }
 
+    /* Highlighted Sale Price Typography */
+    .price-card.on-sale:not(.featured) .price.is-sale {
+      color: #d63636;
+      font-size: clamp(2rem, 3.1vw, 2.55rem);
+    }
+
+    .price-card.featured.on-sale .price.is-sale {
+      color: #ff6b6b;
+      font-size: clamp(2rem, 3.1vw, 2.55rem);
+      text-shadow: 0 2px 14px rgba(255, 107, 107, .26);
+    }
+
     .regular-price-old {
-      margin-left: 8px;
       color: var(--muted);
-      font-size: .88rem;
+      font-size: .95rem;
+      font-weight: 750;
       text-decoration: line-through;
+      text-decoration-thickness: 2px;
+      text-decoration-color: rgba(214, 54, 54, .65);
     }
 
     .price-card.featured .regular-price-old {
-      color: rgba(255, 255, 255, .6);
+      color: rgba(255, 255, 255, .68);
+      text-decoration-color: rgba(255, 107, 107, .85);
+    }
+
+    .sale-expiry-note {
+      margin: 2px 0 0;
+      color: var(--success);
+      font-size: .76rem;
+      font-weight: 800;
+    }
+
+    .price-card.featured .sale-expiry-note {
+      color: #69f069;
     }
 
     .additional {
@@ -1191,6 +1336,17 @@
 
     .price-card.featured .additional {
       color: rgba(255, 255, 255, .78);
+    }
+
+    .price-card.on-sale:not(.featured) .price-card-btn {
+      background: var(--blue);
+      border-color: var(--blue);
+      color: var(--white);
+      box-shadow: 0 8px 20px rgba(31, 86, 210, .2);
+    }
+
+    .price-card.on-sale:not(.featured) .price-card-btn:hover {
+      background: var(--blue-bright);
     }
 
     .price-card-btn {
@@ -1828,6 +1984,38 @@
       box-shadow: var(--shadow-sm);
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .catalog-card.on-sale .catalog-front {
+      border: 2px solid var(--yellow);
+      background: linear-gradient(180deg, #ffffff 0%, #fffdf5 100%);
+      box-shadow: 0 16px 38px rgba(13, 47, 82, .14);
+    }
+
+    .catalog-sale-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .catalog-price .sale-main-price {
+      color: #d63636;
+      font-size: 1.95rem;
+      font-weight: 950;
+      letter-spacing: -.045em;
+    }
+
+    .catalog-price .sale-old-price {
+      color: var(--muted);
+      font-size: .96rem;
+      font-weight: 750;
+      text-decoration: line-through;
+      text-decoration-thickness: 2px;
+      text-decoration-color: rgba(214, 54, 54, .65);
+      margin-left: 8px;
     }
 
     .catalog-back {
@@ -3306,15 +3494,15 @@
             <div class="mock-options">
               <div class="mock-option">
                 <strong>Meet at Windsor DriveTest</strong>
-                <span>$40 + HST</span>
+                <span id="home-mock-drivetest-price"></span>
               </div>
               <div class="mock-option">
                 <strong>Windsor pickup and drop-off</strong>
-                <span>$80 + HST</span>
+                <span id="home-mock-pickup-price"></span>
               </div>
               <div class="mock-option">
                 <strong>Available Saturdays</strong>
-                <span>8:00 a.m.–5:00 p.m.</span>
+                <span id="home-mock-hours">8:00 a.m.–5:00 p.m.</span>
               </div>
               <a class="button button-primary mock-feature-link" href="https://book.squareup.com/appointments/deymbzfpy3pbra/location/L02BA4N3EVMT0/services" target="_blank" rel="noopener">Book Your Mock Test</a>
             </div>
@@ -3689,17 +3877,17 @@
 
           <div class="catalog-grid">
             <!-- Card 1: In-Person BDE -->
-            <article class="catalog-card">
+            <article class="catalog-card" data-service-id="service-in-person-bde">
               <div class="catalog-inner">
                 <div class="catalog-face catalog-front">
                   <div class="catalog-photo">
                     <img src="assets/img/services/in-person-bde-ace-classroom-chairs-tables.png" alt="ACE classroom with chairs and tables for in-person BDE" loading="lazy">
                   </div>
                   <div class="catalog-body">
-                    <h3>In-Person Beginner Driver Education</h3>
-                    <div class="catalog-price">$439.99</div>
+                    <h3 data-service-title>In-Person Beginner Driver Education</h3>
+                    <div class="catalog-price" id="svc-price-inperson" data-service-price></div>
                     <div class="catalog-actions">
-                      <button class="button button-primary" type="button" data-open-register data-package-name="In-Person Beginner Driver Education ($439.99)">Register / View Schedule</button>
+                      <button class="button button-primary" id="svc-btn-inperson" type="button" data-open-register data-service-btn data-package-name="In-Person Beginner Driver Education ($439.99)">Register / View Schedule</button>
                       <button class="flip-button" type="button" aria-expanded="false">View details</button>
                     </div>
                   </div>
@@ -3713,17 +3901,17 @@
             </article>
 
             <!-- Card 2: Online BDE -->
-            <article class="catalog-card">
+            <article class="catalog-card" data-service-id="service-online-bde">
               <div class="catalog-inner">
                 <div class="catalog-face catalog-front">
                   <div class="catalog-photo">
                     <img src="assets/img/services/online-bde-ace-web-learning-driver-seat.png" alt="ACE Web Learning driver seated in a car seat for online BDE" loading="lazy">
                   </div>
                   <div class="catalog-body">
-                    <h3>Online Beginner Driver Education</h3>
-                    <div class="catalog-price">$389.99</div>
+                    <h3 data-service-title>Online Beginner Driver Education</h3>
+                    <div class="catalog-price" id="svc-price-online" data-service-price></div>
                     <div class="catalog-actions">
-                      <button class="button button-primary" type="button" data-open-register data-package-name="Online Beginner Driver Education ($389.99)">Register / View Schedule</button>
+                      <button class="button button-primary" id="svc-btn-online" type="button" data-open-register data-service-btn data-package-name="Online Beginner Driver Education ($389.99)">Register / View Schedule</button>
                       <button class="flip-button" type="button" aria-expanded="false">View details</button>
                     </div>
                   </div>
@@ -3737,17 +3925,17 @@
             </article>
 
             <!-- Card 3: Private Driving Lessons -->
-            <article class="catalog-card">
+            <article class="catalog-card" data-service-id="service-private-lessons">
               <div class="catalog-inner">
                 <div class="catalog-face catalog-front">
                   <div class="catalog-photo">
                     <img src="assets/img/services/private-driving-lessons-car-interior.webp" alt="Interior of a car showing the driver's seat for private driving lessons" loading="lazy">
                   </div>
                   <div class="catalog-body">
-                    <h3>Private Driving Lessons</h3>
-                    <div class="catalog-price">$50 / hour<small>1 hour $50 &nbsp;•&nbsp; 2 hours $100</small></div>
+                    <h3 data-service-title>Private Driving Lessons</h3>
+                    <div class="catalog-price" data-service-price></div>
                     <div class="catalog-actions">
-                      <button class="button button-primary" type="button" data-open-register data-package-name="Private Driving Lessons ($50 / hour)">Register / View Schedule</button>
+                      <button class="button button-primary" type="button" data-open-register data-service-btn data-package-name="Private Driving Lessons ($50 / hour)">Register / View Schedule</button>
                       <button class="flip-button" type="button" aria-expanded="false">View details</button>
                     </div>
                   </div>
@@ -3761,17 +3949,17 @@
             </article>
 
             <!-- Card 4: Road-Test Vehicle Rental -->
-            <article class="catalog-card">
+            <article class="catalog-card" data-service-id="service-road-test-rental">
               <div class="catalog-inner">
                 <div class="catalog-face catalog-front">
                   <div class="catalog-photo">
                     <img src="assets/img/services/road-test-vehicle-rental-grey-honda-civic.jpg" alt="Grey Honda Civic for road-test vehicle rental" loading="lazy">
                   </div>
                   <div class="catalog-body">
-                    <h3>Road-Test Vehicle Rental</h3>
-                    <div class="catalog-price">$75</div>
+                    <h3 data-service-title>Road-Test Vehicle Rental</h3>
+                    <div class="catalog-price" data-service-price></div>
                     <div class="catalog-actions">
-                      <button class="button button-primary" type="button" data-open-register data-package-name="Road-Test Vehicle Rental ($75)">Register / View Schedule</button>
+                      <button class="button button-primary" type="button" data-open-register data-service-btn data-package-name="Road-Test Vehicle Rental ($75)">Register / View Schedule</button>
                       <button class="flip-button" type="button" aria-expanded="false">View details</button>
                     </div>
                   </div>
@@ -3785,15 +3973,15 @@
             </article>
 
             <!-- Card 5: G2 and G Mock Tests -->
-            <article class="catalog-card">
+            <article class="catalog-card" data-service-id="service-mock-tests">
               <div class="catalog-inner">
                 <div class="catalog-face catalog-front">
                   <div class="catalog-photo clipboard">
                     <img src="assets/img/services/road-test-ready-package-clipboard-inside-car.jpg" alt="Clipboard and score sheet for a G2 or G mock road test" loading="lazy">
                   </div>
                   <div class="catalog-body">
-                    <h3>G2 and G Mock Tests on Real Routes</h3>
-                    <div class="catalog-price">$40 / $80<small>Meet at DriveTest: 20 min · $40 + HST<br>Windsor pickup and drop-off: 45 min · $80 + HST</small></div>
+                    <h3 data-service-title>G2 and G Mock Tests on Real Routes</h3>
+                    <div class="catalog-price" data-service-price></div>
                     <div class="catalog-actions">
                       <a class="button button-primary" href="https://book.squareup.com/appointments/deymbzfpy3pbra/location/L02BA4N3EVMT0/services" target="_blank" rel="noopener">Book Your Mock Test</a>
                       <button class="flip-button" type="button" aria-expanded="false">View details</button>
@@ -3811,17 +3999,17 @@
             </article>
 
             <!-- Card 6: Senior Driving Lessons -->
-            <article class="catalog-card">
+            <article class="catalog-card" data-service-id="service-senior-lessons">
               <div class="catalog-inner">
                 <div class="catalog-face catalog-front">
                   <div class="catalog-photo">
                     <img src="assets/img/services/senior-driving-lessons-classic-car-artwork.webp" alt="Classic car artwork for senior driving lessons" loading="lazy">
                   </div>
                   <div class="catalog-body">
-                    <h3>Senior Driving Lessons</h3>
-                    <div class="catalog-price">$50 / hour</div>
+                    <h3 data-service-title>Senior Driving Lessons</h3>
+                    <div class="catalog-price" data-service-price></div>
                     <div class="catalog-actions">
-                      <button class="button button-primary" type="button" data-open-register data-package-name="Senior Driving Lessons ($50 / hour)">Register / View Schedule</button>
+                      <button class="button button-primary" type="button" data-open-register data-service-btn data-package-name="Senior Driving Lessons ($50 / hour)">Register / View Schedule</button>
                       <button class="flip-button" type="button" aria-expanded="false">View details</button>
                     </div>
                   </div>
@@ -3835,18 +4023,18 @@
             </article>
 
             <!-- Card 7: Driving With a Disability: Private Lessons -->
-            <article class="catalog-card">
+            <article class="catalog-card" data-service-id="service-disability-lessons">
               <div class="catalog-inner">
                 <div class="catalog-face catalog-front">
                   <div class="catalog-photo">
                     <img src="assets/img/services/driving-with-disability-new-ace-school-office-exterior.png" alt="New exterior of ACE Driving School for adaptive private driving lessons" loading="lazy">
                   </div>
                   <div class="catalog-body">
-                    <h3>Driving With a Disability: Private Lessons</h3>
+                    <h3 data-service-title>Driving With a Disability: Private Lessons</h3>
                     <p>Individual instruction planned around the learner’s needs and driving goals.</p>
-                    <div class="catalog-price">Contact for pricing</div>
+                    <div class="catalog-price" data-service-price></div>
                     <div class="catalog-actions">
-                      <button class="button button-primary" type="button" data-open-register data-package-name="Driving With a Disability: Private Lessons">Open Registration Form</button>
+                      <button class="button button-primary" type="button" data-open-register data-service-btn data-package-name="Driving With a Disability: Private Lessons">Open Registration Form</button>
                       <a class="contact" href="tel:+15199463393">Contact ACE: 519-946-3393</a>
                       <button class="flip-button" type="button" aria-expanded="false">View details</button>
                     </div>
@@ -3862,18 +4050,18 @@
             </article>
 
             <!-- Card 8: Adaptive Driving Assessments and Examinations -->
-            <article class="catalog-card">
+            <article class="catalog-card" data-service-id="service-adaptive-assessments">
               <div class="catalog-inner">
                 <div class="catalog-face catalog-front">
                   <div class="catalog-photo">
                     <img src="assets/img/services/driving-with-disability-new-ace-school-office-exterior.png" alt="New exterior of ACE Driving School for adaptive driving assessments and examinations" loading="lazy">
                   </div>
                   <div class="catalog-body">
-                    <h3>Adaptive Driving Assessments and Examinations</h3>
+                    <h3 data-service-title>Adaptive Driving Assessments and Examinations</h3>
                     <p>Assessments and examinations with adaptive-driving support.</p>
-                    <div class="catalog-price">Contact for pricing</div>
+                    <div class="catalog-price" data-service-price></div>
                     <div class="catalog-actions">
-                      <button class="button button-primary" type="button" data-open-register data-package-name="Adaptive Driving Assessments and Examinations">Open Registration Form</button>
+                      <button class="button button-primary" type="button" data-open-register data-service-btn data-package-name="Adaptive Driving Assessments and Examinations">Open Registration Form</button>
                       <a class="contact" href="tel:+15199463393">Contact ACE: 519-946-3393</a>
                       <button class="flip-button" type="button" aria-expanded="false">View details</button>
                     </div>
@@ -4504,7 +4692,7 @@
         { id: 'belle-river-amherstburg-online', course_name: 'Beginner Driver Education', location: 'Belle River / Amherstburg', delivery_type: 'Online', regular_price: 439.99, sale_price: null, sale_ends: '', sale_label: '', additional_info: '', registration_url: '#register', display_order: 6, published: true }
       ];
 
-      const truthy = value => ['true', 'yes', '1'].includes(String(value).trim().toLowerCase());
+      const truthy = value => value === undefined || value === null || String(value).trim() === '' ? true : !['false', 'no', '0'].includes(String(value).trim().toLowerCase());
       const parseMoney = value => {
         const normalized = String(value ?? '').replace(/[^0-9.-]/g, '');
         return normalized === '' ? null : Number(normalized);
@@ -4512,11 +4700,30 @@
 
       const money = value => new Intl.NumberFormat('en-CA', { style: 'currency', currency: 'CAD' }).format(value);
 
+      const parseExpiryDate = raw => {
+        const str = String(raw || '').trim();
+        if (!str) return null;
+        if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+          const d = new Date(str + 'T23:59:59');
+          return Number.isNaN(d.getTime()) ? null : d;
+        }
+        const parsed = new Date(str);
+        if (Number.isNaN(parsed.getTime())) return null;
+        parsed.setHours(23, 59, 59, 999);
+        return parsed;
+      };
+
       const saleIsActive = item => {
         if (!Number.isFinite(item.sale_price) || item.sale_price < 0 || item.sale_price >= item.regular_price) return false;
-        if (!item.sale_ends) return true;
-        const expiry = new Date(item.sale_ends + 'T23:59:59');
-        return !Number.isNaN(expiry.getTime()) && expiry >= new Date();
+        const expiry = parseExpiryDate(item.sale_ends);
+        if (!expiry) return true;
+        return expiry >= new Date();
+      };
+
+      const formatSaleExpiry = raw => {
+        const d = parseExpiryDate(raw);
+        if (!d) return '';
+        return d.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' });
       };
 
       const normalizeLocation = value => String(value || '').toLowerCase().replace(/[^a-z]+/g, '');
@@ -4547,12 +4754,26 @@
 
       const renderCourse = item => {
         const online = /online/i.test(item.delivery_type || '');
+        const activeSale = saleIsActive(item);
         const card = document.createElement('article');
-        card.className = 'price-card' + (online ? ' featured' : '');
+        card.className = 'price-card' + (online ? ' featured' : '') + (activeSale ? ' on-sale' : '');
+
+        const topRow = document.createElement('div');
+        topRow.className = 'price-card-top';
 
         const format = document.createElement('p');
         format.className = 'format';
         format.textContent = item.delivery_type || 'Course';
+        topRow.append(format);
+
+        if (activeSale) {
+          const diff = Math.max(0, item.regular_price - item.sale_price);
+          const savingsPill = document.createElement('span');
+          savingsPill.className = 'sale-savings-pill';
+          const roundedDiff = Math.round(diff);
+          savingsPill.textContent = diff >= 1 ? `Save $${roundedDiff}` : 'On Sale';
+          topRow.append(savingsPill);
+        }
 
         const title = document.createElement('h4');
         title.textContent = item.course_name || 'Driver education';
@@ -4564,18 +4785,39 @@
         const priceWrap = document.createElement('div');
         priceWrap.className = 'price-wrap';
 
+        if (activeSale) {
+          const saleKicker = document.createElement('span');
+          saleKicker.className = 'price-Card-sale-kicker';
+          saleKicker.textContent = item.sale_label || 'Special Offer';
+          priceWrap.append(saleKicker);
+        }
+
+        const priceMainRow = document.createElement('div');
+        priceMainRow.className = 'price-main-row';
+
         const price = document.createElement('span');
-        price.className = 'price';
-        const activeSale = saleIsActive(item);
+        price.className = 'price' + (activeSale ? ' is-sale' : '');
         const activePrice = money(activeSale ? item.sale_price : item.regular_price);
         price.textContent = activePrice;
-        priceWrap.append(price);
+        priceMainRow.append(price);
 
         if (activeSale) {
           const oldPrice = document.createElement('span');
           oldPrice.className = 'regular-price-old';
-          oldPrice.textContent = money(item.regular_price);
-          priceWrap.append(oldPrice);
+          oldPrice.textContent = `Reg. ${money(item.regular_price)}`;
+          priceMainRow.append(oldPrice);
+        }
+
+        priceWrap.append(priceMainRow);
+
+        if (activeSale && item.sale_ends) {
+          const formattedExp = formatSaleExpiry(item.sale_ends);
+          if (formattedExp) {
+            const expNote = document.createElement('p');
+            expNote.className = 'sale-expiry-note';
+            expNote.textContent = `Sale ends ${formattedExp}`;
+            priceWrap.append(expNote);
+          }
         }
 
         const customUrl = item.registration_url && item.registration_url !== '#register' ? item.registration_url : '';
@@ -4586,18 +4828,11 @@
         } else {
           actionEl.type = 'button';
           actionEl.setAttribute('data-open-register', '');
-          actionEl.setAttribute('data-package-name', `${item.location} — ${item.delivery_type} (${activePrice})`);
+          actionEl.setAttribute('data-package-name', `${item.location} — ${item.delivery_type} (${activePrice}${activeSale ? ' Sale' : ''})`);
         }
-        actionEl.textContent = 'Select & View Dates';
+        actionEl.textContent = activeSale ? 'Claim Sale & View Dates' : 'Select & View Dates';
 
-        card.append(format, title, note, priceWrap);
-
-        if (activeSale && item.sale_label) {
-          const label = document.createElement('p');
-          label.className = 'additional';
-          label.textContent = item.sale_label;
-          card.append(label);
-        }
+        card.append(topRow, title, note, priceWrap);
 
         if (item.additional_info) {
           const info = document.createElement('p');
@@ -4610,8 +4845,181 @@
         return card;
       };
 
+      const formatFlexiblePrice = val => {
+        if (val === null || val === undefined || val === '') return '';
+        const str = String(val).trim();
+        if (!str) return '';
+        if (/^-?\d+(\.\d+)?$/.test(str.replace(/^\$/, ''))) {
+          const num = Number(str.replace(/^\$/, ''));
+          return Number.isInteger(num) ? `$${num}` : money(num);
+        }
+        return str;
+      };
+
+      const applyCardPriceAndSale = (cardEl, config) => {
+        if (!cardEl || !config) return;
+        const priceEl = cardEl.querySelector('[data-service-price]');
+        const btnEl = cardEl.querySelector('[data-service-btn]');
+        const titleEl = cardEl.querySelector('[data-service-title]');
+
+        if (config.service_name && titleEl) {
+          titleEl.textContent = config.service_name;
+        }
+
+        const regNum = parseMoney(config.regular_price);
+        const saleNum = parseMoney(config.sale_price);
+        const rawRegStr = String(config.regular_price ?? '').trim();
+        const rawSaleStr = String(config.sale_price ?? '').trim();
+
+        const expiry = parseExpiryDate(config.sale_ends);
+        const notExpired = !expiry || expiry >= new Date();
+        const hasNumericSale = Number.isFinite(regNum) && Number.isFinite(saleNum) && saleNum >= 0 && saleNum < regNum;
+        const hasTextSale = rawSaleStr !== '' && rawSaleStr !== rawRegStr && !Number.isFinite(saleNum);
+        const isSale = notExpired && (hasNumericSale || hasTextSale);
+
+        cardEl.classList.toggle('on-sale', isSale);
+
+        const displayReg = formatFlexiblePrice(config.regular_price);
+        const displaySale = formatFlexiblePrice(config.sale_price);
+        const activePriceText = isSale ? displaySale : displayReg;
+
+        if (priceEl && activePriceText) {
+          priceEl.replaceChildren();
+
+          if (isSale) {
+            const badgeRow = document.createElement('div');
+            badgeRow.className = 'catalog-sale-row';
+
+            const kicker = document.createElement('span');
+            kicker.className = 'price-Card-sale-kicker';
+            kicker.textContent = config.sale_label || 'Special Offer';
+            badgeRow.append(kicker);
+
+            if (hasNumericSale && regNum - saleNum >= 1) {
+              const savePill = document.createElement('span');
+              savePill.className = 'sale-savings-pill';
+              savePill.textContent = `Save $${Math.round(regNum - saleNum)}`;
+              badgeRow.append(savePill);
+            }
+            priceEl.append(badgeRow);
+
+            const mainPriceSpan = document.createElement('span');
+            mainPriceSpan.className = 'sale-main-price';
+            mainPriceSpan.textContent = displaySale;
+            priceEl.append(mainPriceSpan);
+
+            if (displayReg) {
+              const oldPriceSpan = document.createElement('span');
+              oldPriceSpan.className = 'sale-old-price';
+              oldPriceSpan.textContent = `Reg. ${displayReg}`;
+              priceEl.append(oldPriceSpan);
+            }
+
+            if (config.sale_ends) {
+              const expFormatted = formatSaleExpiry(config.sale_ends);
+              if (expFormatted) {
+                const expSmall = document.createElement('small');
+                expSmall.style.color = 'var(--success)';
+                expSmall.style.fontWeight = '800';
+                expSmall.textContent = `Sale ends ${expFormatted}`;
+                priceEl.append(expSmall);
+              }
+            }
+          } else {
+            priceEl.append(document.createTextNode(displayReg));
+          }
+
+          if (config.price_subtext) {
+            const subSmall = document.createElement('small');
+            const lines = String(config.price_subtext).split(/\r?\n|\s*\|\s*/);
+            lines.forEach((line, idx) => {
+              if (idx > 0) subSmall.append(document.createElement('br'));
+              subSmall.append(document.createTextNode(line));
+            });
+            priceEl.append(subSmall);
+          }
+        }
+
+        if (btnEl && activePriceText) {
+          const baseName = config.service_name || (titleEl ? titleEl.textContent : 'Service');
+          if (/contact/i.test(activePriceText)) {
+            btnEl.setAttribute('data-package-name', baseName);
+          } else {
+            btnEl.setAttribute('data-package-name', `${baseName} (${activePriceText}${isSale ? ' Sale' : ''})`);
+            btnEl.textContent = isSale ? 'Claim Sale & View Schedule' : 'Register / View Schedule';
+          }
+        }
+      };
+
+      const syncServicesCatalogPrices = items => {
+        const windsorItems = items.filter(item => normalizeLocation(item.location).includes('windsor'));
+        const inPersonItem = windsorItems.find(item => !/online/i.test(item.delivery_type || ''));
+        const onlineItem = windsorItems.find(item => /online/i.test(item.delivery_type || ''));
+
+        if (inPersonItem) {
+          const card1 = document.querySelector('[data-service-id="service-in-person-bde"]');
+          applyCardPriceAndSale(card1, {
+            service_name: 'In-Person Beginner Driver Education',
+            regular_price: money(inPersonItem.regular_price),
+            sale_price: Number.isFinite(inPersonItem.sale_price) ? money(inPersonItem.sale_price) : '',
+            sale_ends: inPersonItem.sale_ends,
+            sale_label: inPersonItem.sale_label,
+            price_subtext: inPersonItem.additional_info || ''
+          });
+        }
+
+        if (onlineItem) {
+          const card2 = document.querySelector('[data-service-id="service-online-bde"]');
+          applyCardPriceAndSale(card2, {
+            service_name: 'Online Beginner Driver Education',
+            regular_price: money(onlineItem.regular_price),
+            sale_price: Number.isFinite(onlineItem.sale_price) ? money(onlineItem.sale_price) : '',
+            sale_ends: onlineItem.sale_ends,
+            sale_label: onlineItem.sale_label,
+            price_subtext: onlineItem.additional_info || ''
+          });
+        }
+      };
+
+      const renderServicesPricing = servicesList => {
+        if (!Array.isArray(servicesList) || !servicesList.length) return;
+        servicesList.forEach(svc => {
+          if (!svc.id || !truthy(svc.published ?? true)) return;
+          // If BDE cards are set to "SYNC" or blank in Services_Pricing, let Region_Pricing (Windsor) drive them automatically
+          if ((svc.id === 'service-in-person-bde' || svc.id === 'service-online-bde') &&
+              (!svc.regular_price || /^sync$/i.test(String(svc.regular_price).trim()))) {
+            return;
+          }
+          const card = document.querySelector(`[data-service-id="${svc.id}"]`);
+          if (card) {
+            applyCardPriceAndSale(card, svc);
+          }
+
+          // Also sync the Home Page Mock Test feature box if service-mock-tests is updated in Services_Pricing
+          if (svc.id === 'service-mock-tests' && svc.price_subtext) {
+            const parts = String(svc.price_subtext).split(/\r?\n|\s*\|\s*/);
+            const dtEl = document.getElementById('home-mock-drivetest-price');
+            const puEl = document.getElementById('home-mock-pickup-price');
+            if (parts[0] && dtEl) dtEl.textContent = parts[0].replace(/^.*?:/, '').trim();
+            if (parts[1] && puEl) puEl.textContent = parts[1].replace(/^.*?:/, '').trim();
+          }
+        });
+      };
+
+      const defaultServicesFallback = [
+        { id: 'service-in-person-bde', service_name: 'In-Person Beginner Driver Education', regular_price: 'SYNC', sale_price: '', sale_ends: '', sale_label: '', price_subtext: '', published: true },
+        { id: 'service-online-bde', service_name: 'Online Beginner Driver Education', regular_price: 'SYNC', sale_price: '', sale_ends: '', sale_label: '', price_subtext: '', published: true },
+        { id: 'service-private-lessons', service_name: 'Private Driving Lessons', regular_price: '$50 / hour', sale_price: '', sale_ends: '', sale_label: '', price_subtext: '1 hour $50  •  2 hours $100', published: true },
+        { id: 'service-road-test-rental', service_name: 'Road-Test Vehicle Rental', regular_price: '$75', sale_price: '', sale_ends: '', sale_label: '', price_subtext: '', published: true },
+        { id: 'service-mock-tests', service_name: 'G2 and G Mock Tests on Real Routes', regular_price: '$40 / $80', sale_price: '', sale_ends: '', sale_label: '', price_subtext: 'Meet at DriveTest: 20 min · $40 + HST | Windsor pickup and drop-off: 45 min · $80 + HST', published: true },
+        { id: 'service-senior-lessons', service_name: 'Senior Driving Lessons', regular_price: '$50 / hour', sale_price: '', sale_ends: '', sale_label: '', price_subtext: '', published: true },
+        { id: 'service-disability-lessons', service_name: 'Driving With a Disability: Private Lessons', regular_price: 'Contact for pricing', sale_price: '', sale_ends: '', sale_label: '', price_subtext: '', published: true },
+        { id: 'service-adaptive-assessments', service_name: 'Adaptive Driving Assessments and Examinations', regular_price: 'Contact for pricing', sale_price: '', sale_ends: '', sale_label: '', price_subtext: '', published: true }
+      ];
+
       const renderPrices = items => {
         grid.replaceChildren();
+        syncServicesCatalogPrices(items);
         regions.forEach(region => {
           const regionItems = items.filter(item => {
             const location = normalizeLocation(item.location);
@@ -4656,9 +5064,24 @@
           panel.append(head, courses);
           grid.append(panel);
         });
+
+        requestAnimationFrame(() => {
+          grid.classList.add('is-loaded');
+          document.body.classList.add('prices-ready');
+        });
       };
 
       // 7. Hero Price Banner Renderer (from Price_Banner tab in the unified Google Sheet)
+      const formatBannerCurrency = raw => {
+        const str = String(raw ?? '').trim();
+        if (!str) return '';
+        // If user entered a bare number like "389.99" or "439", prepend "$" automatically; otherwise keep exact string (e.g. "$389.99")
+        if (/^\d+(\.\d+)?$/.test(str)) {
+          return '$' + str;
+        }
+        return str;
+      };
+
       const renderPriceBanner = bannerObj => {
         const banner = document.getElementById('legacy-price-banner');
         if (!banner) return false;
@@ -4685,9 +5108,19 @@
           return false;
         }
 
+        // Normalize keys so both "sale-price" and "sale_price" or case variations work seamlessly
+        const normalizedBanner = {};
+        Object.keys(bannerObj).forEach(k => {
+          const cleanKey = String(k).trim().toLowerCase().replace(/_/g, '-');
+          normalizedBanner[cleanKey] = bannerObj[k];
+        });
+
         let hasMatchedData = false;
         fieldIds.forEach(id => {
-          const val = String(bannerObj[id] || '').trim();
+          let val = String(normalizedBanner[id] ?? '').trim();
+          if (id === 'regular-price' || id === 'sale-price') {
+            val = formatBannerCurrency(val);
+          }
           const el = document.getElementById(id);
           if (el && val) {
             el.textContent = val;
@@ -4695,18 +5128,30 @@
           }
         });
 
-        banner.classList.toggle('active', hasMatchedData);
+        if (hasMatchedData) {
+          requestAnimationFrame(() => {
+            banner.classList.add('active');
+          });
+        } else {
+          banner.classList.remove('active');
+        }
         return hasMatchedData;
       };
 
-      const useFallback = (message, state = 'fallback') => {
-        renderPrices(fallback);
-        status.dataset.state = state;
-        status.textContent = message;
+      const hidePricingStatus = () => {
+        if (status) {
+          status.textContent = '';
+          status.classList.add('is-hidden');
+        }
       };
 
-      // Render fallback prices initially while Apps Script loads
-      useFallback('Loading current spreadsheet prices…');
+      const useFallback = () => {
+        renderPrices(fallback);
+        renderServicesPricing(defaultServicesFallback);
+        hidePricingStatus();
+      };
+
+      // Keep pricing grid and services prices empty until Apps Script finishes loading
 
       // =========================================================================
       // 8. Pure JS Google Sheets Backend (Sessions, Region Pricing, Banner, & Forms)
@@ -4886,39 +5331,51 @@
         const activeUrl = getAppsScriptUrl();
         if (activeUrl) {
           try {
-            const res = await fetch(activeUrl, { cache: 'no-store', redirect: 'follow' });
+            const fetchUrl = `${activeUrl}${activeUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
+            const res = await fetch(fetchUrl, { cache: 'no-store', redirect: 'follow' });
             const data = await res.json();
 
-            // 1. Regional Pricing from Region_Pricing tab in the unified Google Sheet
-            if (Array.isArray(data.pricing) && data.pricing.length > 0) {
-              const normalizedPricing = data.pricing
-                .filter(item => item.id && truthy(item.published))
-                .map(item => ({
+            // 1. Regional Pricing from Region_Pricing (or Website Data) tab in the unified Google Sheet
+            const rawPricing = Array.isArray(data.pricing)
+              ? data.pricing
+              : (Array.isArray(data.regionPricing) ? data.regionPricing : []);
+
+            if (rawPricing.length > 0) {
+              const normalizedPricing = rawPricing
+                .filter(item => (item.id || item.location) && truthy(item.published))
+                .map((item, idx) => ({
                   ...item,
+                  id: item.id || `pkg-${idx + 1}`,
                   regular_price: parseMoney(item.regular_price),
                   sale_price: parseMoney(item.sale_price),
-                  display_order: Number(item.display_order) || 999
+                  display_order: Number(item.display_order) || (idx + 1)
                 }))
                 .filter(item => Number.isFinite(item.regular_price) && item.regular_price >= 0)
                 .sort((a, b) => a.display_order - b.display_order);
 
               if (normalizedPricing.length > 0) {
                 renderPrices(normalizedPricing);
-                status.dataset.state = 'live';
-                status.textContent = 'Live prices loaded from Google Sheets.';
+                hidePricingStatus();
               } else {
-                useFallback('Showing standard course pricing.', 'fallback');
+                useFallback();
               }
             } else {
-              useFallback('Showing standard course pricing.', 'fallback');
+              useFallback();
             }
 
-            // 2. Hero Promo Banner from Price_Banner tab in the unified Google Sheet
+            // 2. Services Page Pricing & Sales from Services_Pricing tab in the unified Google Sheet
+            if (Array.isArray(data.servicesPricing) && data.servicesPricing.length > 0) {
+              renderServicesPricing(data.servicesPricing);
+            } else {
+              renderServicesPricing(defaultServicesFallback);
+            }
+
+            // 3. Hero Promo Banner from Price_Banner tab in the unified Google Sheet
             if (data.priceBanner) {
               renderPriceBanner(data.priceBanner);
             }
 
-            // 3. Course Sessions from Available_Sessions tab in the unified Google Sheet
+            // 4. Course Sessions from Available_Sessions tab in the unified Google Sheet
             if (Array.isArray(data.sessions) && data.sessions.length > 0) {
               allSessions = data.sessions;
               renderSessionOptions();
@@ -4926,10 +5383,10 @@
             }
           } catch (err) {
             console.warn('Apps Script GET fallback used:', err);
-            useFallback('Showing standard course pricing.', 'fallback');
+            useFallback();
           }
         } else {
-          useFallback('Showing saved course prices.', 'fallback');
+          useFallback();
         }
         const saved = getLocalSessions();
         allSessions = saved && saved.length ? saved : defaultSessions;
